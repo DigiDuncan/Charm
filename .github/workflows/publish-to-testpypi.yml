@@ -1,0 +1,39 @@
+name: Publish to TestPyPI
+
+on: push
+
+jobs:
+  build-and-publish:
+    name: Build and publish distributions to TestPyPi
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v2
+
+    - name: Read metadata
+      id: metadata
+      uses: ./.github/actions/metadata
+
+    - name: Append build number to version
+      uses: ./.github/actions/append-buildnum
+      with:
+        package-path: ${{ steps.metadata.outputs.package-path }}
+        package-version: ${{ steps.metadata.outputs.package-version }}
+
+    - name: Set up Python ${{ steps.metadata.outputs.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ steps.metadata.outputs.python-version }}
+
+    - name: Install build dependencies
+      run: python -m pip install build --user
+
+    - name: Build distributions
+      run: python -m build --sdist --wheel --outdir dist/ .
+
+    - name: Publish distribution to Test PyPI
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        repository_url: https://test.pypi.org/legacy/

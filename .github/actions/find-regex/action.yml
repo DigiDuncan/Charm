@@ -1,0 +1,24 @@
+name: Append build number to version
+
+inputs:
+  regex:
+    description: Regular Expression
+    required: true
+  file:
+    description: Filename
+    required: true
+
+outputs:
+  text:
+    description: Found text
+    value: ${{ steps.find-text.outputs.text }}
+
+runs:
+  using: composite
+  steps:
+    - name: Find text
+      id: find-text
+      run: |
+        TEXT=$(sed -n "s/${{ inputs.regex }}/\1/p" "${{ inputs.file }}")
+        echo "::set-output name=text::$TEXT"
+      shell: bash
