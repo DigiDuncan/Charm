@@ -3,7 +3,7 @@ import arcade
 
 import charmtests.data.images
 from charmtests.lib.charm import CharmColors
-from charmtests.lib.utils import img_from_resource
+from charmtests.lib.utils import img_from_resource, bounce
 
 class TitleView(arcade.View):
     def __init__(self):
@@ -29,11 +29,11 @@ class TitleView(arcade.View):
         pass
 
     def on_update(self, delta_time):
-        m = 0.4
-        s = 2.5
+        m = 0.375
+        s = 3
         n = 0.3
         self.time += delta_time
-        self.logo.scale = max(abs(math.sin(self.time * math.pi * s)) * m, n)
+        self.logo.scale = bounce(n, m, s, self.time)
 
     def on_draw(self):
         arcade.start_render()
