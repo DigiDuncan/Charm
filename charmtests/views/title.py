@@ -1,5 +1,6 @@
+import importlib.resources as pkg_resources
 import math
-import random
+
 import arcade
 
 import charmtests.data.images
@@ -14,6 +15,8 @@ class TitleView(arcade.View):
         self.sprite_list = None
         self.local_time = 0
         self.camera = arcade.Camera(1280, 720, self.window)
+        self.song = None
+        self.volume = 0.1
 
     def setup(self):
         self.local_time = 0
@@ -54,8 +57,12 @@ class TitleView(arcade.View):
                 else:
                     self.small_logos_forward.append(s)
 
+        with pkg_resources.path(charmtests.data, "song.mp3") as p:
+            song = arcade.load_sound(p)
+            self.song = arcade.play_sound(song, self.volume, looping = True)
+
     def on_show(self):
-        pass
+        self.song.seek(self.local_time + 3)
 
     def on_update(self, delta_time):
         self.local_time += delta_time
@@ -67,7 +74,7 @@ class TitleView(arcade.View):
 
 
         m = 0.325
-        s = 3
+        s = (220 / 60)
         n = 0.3
         self.logo.scale = bounce(n, m, s, self.window.time)
         self.splash_label.text = self.splash_text[:max(0, int((self.local_time - 3) * 10))]
