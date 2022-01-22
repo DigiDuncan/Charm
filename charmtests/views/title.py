@@ -1,4 +1,5 @@
 import math
+import random
 import arcade
 
 import charmtests.data.images
@@ -12,6 +13,7 @@ class TitleView(arcade.View):
         self.logo = None
         self.sprite_list = None
         self.local_time = 0
+        self.camera = arcade.Camera(1280, 720, self.window)
 
     def setup(self):
         self.local_time = 0
@@ -70,8 +72,10 @@ class TitleView(arcade.View):
         self.logo.scale = bounce(n, m, s, self.window.time)
         self.splash_label.text = self.splash_text[:max(0, int((self.local_time - 3) * 10))]
 
+
     def on_draw(self):
         arcade.start_render()
+        self.camera.use()
 
         # Charm BG
         self.small_logos_forward.draw()

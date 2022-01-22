@@ -22,6 +22,7 @@ class MyGame(arcade.Window):
 
         arcade.draw_text("abc", 0, 0)  # force font init
 
+        self.debug_camera = arcade.Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
         self.fps_label = arcade.pyglet.text.Label("",
                           font_name='bananaslip plus plus',
                           font_size=12,
@@ -40,6 +41,7 @@ class MyGame(arcade.Window):
         self.time += delta_time
 
     def fps_draw(self):
+        self.debug_camera.use()
         self.fps_label.text = f"{1/self.delta_time:.1f} FPS"
         with self.ctx.pyglet_rendering():
             self.fps_label.draw()
