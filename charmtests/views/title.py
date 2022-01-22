@@ -64,11 +64,11 @@ class TitleView(arcade.View):
             s.left = s.original_left - ((self.local_time * self.logo_width / 4) % self.logo_width)
 
 
-        m = 0.375
+        m = 0.325
         s = 3
         n = 0.3
         self.logo.scale = bounce(n, m, s, self.window.time)
-        self.splash_label.text = self.splash_text[:max(0, int((self.local_time - 5) * 10))]
+        self.splash_label.text = self.splash_text[:max(0, int((self.local_time - 3) * 10))]
 
     def on_draw(self):
         arcade.start_render()
