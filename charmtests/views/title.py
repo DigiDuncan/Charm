@@ -3,6 +3,7 @@ import math
 
 import arcade
 
+import charmtests.data.audio
 import charmtests.data.images
 from charmtests.lib.charm import CharmColors
 from charmtests.lib.utils import img_from_resource, bounce
@@ -57,7 +58,7 @@ class TitleView(arcade.View):
                 else:
                     self.small_logos_forward.append(s)
 
-        with pkg_resources.path(charmtests.data, "song.mp3") as p:
+        with pkg_resources.path(charmtests.data.audio, "song.mp3") as p:
             song = arcade.load_sound(p)
             self.song = arcade.play_sound(song, self.volume, looping = True)
 
