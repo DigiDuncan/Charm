@@ -13,7 +13,7 @@ SCREEN_TITLE = "Charm"
 
 class CharmGame(arcade.Window):
     def __init__(self):
-        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE, update_rate=1/120)
+        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE, update_rate=1/240)
         icon = pyglet_img_from_resource(charmtests.data.images, "charm-icon32t.png")
         self.set_icon(icon)
 
