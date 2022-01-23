@@ -25,6 +25,8 @@ class TitleView(arcade.View):
 
         arcade.set_background_color(CharmColors.FADED_GREEN)
         self.main_sprites = arcade.SpriteList()
+
+        # Set up main logo
         logo_img = img_from_resource(charmtests.data.images, "logo.png")
         logo_texture = arcade.Texture("logo", logo_img)
         self.logo = arcade.Sprite(texture = logo_texture)
@@ -34,6 +36,7 @@ class TitleView(arcade.View):
 
         self.main_sprites.append(self.logo)
 
+        # Splash text
         self.splash_text = "it has splash text!"
         self.splash_label = arcade.pyglet.text.Label("",
                           font_name='bananaslip plus plus',
@@ -42,6 +45,7 @@ class TitleView(arcade.View):
                           anchor_x='left', anchor_y='top',
                           color = CharmColors.PURPLE + (0xFF,))
 
+        # Generate "gum wrapper" background
         self.small_logos_forward = arcade.SpriteList()
         self.small_logos_backward = arcade.SpriteList()
         small_logo_img = img_from_resource(charmtests.data.images, "small-logo.png")
@@ -60,10 +64,12 @@ class TitleView(arcade.View):
                 else:
                     self.small_logos_forward.append(s)
 
+        # Play music
         with pkg_resources.path(charmtests.data.audio, "song.mp3") as p:
             song = arcade.load_sound(p)
             self.song = arcade.play_sound(song, self.volume, looping = True)
 
+        # Song details
         self.song_label = arcade.pyglet.text.Label("Run Around The Character Code!\nCamellia feat. nanahira\n3LEEP!",
                           width=540,
                           font_name='bananaslip plus plus',
@@ -75,6 +81,7 @@ class TitleView(arcade.View):
         self.song_label.original_x = self.song_label.x
         self.song_label.x = -self.song_label.width
 
+        # Press start prompt
         self.press_label = arcade.pyglet.text.Label("<press start>",
                           font_name='bananaslip plus plus',
                           font_size=32,
@@ -90,6 +97,7 @@ class TitleView(arcade.View):
     def on_update(self, delta_time):
         self.local_time += delta_time
 
+        # Move background logos forwards and backwards, looping
         self.small_logos_forward.move((self.logo_width * delta_time / 4), 0)
         if self.small_logos_forward[0].left - self.small_logos_forward[0].original_left >= self.logo_width:
             self.small_logos_forward.move(-(self.small_logos_forward[0].left - self.small_logos_forward[0].original_left), 0)
@@ -97,13 +105,16 @@ class TitleView(arcade.View):
         if self.small_logos_backward[0].original_left - self.small_logos_backward[0].left >= self.logo_width:
             self.small_logos_backward.move(self.small_logos_backward[0].original_left - self.small_logos_backward[0].left, 0)
         
-
+        # Logo bounce
         m = 0.325
         s = (220 / 60)
         n = 0.3
         self.logo.scale = bounce(n, m, s, self.window.time)
+
+        # Splash text typewriter effect
         self.splash_label.text = self.splash_text[:max(0, int((self.local_time - 3) * 10))]
 
+        # Song name in and out
         if 3 <= self.local_time <= 5:  # constraining the time when we update the position should decrease lag,
                                        # even though it's technically unnecessary because the function is clamped
             self.song_label.x = ease_quadinout(-self.song_label.width, self.song_label.original_x, 3, 5, self.local_time)
@@ -118,7 +129,7 @@ class TitleView(arcade.View):
         self.small_logos_forward.draw()
         self.small_logos_backward.draw()
 
-        # Logo and splash
+        # Logo and text
         self.main_sprites.draw()
         with self.window.ctx.pyglet_rendering():
             self.splash_label.draw()
