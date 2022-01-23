@@ -62,6 +62,16 @@ class TitleView(arcade.View):
             song = arcade.load_sound(p)
             self.song = arcade.play_sound(song, self.volume, looping = True)
 
+        self.song_label = arcade.pyglet.text.Label("Run Around The Character Code!\nCamellia feat. nanahira\n3LEEP!",
+                          width=540,
+                          font_name='bananaslip plus plus',
+                          font_size=16,
+                          x=5, y=5,
+                          anchor_x='left', anchor_y='bottom',
+                          multiline=True,
+                          color = CharmColors.PURPLE + (0xFF,))
+        self.song_label.original_x = self.song_label.x
+
     def on_show(self):
         self.song.seek(self.local_time + 3)
 
@@ -93,5 +103,6 @@ class TitleView(arcade.View):
         self.main_sprites.draw()
         with self.window.ctx.pyglet_rendering():
             self.splash_label.draw()
+            self.song_label.draw()
 
         self.window.fps_draw()
