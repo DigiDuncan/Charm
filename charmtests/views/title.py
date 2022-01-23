@@ -46,14 +46,14 @@ class TitleView(arcade.View):
         self.small_logos_backward = arcade.SpriteList()
         small_logo_img = img_from_resource(charmtests.data.images, "small-logo.png")
         small_logo_texture = arcade.Texture("small_logo", small_logo_img)
-        sprites_horiz = math.ceil(self.size[0] / small_logo_texture.width) + 2
-        sprites_vert = math.ceil(self.size[1] / small_logo_texture.height)
+        sprites_horiz = math.ceil(self.size[0] / small_logo_texture.width)
+        sprites_vert = math.ceil(self.size[1] / small_logo_texture.height / 1.5)
         self.logo_width = small_logo_texture.width + 20
         for i in range(sprites_vert):
             for j in range(sprites_horiz):
                 s = arcade.Sprite(texture = small_logo_texture)
                 s.original_bottom = s.bottom = small_logo_texture.height * i * 1.5
-                s.original_left = s.left = self.logo_width * (j - 1)
+                s.original_left = s.left = self.logo_width * (j - 2)
                 s.alpha = 128
                 if i % 2:
                     self.small_logos_backward.append(s)
@@ -82,16 +82,21 @@ class TitleView(arcade.View):
                           anchor_x='center', anchor_y='center',
                           color = CharmColors.PURPLE + (0xFF,))
 
+        # self.camera.scale = 1
+
     def on_show(self):
         self.song.seek(self.local_time + 3)
 
     def on_update(self, delta_time):
         self.local_time += delta_time
 
-        for s in self.small_logos_forward:
-            s.left = s.original_left + ((self.local_time * self.logo_width / 4) % self.logo_width)
-        for s in self.small_logos_backward:
-            s.left = s.original_left - ((self.local_time * self.logo_width / 4) % self.logo_width)
+        self.small_logos_forward.move((self.logo_width * delta_time / 4), 0)
+        if self.small_logos_forward[0].left - self.small_logos_forward[0].original_left >= self.logo_width:
+            self.small_logos_forward.move(-(self.small_logos_forward[0].left - self.small_logos_forward[0].original_left), 0)
+        self.small_logos_backward.move(-(self.logo_width * delta_time / 4), 0)
+        if self.small_logos_backward[0].original_left - self.small_logos_backward[0].left >= self.logo_width:
+            self.small_logos_backward.move(self.small_logos_backward[0].original_left - self.small_logos_backward[0].left, 0)
+        
 
         m = 0.325
         s = (220 / 60)
@@ -120,5 +125,7 @@ class TitleView(arcade.View):
             self.song_label.draw()
             if int(self.local_time) % 2:
                 self.press_label.draw()
+
+        # arcade.draw_lrtb_rectangle_outline(0, 1280, 720, 0, arcade.color.RED, 3)
 
         self.window.fps_draw()
