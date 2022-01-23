@@ -5,8 +5,9 @@ import arcade
 
 import charmtests.data.audio
 import charmtests.data.images
+from charmtests.lib.anim import bounce, ease_quadinout
 from charmtests.lib.charm import CharmColors
-from charmtests.lib.utils import img_from_resource, bounce
+from charmtests.lib.utils import img_from_resource
 
 class TitleView(arcade.View):
     def __init__(self):
@@ -71,6 +72,7 @@ class TitleView(arcade.View):
                           multiline=True,
                           color = CharmColors.PURPLE + (0xFF,))
         self.song_label.original_x = self.song_label.x
+        self.song_label.x = -self.song_label.width
 
     def on_show(self):
         self.song.seek(self.local_time + 3)
@@ -83,13 +85,16 @@ class TitleView(arcade.View):
         for s in self.small_logos_backward:
             s.left = s.original_left - ((self.local_time * self.logo_width / 4) % self.logo_width)
 
-
         m = 0.325
         s = (220 / 60)
         n = 0.3
         self.logo.scale = bounce(n, m, s, self.window.time)
         self.splash_label.text = self.splash_text[:max(0, int((self.local_time - 3) * 10))]
 
+        if 3 <= self.local_time <= 5:
+            self.song_label.x = ease_quadinout(-self.song_label.width, 0, 3, 5, self.local_time)
+        elif 8 <= self.local_time <= 10:
+            self.song_label.x = ease_quadinout(0, -self.song_label.width, 8, 10, self.local_time)
 
     def on_draw(self):
         arcade.start_render()
