@@ -54,6 +54,7 @@ class TitleView(arcade.View):
                 s = arcade.Sprite(texture = small_logo_texture)
                 s.original_bottom = s.bottom = small_logo_texture.height * i * 1.5
                 s.original_left = s.left = self.logo_width * (j - 1)
+                s.alpha = 128
                 if i % 2:
                     self.small_logos_backward.append(s)
                 else:
@@ -74,6 +75,13 @@ class TitleView(arcade.View):
         self.song_label.original_x = self.song_label.x
         self.song_label.x = -self.song_label.width
 
+        self.press_label = arcade.pyglet.text.Label("<press start>",
+                          font_name='bananaslip plus plus',
+                          font_size=32,
+                          x=self.window.width//2, y=self.window.height//4,
+                          anchor_x='center', anchor_y='center',
+                          color = CharmColors.PURPLE + (0xFF,))
+
     def on_show(self):
         self.song.seek(self.local_time + 3)
 
@@ -91,10 +99,11 @@ class TitleView(arcade.View):
         self.logo.scale = bounce(n, m, s, self.window.time)
         self.splash_label.text = self.splash_text[:max(0, int((self.local_time - 3) * 10))]
 
-        if 3 <= self.local_time <= 5:
-            self.song_label.x = ease_quadinout(-self.song_label.width, 0, 3, 5, self.local_time)
+        if 3 <= self.local_time <= 5:  # constraining the time when we update the position should decrease lag,
+                                       # even though it's technically unnecessary because the function is clamped
+            self.song_label.x = ease_quadinout(-self.song_label.width, self.song_label.original_x, 3, 5, self.local_time)
         elif 8 <= self.local_time <= 10:
-            self.song_label.x = ease_quadinout(0, -self.song_label.width, 8, 10, self.local_time)
+            self.song_label.x = ease_quadinout(self.song_label.original_x, -self.song_label.width, 8, 10, self.local_time)
 
     def on_draw(self):
         arcade.start_render()
@@ -109,5 +118,7 @@ class TitleView(arcade.View):
         with self.window.ctx.pyglet_rendering():
             self.splash_label.draw()
             self.song_label.draw()
+            if int(self.local_time) % 2:
+                self.press_label.draw()
 
         self.window.fps_draw()
