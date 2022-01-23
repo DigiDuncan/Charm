@@ -2,6 +2,8 @@ import importlib.resources as pkg_resources
 import math
 
 import arcade
+import arrow
+from arrow import Arrow
 
 import charmtests.data.audio
 import charmtests.data.images
@@ -19,6 +21,8 @@ class TitleView(arcade.View):
         self.camera = arcade.Camera(1280, 720, self.window)
         self.song = None
         self.volume = 0.1
+        self.hit_start: Arrow = None
+        self.sounds: dict[str, arcade.Sound] = {}
 
     def setup(self):
         self.local_time = 0
@@ -89,10 +93,22 @@ class TitleView(arcade.View):
                           anchor_x='center', anchor_y='center',
                           color = CharmColors.PURPLE + (0xFF,))
 
+        # Load sound
+        with pkg_resources.path(charmtests.data.audio, "sfx-valid.wav") as p:
+            self.sounds["valid"] = arcade.load_sound(p)
+
         # self.camera.scale = 1
 
     def on_show(self):
         self.song.seek(self.local_time + 3)
+
+    def on_key_press(self, symbol: int, modifiers: int):
+        match symbol:
+            case arcade.key.ENTER:
+                self.hit_start = arrow.now()
+                arcade.play_sound(self.sounds["valid"])
+
+        return super().on_key_press(symbol, modifiers)
 
     def on_update(self, delta_time):
         self.local_time += delta_time
@@ -134,8 +150,12 @@ class TitleView(arcade.View):
         with self.window.ctx.pyglet_rendering():
             self.splash_label.draw()
             self.song_label.draw()
-            if int(self.local_time) % 2:
-                self.press_label.draw()
+            if self.hit_start is None:
+                if int(self.local_time) % 2:
+                    self.press_label.draw()
+            else:
+                if int(self.local_time * 4) % 2:
+                    self.press_label.draw()
 
         # arcade.draw_lrtb_rectangle_outline(0, 1280, 720, 0, arcade.color.RED, 3)
 
