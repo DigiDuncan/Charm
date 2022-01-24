@@ -19,6 +19,14 @@ def bounce(n: float, m: float, s: float, x: float) -> float:
     """Create a bouncing motion between max(0, n) and m with period 1/s at time x."""
     return max(abs(math.sin(x * math.pi * s)) * m, n)
 
+def ease_linear(minimum: float, maximum: float, start: float, end: float, x: float) -> float:
+    """* `minimum: float`: the value returned by f(`x`) = `start`, often a position
+       * `maximum: float`: the value returned by f(`x`) = `end`, often a position
+       * `start: float`: the beginning of the transition, often a time
+       * `end: float`: the end of the transition, often a time
+       * `x: float`: the current x, often a time"""
+    x = time_to_zero_one_ramp(start, end, x)
+    return zero_one_to_range(minimum, maximum, x)
 
 def ease_quadinout(minimum: float, maximum: float, start: float, end: float, x: float) -> float:
     """https://easings.net/#easeInOutQuad"""

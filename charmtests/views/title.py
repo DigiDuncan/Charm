@@ -2,30 +2,34 @@ import importlib.resources as pkg_resources
 import math
 
 import arcade
-import arrow
-from arrow import Arrow
 
 import charmtests.data.audio
 import charmtests.data.images
-from charmtests.lib.anim import bounce, ease_quadinout
+from charmtests.lib.anim import bounce, ease_linear, ease_quadinout
 from charmtests.lib.charm import CharmColors
 from charmtests.lib.utils import img_from_resource
+from charmtests.views.menu import MainMenuView
+
+FADE_DELAY = 1
+SWITCH_DELAY = 0.5 + FADE_DELAY
 
 class TitleView(arcade.View):
     def __init__(self):
         super().__init__()
         self.size = self.window.get_size()
         self.logo = None
-        self.sprite_list = None
+        self.main_sprites = None
         self.local_time = 0
         self.camera = arcade.Camera(1280, 720, self.window)
         self.song = None
         self.volume = 0.1
-        self.hit_start: Arrow = None
+        self.hit_start: None
         self.sounds: dict[str, arcade.Sound] = {}
+        self.main_menu_view = MainMenuView()
 
     def setup(self):
         self.local_time = 0
+        self.hit_start = None
 
         arcade.set_background_color(CharmColors.FADED_GREEN)
         self.main_sprites = arcade.SpriteList()
@@ -105,7 +109,7 @@ class TitleView(arcade.View):
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:
             case arcade.key.ENTER:
-                self.hit_start = arrow.now()
+                self.hit_start = self.local_time
                 arcade.play_sound(self.sounds["valid"])
 
         return super().on_key_press(symbol, modifiers)
@@ -137,6 +141,15 @@ class TitleView(arcade.View):
         elif 8 <= self.local_time <= 10:
             self.song_label.x = ease_quadinout(self.song_label.original_x, -self.song_label.width, 8, 10, self.local_time)
 
+        if self.hit_start is not None:
+            # Fade music
+            if self.local_time >= self.hit_start + FADE_DELAY:
+                self.song.volume = ease_linear(self.volume, 0, self.hit_start + FADE_DELAY, self.hit_start + SWITCH_DELAY, self.local_time)
+            # Go to main menu
+            if self.local_time >= self.hit_start + SWITCH_DELAY:
+                self.main_menu_view.setup()
+                self.window.show_view(self.main_menu_view)
+
     def on_draw(self):
         arcade.start_render()
         self.camera.use()
@@ -156,6 +169,12 @@ class TitleView(arcade.View):
             else:
                 if int(self.local_time * 4) % 2:
                     self.press_label.draw()
+            
+        if self.hit_start and self.local_time >= self.hit_start + FADE_DELAY:
+            alpha = ease_linear(0, 255, self.hit_start + FADE_DELAY, self.hit_start + SWITCH_DELAY, self.local_time)
+            arcade.draw_lrtb_rectangle_filled(0, 1280, 720, 0,
+                (0, 0, 0, alpha)
+            )
 
         # arcade.draw_lrtb_rectangle_outline(0, 1280, 720, 0, arcade.color.RED, 3)
 
