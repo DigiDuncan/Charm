@@ -76,6 +76,7 @@ class TitleView(arcade.View):
         with pkg_resources.path(charmtests.data.audio, "song.mp3") as p:
             song = arcade.load_sound(p)
             self.song = arcade.play_sound(song, self.volume, looping = True)
+        self.song.seek(self.local_time + 3)
 
         # Song details
         self.song_label = arcade.pyglet.text.Label("Run Around The Character Code!\nCamellia feat. nanahira\n3LEEP!",
@@ -103,16 +104,14 @@ class TitleView(arcade.View):
 
         # self.camera.scale = 1
 
-    def on_show(self):
-        self.song.seek(self.local_time + 3)
-
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:
             case arcade.key.ENTER:
                 self.hit_start = self.local_time
                 arcade.play_sound(self.sounds["valid"])
             case arcade.key.KEY_0:
-                self.local_time = 0
+                self.song.delete()
+                self.setup()
 
         return super().on_key_press(symbol, modifiers)
 
