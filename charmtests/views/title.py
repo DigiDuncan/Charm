@@ -111,6 +111,8 @@ class TitleView(arcade.View):
             case arcade.key.ENTER:
                 self.hit_start = self.local_time
                 arcade.play_sound(self.sounds["valid"])
+            case arcade.key.KEY_0:
+                self.local_time = 0
 
         return super().on_key_press(symbol, modifiers)
 

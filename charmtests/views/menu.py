@@ -18,7 +18,6 @@ class MainMenuView(arcade.View):
         self.main_sprites = None
         self.local_time = 0
         self.camera = arcade.Camera(1280, 720, self.window)
-        self.rotating_camera = arcade.Camera(1280, 720, self.window)
         self.song = None
         self.volume = 0.75
         self.sounds: dict[str, arcade.Sound] = {}
@@ -49,10 +48,10 @@ class MainMenuView(arcade.View):
                 else:
                     self.small_logos_forward.append(s)
 
-        self.test_label = arcade.pyglet.text.Label("this is the main menu!",
+        self.test_label = arcade.Text("this is the main menu!",
                           font_name='bananaslip plus plus',
                           font_size=60,
-                          x=self.window.width//2, y=self.window.height//2,
+                          start_x=self.window.width//2, start_y=self.window.height//2,
                           anchor_x='center', anchor_y='center',
                           color = CharmColors.PURPLE + (0xFF,))
 
@@ -74,7 +73,7 @@ class MainMenuView(arcade.View):
         if self.small_logos_backward[0].original_left - self.small_logos_backward[0].left >= self.logo_width:
             self.small_logos_backward.move(self.small_logos_backward[0].original_left - self.small_logos_backward[0].left, 0)
 
-        # self.rotating_camera.rotation = math.sin(self.local_time) / 2
+        self.test_label.rotation = math.sin(self.local_time * 4) * 6.25
 
     def on_draw(self):
         arcade.start_render()
@@ -84,12 +83,9 @@ class MainMenuView(arcade.View):
         self.small_logos_forward.draw()
         self.small_logos_backward.draw()
 
-        self.rotating_camera.use()
-        with self.window.ctx.pyglet_rendering():
-             self.test_label.draw()
+        self.test_label.draw()
 
         if self.local_time <= FADE_DELAY:
-            self.camera.use()
             alpha = ease_linear(255, 0, 0, FADE_DELAY, self.local_time)
             arcade.draw_lrtb_rectangle_filled(0, 1280, 720, 0,
                 (0, 0, 0, alpha)
