@@ -8,8 +8,6 @@ import charmtests.data.images
 from charmtests.lib.anim import ease_linear
 from charmtests.lib.charm import CharmColors
 from charmtests.lib.utils import img_from_resource
-from charmtests.objects.menu import MenuItem
-from charmtests.objects.song import Song
 
 FADE_DELAY = 0.5
 
@@ -21,7 +19,7 @@ class MainMenuView(arcade.View):
         self.local_time = 0
         self.camera = arcade.Camera(1280, 720, self.window)
         self.song = None
-        self.volume = 0.5
+        self.volume = 0.75
         self.sounds: dict[str, arcade.Sound] = {}
 
     def setup(self):
@@ -57,10 +55,6 @@ class MainMenuView(arcade.View):
                           anchor_x='center', anchor_y='center',
                           color = CharmColors.PURPLE + (0xFF,))
 
-        self.test_menu_item = MenuItem(Song("It's A Song!"))
-        self.test_menu_item.center_x = self.window.width // 2
-        self.test_menu_item.center_y = self.window.height // 4
-
         # Play music
         with pkg_resources.path(charmtests.data.audio, "petscop.mp3") as p:
             song = arcade.load_sound(p)
@@ -90,7 +84,6 @@ class MainMenuView(arcade.View):
         self.small_logos_backward.draw()
 
         self.test_label.draw()
-        self.test_menu_item.draw()
 
         if self.local_time <= FADE_DELAY:
             alpha = ease_linear(255, 0, 0, FADE_DELAY, self.local_time)

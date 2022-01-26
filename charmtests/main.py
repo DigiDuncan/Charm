@@ -2,12 +2,13 @@ import arcade
 import charmtests
 
 import charmtests.data.images
+from charmtests.lib.settings import Settings
 from charmtests.lib.utils import pyglet_img_from_resource
 
 from .views.title import TitleView
 
-SCREEN_WIDTH = 1280
-SCREEN_HEIGHT = 720
+SCREEN_WIDTH = Settings.width
+SCREEN_HEIGHT = Settings.height
 SCREEN_TITLE = "Charm"
 
 
