@@ -13,11 +13,9 @@ from charmtests.objects.menu import Menu, MenuItem
 from charmtests.objects.song import Song
 from charmtests.views.song import SongView
 
-FADE_DELAY = 0.5
-
 class MainMenuView(DigiView):
     def __init__(self):
-        super().__init__(fade_in=1, bg_color=CharmColors.FADED_GREEN, show_fps=True)
+        super().__init__(fade_in=0.5, bg_color=CharmColors.FADED_GREEN, show_fps=True)
         self.main_sprites = None
         self.camera = arcade.Camera(1280, 720, self.window)
         self.song = None
