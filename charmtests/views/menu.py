@@ -106,7 +106,7 @@ class MainMenuView(arcade.View):
             case arcade.key.DOWN:
                 self.menu.selected_id += 1
             case arcade.key.ENTER:
-                songview = SongView(self.menu.items[self.menu.selected_id], self)
+                songview = SongView(self.menu.items[self.menu.selected_id], back = self)
                 songview.setup()
                 self.window.show_view(songview)
         self.menu.selected_id = clamp(0, self.menu.selected_id, len(self.menu.items) - 1)

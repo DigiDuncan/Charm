@@ -7,27 +7,25 @@ import charmtests.data.audio
 import charmtests.data.images
 from charmtests.lib.anim import ease_linear
 from charmtests.lib.charm import CharmColors
+from charmtests.lib.digiview import DigiView
 from charmtests.lib.utils import img_from_resource
 from charmtests.objects.song import Song
 
 FADE_DELAY = 0.5
 
-class SongView(arcade.View):
-    def __init__(self, song: Song, menu):
-        super().__init__()
-        self.size = self.window.get_size()
+class SongView(DigiView):
+    def __init__(self, song: Song, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fade_in = 1
+        self.bg_color = CharmColors.FADED_GREEN
         self.main_sprites = None
-        self.local_time = 0
         self.camera = arcade.Camera(1280, 720, self.window)
         self.volume = 0.5
         self.songdata = song
         self.back_sound: arcade.Sound = None
-        self.back = menu
 
     def setup(self):
-        self.local_time = 0
-
-        arcade.set_background_color(CharmColors.FADED_GREEN)
+        super().setup()
 
         # Generate "gum wrapper" background
         self.small_logos_forward = arcade.SpriteList()
@@ -74,7 +72,7 @@ class SongView(arcade.View):
         return super().on_key_press(symbol, modifiers)
 
     def on_update(self, delta_time):
-        self.local_time += delta_time
+        super().on_update(delta_time)
 
         # Move background logos forwards and backwards, looping
         self.small_logos_forward.move((self.logo_width * delta_time / 4), 0)
@@ -95,8 +93,4 @@ class SongView(arcade.View):
         self.title_label.draw()
         self.artistalbum_label.draw()
 
-        if self.local_time <= FADE_DELAY:
-            alpha = ease_linear(255, 0, 0, FADE_DELAY, self.local_time)
-            arcade.draw_lrtb_rectangle_filled(0, 1280, 720, 0,
-                (0, 0, 0, alpha)
-            )
+        super().on_draw()
