@@ -133,7 +133,7 @@ class TitleView(arcade.View):
         self.logo.scale = bounce(n, m, s, self.window.time)
 
         # Splash text typewriter effect
-        self.splash_label.text = self.splash_text[:max(0, int((self.local_time - 3) * 10))]
+        self.splash_label.text = self.splash_text[:max(0, int((self.local_time - 3) * 20))]
 
         # Song name in and out
         if 3 <= self.local_time <= 5:  # constraining the time when we update the position should decrease lag,

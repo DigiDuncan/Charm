@@ -30,6 +30,12 @@ class CharmGame(arcade.Window):
                           x=0, y=self.height,
                           anchor_x='left', anchor_y='top',
                           color = (0, 0, 0) + (0xFF,))
+        self.fps_shadow_label = arcade.pyglet.text.Label("",
+                          font_name='bananaslip plus plus',
+                          font_size=12,
+                          x=2, y=self.height - 2,
+                          anchor_x='left', anchor_y='top',
+                          color = (0xAA, 0xAA, 0xAA) + (0xFF,))
 
         self.title_view = TitleView()
 
@@ -43,10 +49,10 @@ class CharmGame(arcade.Window):
 
     def fps_draw(self):
         self.debug_camera.use()
-        self.fps_label.text = f"{1/self.delta_time:.1f} FPS"
+        self.fps_label.text = self.fps_shadow_label.text = f"{1/self.delta_time:.1f} FPS"
         with self.ctx.pyglet_rendering():
+            self.fps_shadow_label.draw()
             self.fps_label.draw()
-
 
 
 def main():

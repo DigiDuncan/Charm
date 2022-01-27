@@ -130,3 +130,5 @@ class MainMenuView(arcade.View):
             arcade.draw_lrtb_rectangle_filled(0, 1280, 720, 0,
                 (0, 0, 0, alpha)
             )
+
+        self.window.fps_draw()

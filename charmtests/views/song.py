@@ -15,9 +15,10 @@ FADE_DELAY = 0.5
 
 class SongView(DigiView):
     def __init__(self, song: Song, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fade_in = 1
-        self.bg_color = CharmColors.FADED_GREEN
+        super().__init__(fade_in = 1,
+        bg_color = CharmColors.FADED_GREEN,
+        show_fps = True, *args, **kwargs)
+        
         self.main_sprites = None
         self.camera = arcade.Camera(1280, 720, self.window)
         self.volume = 0.5
