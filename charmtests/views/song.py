@@ -7,30 +7,27 @@ import charmtests.data.audio
 import charmtests.data.images
 from charmtests.lib.anim import ease_linear
 from charmtests.lib.charm import CharmColors
-from charmtests.lib.utils import clamp, img_from_resource
-from charmtests.objects.menu import Menu, MenuItem
+from charmtests.lib.utils import img_from_resource
 from charmtests.objects.song import Song
-from charmtests.views.song import SongView
 
 FADE_DELAY = 0.5
 
-class MainMenuView(arcade.View):
-    def __init__(self):
+class SongView(arcade.View):
+    def __init__(self, song: Song, menu):
         super().__init__()
         self.size = self.window.get_size()
         self.main_sprites = None
         self.local_time = 0
         self.camera = arcade.Camera(1280, 720, self.window)
-        self.song = None
         self.volume = 0.5
-        self.sounds: dict[str, arcade.Sound] = {}
+        self.songdata = song
+        self.back_sound: arcade.Sound = None
+        self.back = menu
 
     def setup(self):
         self.local_time = 0
-        self.hit_start = None
 
         arcade.set_background_color(CharmColors.FADED_GREEN)
-        self.main_sprites = arcade.SpriteList()
 
         # Generate "gum wrapper" background
         self.small_logos_forward = arcade.SpriteList()
@@ -51,39 +48,30 @@ class MainMenuView(arcade.View):
                 else:
                     self.small_logos_forward.append(s)
 
-        self.test_label = arcade.Text("this is the main menu!",
+        self.title_label = arcade.Text(self.songdata.title,
                           font_name='bananaslip plus plus',
                           font_size=60,
                           start_x=self.window.width//2, start_y=self.window.height//2,
-                          anchor_x='center', anchor_y='center',
+                          anchor_x='center', anchor_y='bottom',
                           color = CharmColors.PURPLE + (0xFF,))
 
-        self.songs = [
-            Song("It's A Song!", "DigiDuncan", "The Digi EP"),
-            Song("Never Gonna Give You Up", "Rick Astley", "Rickrollin'"),
-            Song("Caramelldansen", "Caramell", "Supergott"),
-            Song("Run Around The Character Code!", "Camellia feat. nanhira", "3LEEP!"),
-            Song("The Funny Dream Music", "Dream", "Cheating"),
-            Song("Robot Rock", "Daft Punk", "I Forget, Sorry"),
-            Song("Just Screaming", "AAAAAAAAAA", "AAAAAAAA"),
-            Song("Twinkle, Twinkle, Patrick Star", "Patrick Star", "The Star Hits"),
-            Song("Less Talk More Rokk", "Freezepop", "Rock Band 2"),
-            Song("Thinking Of Songs Is Hard", "God Dang It", ":omegaAAA:"),
-            Song("ERROR", "Garry", "My Mod")
-        ]
-        # self.test_menu_item = MenuItem(Song("It's A Song!"))
-        # self.test_menu_item.center_x = self.window.width // 2
-        # self.test_menu_item.center_y = self.window.height // 4
-        self.menu = Menu(self.songs)
-        self.menu.sort("title")
-        self.menu.selected_id = 0
+        self.artistalbum_label = arcade.Text(self.songdata.artist + " - " + self.songdata.album,
+                          font_name='bananaslip plus plus',
+                          font_size=40,
+                          start_x=self.window.width//2, start_y=self.window.height//2,
+                          anchor_x='center', anchor_y='top',
+                          color = CharmColors.PURPLE + (0xFF,))
 
         # Play music
         with pkg_resources.path(charmtests.data.audio, "petscop.mp3") as p:
             song = arcade.load_sound(p)
             self.song = arcade.play_sound(song, self.volume, looping = True)
 
-        print("Loaded menu...")
+    def on_key_press(self, symbol: int, modifiers: int):
+        match symbol:
+            case arcade.key.BACKSPACE:
+                self.window.show_view(self.back)
+        return super().on_key_press(symbol, modifiers)
 
     def on_update(self, delta_time):
         self.local_time += delta_time
@@ -96,23 +84,6 @@ class MainMenuView(arcade.View):
         if self.small_logos_backward[0].original_left - self.small_logos_backward[0].left >= self.logo_width:
             self.small_logos_backward.move(self.small_logos_backward[0].original_left - self.small_logos_backward[0].left, 0)
 
-        self.test_label.rotation = math.sin(self.local_time * 4) * 6.25
-        self.menu.update(self.local_time)
-
-    def on_key_press(self, symbol: int, modifiers: int):
-        match symbol:
-            case arcade.key.UP:
-                self.menu.selected_id -= 1
-            case arcade.key.DOWN:
-                self.menu.selected_id += 1
-            case arcade.key.ENTER:
-                songview = SongView(self.menu.items[self.menu.selected_id], self)
-                songview.setup()
-                self.window.show_view(songview)
-        self.menu.selected_id = clamp(0, self.menu.selected_id, len(self.menu.items) - 1)
-        self.menu.update_please = True
-        return super().on_key_press(symbol, modifiers)
-
     def on_draw(self):
         arcade.start_render()
         self.camera.use()
@@ -121,9 +92,8 @@ class MainMenuView(arcade.View):
         self.small_logos_forward.draw()
         self.small_logos_backward.draw()
 
-        self.test_label.draw()
-        # self.test_menu_item.draw()
-        self.menu.draw()
+        self.title_label.draw()
+        self.artistalbum_label.draw()
 
         if self.local_time <= FADE_DELAY:
             alpha = ease_linear(255, 0, 0, FADE_DELAY, self.local_time)
