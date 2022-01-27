@@ -61,6 +61,10 @@ class SongView(DigiView):
                           anchor_x='center', anchor_y='top',
                           color = CharmColors.PURPLE + (0xFF,))
 
+        #back sound
+        with pkg_resources.path(charmtests.data.audio, "sfx-back.wav") as p:
+            self.back_sound = arcade.load_sound(p)
+
         # Play music
         with pkg_resources.path(charmtests.data.audio, "petscop.mp3") as p:
             song = arcade.load_sound(p)
@@ -70,6 +74,7 @@ class SongView(DigiView):
         match symbol:
             case arcade.key.BACKSPACE:
                 self.window.show_view(self.back)
+                arcade.play_sound(self.back_sound)
         return super().on_key_press(symbol, modifiers)
 
     def on_update(self, delta_time):

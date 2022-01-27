@@ -7,6 +7,7 @@ import charmtests.data.audio
 import charmtests.data.images
 from charmtests.lib.anim import ease_linear
 from charmtests.lib.charm import CharmColors
+from charmtests.lib.digiview import DigiView
 from charmtests.lib.utils import clamp, img_from_resource
 from charmtests.objects.menu import Menu, MenuItem
 from charmtests.objects.song import Song
@@ -14,22 +15,19 @@ from charmtests.views.song import SongView
 
 FADE_DELAY = 0.5
 
-class MainMenuView(arcade.View):
+class MainMenuView(DigiView):
     def __init__(self):
-        super().__init__()
-        self.size = self.window.get_size()
+        super().__init__(fade_in=1, bg_color=CharmColors.FADED_GREEN, show_fps=True)
         self.main_sprites = None
-        self.local_time = 0
         self.camera = arcade.Camera(1280, 720, self.window)
         self.song = None
         self.volume = 0.5
         self.sounds: dict[str, arcade.Sound] = {}
 
     def setup(self):
-        self.local_time = 0
-        self.hit_start = None
+        super().setup()
 
-        arcade.set_background_color(CharmColors.FADED_GREEN)
+        self.hit_start = None
         self.main_sprites = arcade.SpriteList()
 
         # Generate "gum wrapper" background
@@ -71,9 +69,7 @@ class MainMenuView(arcade.View):
             Song("Thinking Of Songs Is Hard", "God Dang It", ":omegaAAA:"),
             Song("ERROR", "Garry", "My Mod")
         ]
-        # self.test_menu_item = MenuItem(Song("It's A Song!"))
-        # self.test_menu_item.center_x = self.window.width // 2
-        # self.test_menu_item.center_y = self.window.height // 4
+
         self.menu = Menu(self.songs)
         self.menu.sort("title")
         self.menu.selected_id = 0
@@ -86,7 +82,7 @@ class MainMenuView(arcade.View):
         print("Loaded menu...")
 
     def on_update(self, delta_time):
-        self.local_time += delta_time
+        super().on_update(delta_time)
 
         # Move background logos forwards and backwards, looping
         self.small_logos_forward.move((self.logo_width * delta_time / 4), 0)
@@ -111,7 +107,6 @@ class MainMenuView(arcade.View):
                 self.window.show_view(songview)
         self.menu.selected_id = clamp(0, self.menu.selected_id, len(self.menu.items) - 1)
         self.menu.update_please = True
-        return super().on_key_press(symbol, modifiers)
 
     def on_draw(self):
         arcade.start_render()
@@ -122,13 +117,6 @@ class MainMenuView(arcade.View):
         self.small_logos_backward.draw()
 
         self.test_label.draw()
-        # self.test_menu_item.draw()
         self.menu.draw()
-
-        if self.local_time <= FADE_DELAY:
-            alpha = ease_linear(255, 0, 0, FADE_DELAY, self.local_time)
-            arcade.draw_lrtb_rectangle_filled(0, 1280, 720, 0,
-                (0, 0, 0, alpha)
-            )
 
         self.window.fps_draw()
