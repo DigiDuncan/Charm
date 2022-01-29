@@ -6,7 +6,7 @@ import arcade
 import charmtests.data.audio
 import charmtests.data.images
 from charmtests.lib.anim import ease_linear
-from charmtests.lib.charm import CharmColors
+from charmtests.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charmtests.lib.digiview import DigiView
 from charmtests.lib.utils import img_from_resource
 from charmtests.objects.song import Song
@@ -29,23 +29,7 @@ class SongView(DigiView):
         super().setup()
 
         # Generate "gum wrapper" background
-        self.small_logos_forward = arcade.SpriteList()
-        self.small_logos_backward = arcade.SpriteList()
-        small_logo_img = img_from_resource(charmtests.data.images, "small-logo.png")
-        small_logo_texture = arcade.Texture("small_logo", small_logo_img)
-        sprites_horiz = math.ceil(self.size[0] / small_logo_texture.width)
-        sprites_vert = math.ceil(self.size[1] / small_logo_texture.height / 1.5)
-        self.logo_width = small_logo_texture.width + 20
-        for i in range(sprites_vert):
-            for j in range(sprites_horiz):
-                s = arcade.Sprite(texture = small_logo_texture)
-                s.original_bottom = s.bottom = small_logo_texture.height * i * 1.5
-                s.original_left = s.left = self.logo_width * (j - 2)
-                s.alpha = 128
-                if i % 2:
-                    self.small_logos_backward.append(s)
-                else:
-                    self.small_logos_forward.append(s)
+        self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
 
         self.title_label = arcade.Text(self.songdata.title,
                           font_name='bananaslip plus plus',
@@ -80,13 +64,7 @@ class SongView(DigiView):
     def on_update(self, delta_time):
         super().on_update(delta_time)
 
-        # Move background logos forwards and backwards, looping
-        self.small_logos_forward.move((self.logo_width * delta_time / 4), 0)
-        if self.small_logos_forward[0].left - self.small_logos_forward[0].original_left >= self.logo_width:
-            self.small_logos_forward.move(-(self.small_logos_forward[0].left - self.small_logos_forward[0].original_left), 0)
-        self.small_logos_backward.move(-(self.logo_width * delta_time / 4), 0)
-        if self.small_logos_backward[0].original_left - self.small_logos_backward[0].left >= self.logo_width:
-            self.small_logos_backward.move(self.small_logos_backward[0].original_left - self.small_logos_backward[0].left, 0)
+        move_gum_wrapper(self.logo_width, self.small_logos_forward, self.small_logos_backward, delta_time)
 
     def on_draw(self):
         arcade.start_render()
