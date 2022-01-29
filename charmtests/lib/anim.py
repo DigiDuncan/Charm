@@ -15,9 +15,9 @@ def zero_one_to_range(start: float, end: float, i: float) -> float:
     return start + (i * (end - start))
     
 
-def bounce(n: float, m: float, s: float, x: float) -> float:
-    """Create a bouncing motion between max(0, n) and m with period 1/s at time x."""
-    return max(abs(math.sin(x * math.pi * s)) * m, n)
+def bounce(n: float, m: float, bpm: float, x: float) -> float:
+    """Create a bouncing motion between max(0, n) and m at bpm at time x."""
+    return max(abs(math.sin(x * math.pi * (bpm / 60))) * m, n)
 
 def ease_linear(minimum: float, maximum: float, start: float, end: float, x: float) -> float:
     """* `minimum: float`: the value returned by f(`x`) = `start`, often a position

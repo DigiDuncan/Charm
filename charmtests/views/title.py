@@ -107,9 +107,9 @@ class TitleView(arcade.View):
         
         # Logo bounce
         m = 0.325
-        s = (220 / 60)
+        bpm = 220
         n = 0.3
-        self.logo.scale = bounce(n, m, s, self.window.time)
+        self.logo.scale = bounce(n, m, bpm, self.window.time)
 
         # Splash text typewriter effect
         self.splash_label.text = self.splash_text[:max(0, int((self.local_time - 3) * 20))]
