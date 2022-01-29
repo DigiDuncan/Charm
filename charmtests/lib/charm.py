@@ -26,11 +26,12 @@ def generate_gum_wrapper(size: tuple[int], buffer: int = 20, alpha = 128) -> tup
             s = arcade.Sprite(texture = small_logo_texture)
             s.original_bottom = s.bottom = small_logo_texture.height * i * 1.5
             s.original_left = s.left = logo_width * (j - 2)
-            s.alpha = alpha
             if i % 2:
                 small_logos_backward.append(s)
             else:
                 small_logos_forward.append(s)
+    small_logos_forward.alpha = alpha
+    small_logos_backward.alpha = alpha
     return (logo_width, small_logos_forward, small_logos_backward)
 
 def move_gum_wrapper(logo_width: int, small_logos_forward: SpriteList, small_logos_backward: SpriteList, delta_time: float, speed = 4) -> None:
