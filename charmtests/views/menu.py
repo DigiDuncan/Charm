@@ -61,8 +61,6 @@ class MainMenuView(DigiView):
             with pkg_resources.path(charmtests.data.audio, f"sfx-{soundname}.wav") as p:
                 self.sounds[soundname] = arcade.load_sound(p)
 
-        print("Loaded menu...")
-
     def on_show(self):
         # Play music
         with pkg_resources.path(charmtests.data.audio, "petscop.mp3") as p:
