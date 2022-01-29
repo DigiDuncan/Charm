@@ -57,6 +57,7 @@ class CharmGame(arcade.Window):
         self.debug_camera.use()
         if self.fps_checks % (FPS_CAP / 8) == 0:
             average = statistics.mean(self.fps_averages)
+            self.fps_label.color = arcade.color.BLACK + (0xFF,) if average >= 120 else arcade.color.RED + (0xFF,)
             self.fps_label.text = self.fps_shadow_label.text = f"{average:.1f} FPS"
             self.fps_averages.clear()
         else:
