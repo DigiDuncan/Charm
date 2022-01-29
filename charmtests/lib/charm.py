@@ -12,7 +12,7 @@ class CharmColors:
     PURPLE = (0x83, 0x94, 0xD8)
 
 
-def generate_gum_wrapper(size: tuple[int], buffer: int = 20) -> tuple[int, SpriteList, SpriteList]:
+def generate_gum_wrapper(size: tuple[int], buffer: int = 20, alpha = 128) -> tuple[int, SpriteList, SpriteList]:
     """Generate two SpriteLists that makes a gum wrapper-style background."""
     small_logos_forward = arcade.SpriteList()
     small_logos_backward = arcade.SpriteList()
@@ -26,18 +26,18 @@ def generate_gum_wrapper(size: tuple[int], buffer: int = 20) -> tuple[int, Sprit
             s = arcade.Sprite(texture = small_logo_texture)
             s.original_bottom = s.bottom = small_logo_texture.height * i * 1.5
             s.original_left = s.left = logo_width * (j - 2)
-            s.alpha = 128
+            s.alpha = alpha
             if i % 2:
                 small_logos_backward.append(s)
             else:
                 small_logos_forward.append(s)
     return (logo_width, small_logos_forward, small_logos_backward)
 
-def move_gum_wrapper(logo_width: int, small_logos_forward: SpriteList, small_logos_backward: SpriteList, delta_time: float) -> None:
+def move_gum_wrapper(logo_width: int, small_logos_forward: SpriteList, small_logos_backward: SpriteList, delta_time: float, speed = 4) -> None:
     """Move background logos forwards and backwards, looping."""
-    small_logos_forward.move((logo_width * delta_time / 4), 0)
+    small_logos_forward.move((logo_width * delta_time / speed), 0)
     if small_logos_forward[0].left - small_logos_forward[0].original_left >= logo_width:
         small_logos_forward.move(-(small_logos_forward[0].left - small_logos_forward[0].original_left), 0)
-    small_logos_backward.move(-(logo_width * delta_time / 4), 0)
+    small_logos_backward.move(-(logo_width * delta_time / speed), 0)
     if small_logos_backward[0].original_left - small_logos_backward[0].left >= logo_width:
         small_logos_backward.move(small_logos_backward[0].original_left - small_logos_backward[0].left, 0)
