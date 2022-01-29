@@ -1,5 +1,6 @@
 import importlib.resources as pkg_resources
 import math
+import random
 
 import arcade
 
@@ -45,7 +46,7 @@ class TitleView(arcade.View):
         self.main_sprites.append(self.logo)
 
         # Splash text
-        self.splash_text = "it has splash text!"
+        self.splash_text = random.choice(pkg_resources.read_text(charmtests.data, "splashes.txt").splitlines())
         self.splash_label = arcade.pyglet.text.Label("",
                           font_name='bananaslip plus plus',
                           font_size=24,
@@ -126,6 +127,7 @@ class TitleView(arcade.View):
                 self.song.volume = ease_linear(self.volume, 0, self.hit_start + FADE_DELAY, self.hit_start + SWITCH_DELAY, self.local_time)
             # Go to main menu
             if self.local_time >= self.hit_start + SWITCH_DELAY:
+                arcade.stop_sound(self.song)
                 self.main_menu_view.setup()
                 self.window.show_view(self.main_menu_view)
 

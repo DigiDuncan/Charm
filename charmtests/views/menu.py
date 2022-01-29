@@ -61,6 +61,11 @@ class MainMenuView(DigiView):
             song = arcade.load_sound(p)
             self.song = arcade.play_sound(song, self.volume, looping = True)
 
+        # Menu sounds
+        for soundname in ["back", "select", "valid"]:
+            with pkg_resources.path(charmtests.data.audio, f"sfx-{soundname}.wav") as p:
+                self.sounds[soundname] = arcade.load_sound(p)
+
         print("Loaded menu...")
 
     def on_update(self, delta_time):
@@ -75,14 +80,17 @@ class MainMenuView(DigiView):
         match symbol:
             case arcade.key.UP:
                 self.menu.selected_id -= 1
+                arcade.play_sound(self.sounds["select"])
             case arcade.key.DOWN:
                 self.menu.selected_id += 1
+                arcade.play_sound(self.sounds["select"])
             case arcade.key.ENTER:
+                arcade.play_sound(self.sounds["valid"])
                 songview = SongView(self.menu.items[self.menu.selected_id], back = self)
                 songview.setup()
+                arcade.stop_sound(self.song)
                 self.window.show_view(songview)
         self.menu.selected_id = clamp(0, self.menu.selected_id, len(self.menu.items) - 1)
-        self.menu.update_please = True
 
     def on_draw(self):
         arcade.start_render()
@@ -94,3 +102,5 @@ class MainMenuView(DigiView):
 
         self.test_label.draw()
         self.menu.draw()
+
+        super().on_draw()

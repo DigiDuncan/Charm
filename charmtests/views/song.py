@@ -57,6 +57,7 @@ class SongView(DigiView):
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:
             case arcade.key.BACKSPACE:
+                arcade.stop_sound(self.song)
                 self.window.show_view(self.back)
                 arcade.play_sound(self.back_sound)
         return super().on_key_press(symbol, modifiers)
