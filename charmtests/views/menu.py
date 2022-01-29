@@ -56,17 +56,19 @@ class MainMenuView(DigiView):
         self.menu.sort("title")
         self.menu.selected_id = 0
 
-        # Play music
-        with pkg_resources.path(charmtests.data.audio, "petscop.mp3") as p:
-            song = arcade.load_sound(p)
-            self.song = arcade.play_sound(song, self.volume, looping = True)
-
         # Menu sounds
         for soundname in ["back", "select", "valid"]:
             with pkg_resources.path(charmtests.data.audio, f"sfx-{soundname}.wav") as p:
                 self.sounds[soundname] = arcade.load_sound(p)
 
         print("Loaded menu...")
+
+    def on_show(self):
+        # Play music
+        with pkg_resources.path(charmtests.data.audio, "petscop.mp3") as p:
+            song = arcade.load_sound(p)
+            self.song = arcade.play_sound(song, self.volume, looping = True)
+        return super().on_show()
 
     def on_update(self, delta_time):
         super().on_update(delta_time)
