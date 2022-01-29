@@ -8,20 +8,18 @@ import charmtests.data.audio
 import charmtests.data.images
 from charmtests.lib.anim import bounce, ease_linear, ease_quadinout
 from charmtests.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
+from charmtests.lib.digiview import DigiView
 from charmtests.lib.utils import img_from_resource
 from charmtests.views.menu import MainMenuView
 
 FADE_DELAY = 1
 SWITCH_DELAY = 0.5 + FADE_DELAY
 
-class TitleView(arcade.View):
+class TitleView(DigiView):
     def __init__(self):
-        super().__init__()
-        self.size = self.window.get_size()
+        super().__init__(bg_color=CharmColors.FADED_GREEN, show_fps=True)
         self.logo = None
         self.main_sprites = None
-        self.local_time = 0
-        self.camera = arcade.Camera(1280, 720, self.window)
         self.song = None
         self.volume = 0.1
         self.hit_start: None
@@ -29,7 +27,6 @@ class TitleView(arcade.View):
         self.main_menu_view = MainMenuView()
 
     def setup(self):
-        self.local_time = 0
         self.hit_start = None
 
         arcade.set_background_color(CharmColors.FADED_GREEN)
@@ -87,8 +84,6 @@ class TitleView(arcade.View):
         with pkg_resources.path(charmtests.data.audio, "sfx-valid.wav") as p:
             self.sounds["valid"] = arcade.load_sound(p)
 
-        # self.camera.scale = 1
-
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:
             case arcade.key.ENTER:
@@ -97,6 +92,12 @@ class TitleView(arcade.View):
             case arcade.key.KEY_0:
                 self.song.delete()
                 self.setup()
+            case arcade.key.KEY_7:
+                self.window.debug = not self.window.debug
+                if self.window.debug:
+                    self.camera.scale = 2
+                else:
+                    self.camera.scale = 1
 
         return super().on_key_press(symbol, modifiers)
 
@@ -150,13 +151,5 @@ class TitleView(arcade.View):
             else:
                 if int(self.local_time * 4) % 2:
                     self.press_label.draw()
-            
-        if self.hit_start and self.local_time >= self.hit_start + FADE_DELAY:
-            alpha = ease_linear(0, 255, self.hit_start + FADE_DELAY, self.hit_start + SWITCH_DELAY, self.local_time)
-            arcade.draw_lrtb_rectangle_filled(0, 1280, 720, 0,
-                (0, 0, 0, alpha)
-            )
 
-        # arcade.draw_lrtb_rectangle_outline(0, 1280, 720, 0, arcade.color.RED, 3)
-
-        self.window.fps_draw()
+        super().on_draw()

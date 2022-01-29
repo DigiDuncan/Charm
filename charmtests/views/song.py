@@ -15,12 +15,11 @@ FADE_DELAY = 0.5
 
 class SongView(DigiView):
     def __init__(self, song: Song, *args, **kwargs):
-        super().__init__(fade_in = 1,
-        bg_color = CharmColors.FADED_GREEN,
-        show_fps = True, *args, **kwargs)
+        super().__init__(fade_in=1,
+        bg_color=CharmColors.FADED_GREEN,
+        show_fps=True, *args, **kwargs)
         
         self.main_sprites = None
-        self.camera = arcade.Camera(1280, 720, self.window)
         self.volume = 0.5
         self.songdata = song
         self.back_sound: arcade.Sound = None
@@ -60,6 +59,12 @@ class SongView(DigiView):
                 arcade.stop_sound(self.song)
                 self.window.show_view(self.back)
                 arcade.play_sound(self.back_sound)
+            case arcade.key.KEY_7:
+                self.window.debug = not self.window.debug
+                if self.window.debug:
+                    self.camera.scale = 2
+                else:
+                    self.camera.scale = 1
         return super().on_key_press(symbol, modifiers)
 
     def on_update(self, delta_time):

@@ -17,7 +17,6 @@ class MainMenuView(DigiView):
     def __init__(self):
         super().__init__(fade_in=0.5, bg_color=CharmColors.FADED_GREEN, show_fps=True)
         self.main_sprites = None
-        self.camera = arcade.Camera(1280, 720, self.window)
         self.song = None
         self.volume = 0.5
         self.sounds: dict[str, arcade.Sound] = {}
@@ -90,6 +89,12 @@ class MainMenuView(DigiView):
                 songview.setup()
                 arcade.stop_sound(self.song)
                 self.window.show_view(songview)
+            case arcade.key.KEY_7:
+                self.window.debug = not self.window.debug
+                if self.window.debug:
+                    self.camera.scale = 2
+                else:
+                    self.camera.scale = 1
         self.menu.selected_id = clamp(0, self.menu.selected_id, len(self.menu.items) - 1)
 
     def on_draw(self):

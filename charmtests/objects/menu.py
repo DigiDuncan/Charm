@@ -58,7 +58,6 @@ class Menu:
         self.move_speed = move_speed
         self.radius = radius
 
-        self.camera = arcade.Camera(Settings.width, Settings.height)
         self._selected_id = 0
 
         self.local_time = 0
@@ -112,5 +111,4 @@ class Menu:
                 down.center_y = ease_circout(old_pos[down][1], -y_offset + current.center_y, self.move_start, self.move_end, self.local_time)
 
     def draw(self):
-        self.camera.use()
         self.sprite_list.draw()

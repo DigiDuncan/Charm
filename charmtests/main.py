@@ -23,6 +23,7 @@ class CharmGame(arcade.Window):
         self.delta_time = 0.0
         self.time = 0.0
         self.fps_checks = 0
+        self.debug = False
 
         self.fps_averages = []
 
