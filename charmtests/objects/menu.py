@@ -1,3 +1,4 @@
+import sys
 import arcade
 from arcade import Sprite
 
@@ -61,7 +62,7 @@ class Menu:
         self._selected_id = 0
 
         self.local_time = 0
-        self.move_start = 999999999
+        self.move_start = sys.maxsize
 
         self.update_please = True
 
