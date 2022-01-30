@@ -11,8 +11,6 @@ from charmtests.lib.digiview import DigiView
 from charmtests.lib.utils import img_from_resource
 from charmtests.objects.song import Song
 
-FADE_DELAY = 0.5
-
 class SongView(DigiView):
     def __init__(self, song: Song, *args, **kwargs):
         super().__init__(fade_in=1,

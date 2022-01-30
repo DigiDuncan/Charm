@@ -1,10 +1,17 @@
+import io
+import logging
+import requests
 import sys
+
 import arcade
 from arcade import Sprite
+import PIL.Image
 
 from charmtests.lib.anim import ease_circout
 from charmtests.lib.settings import Settings
 from charmtests.objects.song import Song
+
+logger = logging.getLogger(__package__)
 
 
 class MenuItem(Sprite):
@@ -17,8 +24,14 @@ class MenuItem(Sprite):
         self.artist = song.artist
         self.album = song.album
         self.grade = song.grade
+        self.length = song.length
+        self.difficulty = song.difficulty
+        self.best_score = song.best_score
 
-        self.album_art = None
+        album_art = io.BytesIO(requests.get("https://picsum.photos/200.jpg").content)
+        album_art_img = PIL.Image.open(album_art)
+        album_art_img = album_art_img.convert("RGBA")
+        self.album_art = arcade.Texture(f"{self.__class__.__name__}-{self.__class__.cid}-albumart", album_art_img, hit_box_algorithm=None)
 
         self._w = w if w else Settings.width // 2
         self._h = h if h else Settings.height // 8
@@ -43,6 +56,8 @@ class MenuItem(Sprite):
                 self.artist + ", " + self.album, self.width - self.height / 2 - 5, self.height / 2, arcade.color.BLACK,
                 font_size=self.height/4 * (3/4), font_name="bananaslip plus plus", anchor_x="right", anchor_y="top"
             )
+
+        logger.info(f"Loaded MenuItem {self.title}")
 
 class Menu:
     def __init__(self, songs: list[Song] = None, radius = 4, buffer = 5, move_speed = 2.5) -> None:
@@ -74,6 +89,10 @@ class Menu:
     def selected_id(self, v: int):
         self._selected_id = v
         self.move_start = self.local_time
+
+    @property
+    def selected(self) -> MenuItem:
+        return self.items[self.selected_id]
 
     @property
     def move_end(self) -> float:

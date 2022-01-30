@@ -1,8 +1,10 @@
+import logging
 import statistics
 
 import arcade
-import charmtests
+from digiformatter import logger as digilogger
 
+import charmtests
 import charmtests.data.images
 from charmtests.lib.settings import Settings
 from charmtests.lib.utils import pyglet_img_from_resource
@@ -13,6 +15,21 @@ SCREEN_WIDTH = Settings.width
 SCREEN_HEIGHT = Settings.height
 SCREEN_TITLE = "Charm"
 FPS_CAP = 240
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+dfhandler = digilogger.DigiFormatterHandler()
+
+logger = logging.getLogger(__package__)
+logger.handlers = []
+logger.propagate = False
+logger.addHandler(dfhandler)
+
+arcadelogger = logging.getLogger("arcade")
+arcadelogger.setLevel(logging.WARN)
+arcadelogger.handlers = []
+arcadelogger.propagate = False
+arcadelogger.addHandler(dfhandler)
 
 class CharmGame(arcade.Window):
     def __init__(self):

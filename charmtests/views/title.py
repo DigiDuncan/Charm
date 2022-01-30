@@ -149,7 +149,7 @@ class TitleView(DigiView):
                 if int(self.local_time) % 2:
                     self.press_label.draw()
             else:
-                if int(self.local_time * 4) % 2:
+                if int(self.local_time * 8) % 2:
                     self.press_label.draw()
 
         super().on_draw()

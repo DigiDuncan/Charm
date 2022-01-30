@@ -20,6 +20,7 @@ class MainMenuView(DigiView):
         self.song = None
         self.volume = 0.5
         self.sounds: dict[str, arcade.Sound] = {}
+        self.album_art_buffer = 25
 
     def setup(self):
         super().setup()
@@ -29,13 +30,6 @@ class MainMenuView(DigiView):
 
         # Generate "gum wrapper" background
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
-
-        self.test_label = arcade.Text("this is the main menu!",
-                          font_name='bananaslip plus plus',
-                          font_size=60,
-                          start_x=self.window.width//2, start_y=self.window.height//2,
-                          anchor_x='center', anchor_y='center',
-                          color = CharmColors.PURPLE + (0xFF,))
 
         self.songs = [
             Song("It's A Song!", "DigiDuncan", "The Digi EP"),
@@ -54,6 +48,11 @@ class MainMenuView(DigiView):
         self.menu = Menu(self.songs)
         self.menu.sort("title")
         self.menu.selected_id = 0
+        self.selection_changed = 0
+
+        self.album_art = arcade.Sprite(texture=self.menu.selected.album_art)
+        self.album_art.right = self.size[0] - self.album_art_buffer
+        self.album_art.original_bottom = self.album_art.bottom = self.size[1] // 2
 
         # Menu sounds
         for soundname in ["back", "select", "valid"]:
@@ -72,10 +71,11 @@ class MainMenuView(DigiView):
 
         move_gum_wrapper(self.logo_width, self.small_logos_forward, self.small_logos_backward, delta_time)
 
-        self.test_label.rotation = math.sin(self.local_time * 4) * 6.25
+        self.album_art.bottom = self.album_art.original_bottom + (math.sin(self.local_time * 2) * 25)
         self.menu.update(self.local_time)
 
     def on_key_press(self, symbol: int, modifiers: int):
+        old_id = self.menu.selected_id
         match symbol:
             case arcade.key.UP:
                 self.menu.selected_id -= 1
@@ -85,7 +85,7 @@ class MainMenuView(DigiView):
                 arcade.play_sound(self.sounds["select"])
             case arcade.key.ENTER:
                 arcade.play_sound(self.sounds["valid"])
-                songview = SongView(self.menu.items[self.menu.selected_id], back = self)
+                songview = SongView(self.menu.selected_id, back = self)
                 songview.setup()
                 arcade.stop_sound(self.song)
                 self.window.show_view(songview)
@@ -96,6 +96,9 @@ class MainMenuView(DigiView):
                 else:
                     self.camera.scale = 1
         self.menu.selected_id = clamp(0, self.menu.selected_id, len(self.menu.items) - 1)
+        if old_id != self.menu.selected_id:
+            self.selection_changed = self.local_time
+            self.album_art.texture = self.menu.selected.album_art
 
     def on_draw(self):
         arcade.start_render()
@@ -105,7 +108,7 @@ class MainMenuView(DigiView):
         self.small_logos_forward.draw()
         self.small_logos_backward.draw()
 
-        self.test_label.draw()
         self.menu.draw()
+        self.album_art.draw()
 
         super().on_draw()
