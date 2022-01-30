@@ -28,9 +28,13 @@ class MenuItem(Sprite):
         self.difficulty = song.difficulty
         self.best_score = song.best_score
 
-        album_art = io.BytesIO(requests.get("https://picsum.photos/200.jpg").content)
-        album_art_img = PIL.Image.open(album_art)
-        album_art_img = album_art_img.convert("RGBA")
+        try:
+            album_art_img = PIL.Image.open(f"./albums/album_{self.__class__.cid}.png")
+        except FileNotFoundError:
+            album_art = io.BytesIO(requests.get("https://picsum.photos/200.jpg").content)
+            album_art_img = PIL.Image.open(album_art)
+            album_art_img = album_art_img.convert("RGBA")
+            album_art_img.save(f"./albums/album_{self.__class__.cid}.png")
         self.album_art = arcade.Texture(f"{self.__class__.__name__}-{self.__class__.cid}-albumart", album_art_img, hit_box_algorithm=None)
 
         self._w = w if w else Settings.width // 2
@@ -78,8 +82,6 @@ class Menu:
 
         self.local_time = 0
         self.move_start = sys.maxsize
-
-        self.update_please = True
 
     @property
     def selected_id(self) -> int:

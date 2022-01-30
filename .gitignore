@@ -14,3 +14,5 @@ __pycache__
 
 # Visual Studio Code
 *.code-workspace
+
+albums/*.png

@@ -1,6 +1,8 @@
 import math
-from arcade import SpriteList
+
 import arcade
+from arcade import SpriteList
+import PIL.Image, PIL.ImageDraw
 
 import charmtests.data.images
 from charmtests.lib.utils import img_from_resource
@@ -10,6 +12,12 @@ class CharmColors:
     GREEN = (0x55, 0xD7, 0x90)
     FADED_GREEN = (0xB5, 0xED, 0xCE)
     PURPLE = (0x83, 0x94, 0xD8)
+
+mt = PIL.Image.new("RGB", (200, 200), arcade.color.MAGENTA)
+d = PIL.ImageDraw.Draw(mt)
+d.rectangle((0, 100, 100, 200), arcade.color.BLACK)
+d.rectangle((100, 0, 200, 100), arcade.color.BLACK)
+MISSING_TEXTURE = arcade.Texture("_missing_200x200", mt)
 
 
 def generate_gum_wrapper(size: tuple[int], buffer: int = 20, alpha = 128) -> tuple[int, SpriteList, SpriteList]:

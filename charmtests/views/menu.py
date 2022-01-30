@@ -14,13 +14,14 @@ from charmtests.objects.song import Song
 from charmtests.views.song import SongView
 
 class MainMenuView(DigiView):
-    def __init__(self):
-        super().__init__(fade_in=0.5, bg_color=CharmColors.FADED_GREEN, show_fps=True)
+    def __init__(self, *args, **kwargs):
+        super().__init__(fade_in=0.5, bg_color=CharmColors.FADED_GREEN, show_fps=True, *args, **kwargs)
         self.main_sprites = None
         self.song = None
         self.volume = 0.5
         self.sounds: dict[str, arcade.Sound] = {}
         self.album_art_buffer = 25
+        self.static_time = 0.25
 
     def setup(self):
         super().setup()
@@ -54,6 +55,10 @@ class MainMenuView(DigiView):
         self.album_art.right = self.size[0] - self.album_art_buffer
         self.album_art.original_bottom = self.album_art.bottom = self.size[1] // 2
 
+        self.static = arcade.load_animated_gif(pkg_resources.path(charmtests.data.images, "static.gif"))
+        self.static.right = self.size[0] - self.album_art_buffer
+        self.static.original_bottom = self.album_art.bottom = self.size[1] // 2
+
         # Menu sounds
         for soundname in ["back", "select", "valid"]:
             with pkg_resources.path(charmtests.data.audio, f"sfx-{soundname}.wav") as p:
@@ -72,7 +77,9 @@ class MainMenuView(DigiView):
         move_gum_wrapper(self.logo_width, self.small_logos_forward, self.small_logos_backward, delta_time)
 
         self.album_art.bottom = self.album_art.original_bottom + (math.sin(self.local_time * 2) * 25)
+        self.static.bottom = self.album_art.original_bottom + (math.sin(self.local_time * 2) * 25)
         self.menu.update(self.local_time)
+        self.static.on_update(delta_time)
 
     def on_key_press(self, symbol: int, modifiers: int):
         old_id = self.menu.selected_id
@@ -85,10 +92,15 @@ class MainMenuView(DigiView):
                 arcade.play_sound(self.sounds["select"])
             case arcade.key.ENTER:
                 arcade.play_sound(self.sounds["valid"])
-                songview = SongView(self.menu.selected_id, back = self)
+                songview = SongView(self.menu.selected, back = self)
                 songview.setup()
                 arcade.stop_sound(self.song)
                 self.window.show_view(songview)
+            case arcade.key.BACKSPACE:
+                arcade.play_sound(self.sounds["back"])
+                self.back.setup()
+                arcade.stop_sound(self.song)
+                self.window.show_view(self.back)
             case arcade.key.KEY_7:
                 self.window.debug = not self.window.debug
                 if self.window.debug:
@@ -108,7 +120,12 @@ class MainMenuView(DigiView):
         self.small_logos_forward.draw()
         self.small_logos_backward.draw()
 
+        arcade.draw_lrtb_rectangle_filled(self.album_art.left - self.album_art_buffer, self.size[0], self.size[1], 0, arcade.color.WHITE + (63,))
+
         self.menu.draw()
-        self.album_art.draw()
+        if self.local_time < self.selection_changed + self.static_time:
+            self.static.draw()
+        else:
+            self.album_art.draw()
 
         super().on_draw()

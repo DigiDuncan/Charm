@@ -24,7 +24,7 @@ class TitleView(DigiView):
         self.volume = 0.1
         self.hit_start: None
         self.sounds: dict[str, arcade.Sound] = {}
-        self.main_menu_view = MainMenuView()
+        self.main_menu_view = MainMenuView(back = self)
 
     def setup(self):
         self.hit_start = None
