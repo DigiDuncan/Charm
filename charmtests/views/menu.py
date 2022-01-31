@@ -8,6 +8,7 @@ import charmtests.data.images
 from charmtests.lib.anim import ease_linear
 from charmtests.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charmtests.lib.digiview import DigiView
+from charmtests.lib.settings import Settings
 from charmtests.lib.utils import clamp, img_from_resource
 from charmtests.objects.menu import Menu, MenuItem
 from charmtests.objects.song import Song
@@ -20,7 +21,7 @@ class MainMenuView(DigiView):
         self.song = None
         self.volume = 0.5
         self.sounds: dict[str, arcade.Sound] = {}
-        self.album_art_buffer = 50
+        self.album_art_buffer = Settings.width // 20
         self.static_time = 0.25
 
     def setup(self):
@@ -79,7 +80,7 @@ class MainMenuView(DigiView):
         self.album_art.bottom = self.album_art.original_bottom + (math.sin(self.local_time * 2) * 25)
         self.static.bottom = self.album_art.original_bottom + (math.sin(self.local_time * 2) * 25)
         self.menu.update(self.local_time)
-        self.static.on_update(delta_time)
+        self.static.update_animation(delta_time)
 
     def on_key_press(self, symbol: int, modifiers: int):
         old_id = self.menu.selected_id
