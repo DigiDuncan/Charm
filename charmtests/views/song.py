@@ -5,10 +5,8 @@ import arcade
 
 import charmtests.data.audio
 import charmtests.data.images
-from charmtests.lib.anim import ease_linear
 from charmtests.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charmtests.lib.digiview import DigiView
-from charmtests.lib.utils import img_from_resource
 from charmtests.objects.song import Song
 
 class SongView(DigiView):

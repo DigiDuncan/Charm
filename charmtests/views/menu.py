@@ -5,11 +5,10 @@ import arcade
 
 import charmtests.data.audio
 import charmtests.data.images
-from charmtests.lib.anim import ease_linear
 from charmtests.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charmtests.lib.digiview import DigiView
 from charmtests.lib.settings import Settings
-from charmtests.lib.utils import clamp, img_from_resource
+from charmtests.lib.utils import clamp
 from charmtests.objects.menu import Menu, MenuItem
 from charmtests.objects.song import Song
 from charmtests.views.song import SongView
