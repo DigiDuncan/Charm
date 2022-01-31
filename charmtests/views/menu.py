@@ -20,7 +20,7 @@ class MainMenuView(DigiView):
         self.song = None
         self.volume = 0.5
         self.sounds: dict[str, arcade.Sound] = {}
-        self.album_art_buffer = 25
+        self.album_art_buffer = 50
         self.static_time = 0.25
 
     def setup(self):

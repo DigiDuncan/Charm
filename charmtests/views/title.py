@@ -28,6 +28,7 @@ class TitleView(DigiView):
 
     def setup(self):
         self.hit_start = None
+        self.local_time = 0
 
         arcade.set_background_color(CharmColors.FADED_GREEN)
         self.main_sprites = arcade.SpriteList()

@@ -1,10 +1,11 @@
 import io
 import logging
+import string
 import requests
 import sys
 
 import arcade
-from arcade import Sprite
+from arcade import Sprite, generate_uuid_from_kwargs
 import PIL.Image
 
 from charmtests.lib.anim import ease_circout
@@ -15,8 +16,6 @@ logger = logging.getLogger(__package__)
 
 
 class MenuItem(Sprite):
-    cid = 0
-
     def __init__(self, song: Song, w: int = None, h: int = None, *args, **kwargs):
         self.song = song
     
@@ -28,20 +27,23 @@ class MenuItem(Sprite):
         self.difficulty = song.difficulty
         self.best_score = song.best_score
 
+        # Make a real hash, probably on Song.
+        self.key = generate_uuid_from_kwargs(title=self.title, artist=self.artist, album=self.album)
+        self.key = "".join([c for c in self.key if c in string.ascii_letters + string.digits])
+
         try:
-            album_art_img = PIL.Image.open(f"./albums/album_{self.__class__.cid}.png")
+            album_art_img = PIL.Image.open(f"./albums/album_{self.key}.png")
         except FileNotFoundError:
             album_art = io.BytesIO(requests.get("https://picsum.photos/200.jpg").content)
             album_art_img = PIL.Image.open(album_art)
             album_art_img = album_art_img.convert("RGBA")
-            album_art_img.save(f"./albums/album_{self.__class__.cid}.png")
-        self.album_art = arcade.Texture(f"{self.__class__.__name__}-{self.__class__.cid}-albumart", album_art_img, hit_box_algorithm=None)
+            album_art_img.save(f"./albums/album_{self.key}.png")
+        self.album_art = arcade.Texture(f"{self.key}-albumart", album_art_img, hit_box_algorithm=None)
 
         self._w = w if w else Settings.width // 2
         self._h = h if h else Settings.height // 8
 
-        self._tex = arcade.Texture.create_empty(f"{self.__class__.__name__}-{self.__class__.cid}", (self._w, self._h))
-        self.__class__.cid += 1
+        self._tex = arcade.Texture.create_empty(f"{self.key}-menuitem", (self._w, self._h))
         super().__init__(texture = self._tex, *args, **kwargs)
         self._sprite_list = arcade.SpriteList()
         self._sprite_list.append(self)
