@@ -1,3 +1,4 @@
+import importlib.resources as pkg_resources
 import logging
 import statistics
 
@@ -41,6 +42,8 @@ class CharmGame(arcade.Window):
         self.time = 0.0
         self.fps_checks = 0
         self.debug = False
+        self.sounds: dict[str, arcade.Sound] = {}
+        self.theme_song: arcade.pyglet.media.Player = None
 
         self.fps_averages = []
 
@@ -59,6 +62,11 @@ class CharmGame(arcade.Window):
                           x=1, y=self.height - 1,
                           anchor_x='left', anchor_y='top',
                           color = (0xAA, 0xAA, 0xAA) + (0xFF,))
+
+        # Menu sounds
+        for soundname in ["back", "select", "valid"]:
+            with pkg_resources.path(charmtests.data.audio, f"sfx-{soundname}.wav") as p:
+                self.sounds[soundname] = arcade.load_sound(p)
 
         self.title_view = TitleView()
 

@@ -19,7 +19,6 @@ class SongMenuView(DigiView):
         self.main_sprites = None
         self.song = None
         self.volume = 0.5
-        self.sounds: dict[str, arcade.Sound] = {}
         self.album_art_buffer = Settings.width // 20
         self.static_time = 0.25
 
@@ -59,16 +58,8 @@ class SongMenuView(DigiView):
         self.static.right = self.size[0] - self.album_art_buffer
         self.static.original_bottom = self.album_art.bottom = self.size[1] // 2
 
-        # Menu sounds
-        for soundname in ["back", "select", "valid"]:
-            with pkg_resources.path(charmtests.data.audio, f"sfx-{soundname}.wav") as p:
-                self.sounds[soundname] = arcade.load_sound(p)
 
     def on_show(self):
-        # Play music
-        with pkg_resources.path(charmtests.data.audio, "petscop.mp3") as p:
-            song = arcade.load_sound(p)
-            self.song = arcade.play_sound(song, self.volume, looping = True)
         return super().on_show()
 
     def on_update(self, delta_time):
@@ -86,20 +77,18 @@ class SongMenuView(DigiView):
         match symbol:
             case arcade.key.UP:
                 self.menu.selected_id -= 1
-                arcade.play_sound(self.sounds["select"])
+                arcade.play_sound(self.window.sounds["select"])
             case arcade.key.DOWN:
                 self.menu.selected_id += 1
-                arcade.play_sound(self.sounds["select"])
+                arcade.play_sound(self.window.sounds["select"])
             case arcade.key.ENTER:
-                arcade.play_sound(self.sounds["valid"])
+                arcade.play_sound(self.window.sounds["valid"])
                 songview = SongView(self.menu.selected, back = self)
                 songview.setup()
-                arcade.stop_sound(self.song)
                 self.window.show_view(songview)
             case arcade.key.BACKSPACE:
-                arcade.play_sound(self.sounds["back"])
+                arcade.play_sound(self.window.sounds["back"])
                 self.back.setup()
-                arcade.stop_sound(self.song)
                 self.window.show_view(self.back)
             case arcade.key.KEY_7:
                 self.window.debug = not self.window.debug
@@ -113,7 +102,7 @@ class SongMenuView(DigiView):
             self.album_art.texture = self.menu.selected.album_art
 
     def on_draw(self):
-        arcade.start_render()
+        self.clear()
         self.camera.use()
 
         # Charm BG

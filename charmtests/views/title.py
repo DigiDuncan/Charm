@@ -58,8 +58,8 @@ class TitleView(DigiView):
         # Play music
         with pkg_resources.path(charmtests.data.audio, "song.mp3") as p:
             song = arcade.load_sound(p)
-            self.song = arcade.play_sound(song, self.volume, looping = True)
-        self.song.seek(self.local_time + 3)
+            self.window.theme_song = arcade.play_sound(song, self.volume, looping = True)
+        self.window.theme_song.seek(self.local_time + 3)
 
         # Song details
         self.song_label = arcade.pyglet.text.Label("Run Around The Character Code!\nCamellia feat. nanahira\n3LEEP!",
@@ -81,15 +81,11 @@ class TitleView(DigiView):
                           anchor_x='center', anchor_y='center',
                           color = CharmColors.PURPLE + (0xFF,))
 
-        # Load sound
-        with pkg_resources.path(charmtests.data.audio, "sfx-valid.wav") as p:
-            self.sounds["valid"] = arcade.load_sound(p)
-
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:
             case arcade.key.ENTER:
                 self.hit_start = self.local_time
-                arcade.play_sound(self.sounds["valid"])
+                arcade.play_sound(self.window.sounds["valid"])
             case arcade.key.KEY_0:
                 self.song.delete()
                 self.setup()
@@ -126,15 +122,14 @@ class TitleView(DigiView):
         if self.hit_start is not None:
             # Fade music
             if self.local_time >= self.hit_start + FADE_DELAY:
-                self.song.volume = ease_linear(self.volume, 0, self.hit_start + FADE_DELAY, self.hit_start + SWITCH_DELAY, self.local_time)
+                self.window.theme_song.volume = ease_linear(self.volume, self.volume / 2, self.hit_start + FADE_DELAY, self.hit_start + SWITCH_DELAY, self.local_time)
             # Go to main menu
             if self.local_time >= self.hit_start + SWITCH_DELAY:
-                arcade.stop_sound(self.song)
                 self.main_menu_view.setup()
                 self.window.show_view(self.main_menu_view)
 
     def on_draw(self):
-        arcade.start_render()
+        self.clear()
         self.camera.use()
 
         # Charm BG
