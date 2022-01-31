@@ -9,11 +9,11 @@ from charmtests.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wra
 from charmtests.lib.digiview import DigiView
 from charmtests.lib.settings import Settings
 from charmtests.lib.utils import clamp
-from charmtests.objects.menu import Menu, MenuItem
+from charmtests.objects.menu import Menu
 from charmtests.objects.song import Song
 from charmtests.views.song import SongView
 
-class MainMenuView(DigiView):
+class SongMenuView(DigiView):
     def __init__(self, *args, **kwargs):
         super().__init__(fade_in=0.5, bg_color=CharmColors.FADED_GREEN, show_fps=True, *args, **kwargs)
         self.main_sprites = None
