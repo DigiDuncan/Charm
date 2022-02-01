@@ -7,8 +7,7 @@ from charmtests.objects.song import Song
 class SongView(DigiView):
     def __init__(self, song: Song, *args, **kwargs):
         super().__init__(fade_in=1, bg_color=CharmColors.FADED_GREEN, *args, **kwargs)
-        
-        self.volume = 0.5
+
         self.songdata = song
 
     def setup(self):
