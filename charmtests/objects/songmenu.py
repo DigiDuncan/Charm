@@ -15,7 +15,7 @@ from charmtests.objects.song import Song
 logger = logging.getLogger(__package__)
 
 
-class MenuItem(Sprite):
+class SongMenuItem(Sprite):
     def __init__(self, song: Song, w: int = None, h: int = None, *args, **kwargs):
         self.song = song
     
@@ -65,13 +65,13 @@ class MenuItem(Sprite):
 
         logger.info(f"Loaded MenuItem {self.title}")
 
-class Menu:
+class SongMenu:
     def __init__(self, songs: list[Song] = None, radius = 4, buffer = 5, move_speed = 2.5) -> None:
         self._songs = songs
-        self.items: list[MenuItem] = []
+        self.items: list[SongMenuItem] = []
         if songs:
             for song in self._songs:
-                self.items.append(MenuItem(song))
+                self.items.append(SongMenuItem(song))
         self.sprite_list = arcade.SpriteList()
         for item in self.items:
             self.sprite_list.append(item)
@@ -95,7 +95,7 @@ class Menu:
         self.move_start = self.local_time
 
     @property
-    def selected(self) -> MenuItem:
+    def selected(self) -> SongMenuItem:
         return self.items[self.selected_id]
 
     @property

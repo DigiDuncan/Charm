@@ -1,10 +1,5 @@
-import importlib.resources as pkg_resources
-import math
-
 import arcade
 
-import charmtests.data.audio
-import charmtests.data.images
 from charmtests.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charmtests.lib.digiview import DigiView
 from charmtests.objects.song import Song

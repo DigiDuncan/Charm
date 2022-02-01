@@ -1,10 +1,5 @@
-import importlib.resources as pkg_resources
-import math
-
 import arcade
 
-import charmtests.data.audio
-import charmtests.data.images
 from charmtests.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charmtests.lib.digiview import DigiView
 from charmtests.objects.song import Song
@@ -43,7 +38,7 @@ class SongView(DigiView):
         match symbol:
             case arcade.key.BACKSPACE:
                 self.window.show_view(self.back)
-                arcade.play_sound(self.back_sound)
+                arcade.play_sound(self.window.sounds["back"])
             case arcade.key.KEY_7:
                 self.window.debug = not self.window.debug
                 if self.window.debug:

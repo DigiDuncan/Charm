@@ -9,7 +9,7 @@ from charmtests.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wra
 from charmtests.lib.digiview import DigiView
 from charmtests.lib.settings import Settings
 from charmtests.lib.utils import clamp
-from charmtests.objects.menu import Menu
+from charmtests.objects.songmenu import SongMenu
 from charmtests.objects.song import Song
 from charmtests.views.song import SongView
 
@@ -45,7 +45,7 @@ class SongMenuView(DigiView):
             Song("ERROR", "Garry", "My Mod")
         ]
 
-        self.menu = Menu(self.songs)
+        self.menu = SongMenu(self.songs)
         self.menu.sort("title")
         self.menu.selected_id = 0
         self.selection_changed = 0
