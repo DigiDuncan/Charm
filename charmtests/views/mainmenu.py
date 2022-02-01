@@ -6,12 +6,7 @@ from charmtests.objects.song import Song
 
 class MainMenuView(DigiView):
     def __init__(self, song: Song, *args, **kwargs):
-        super().__init__(fade_in=1,
-        bg_color=CharmColors.FADED_GREEN,
-        show_fps=True, *args, **kwargs)
-        
-        self.main_sprites = None
-        self.volume = 0.5
+        super().__init__(fade_in=1, bg_color=CharmColors.FADED_GREEN, *args, **kwargs)
 
     def setup(self):
         super().setup()
@@ -25,12 +20,6 @@ class MainMenuView(DigiView):
                 arcade.stop_sound(self.song)
                 self.window.show_view(self.back)
                 arcade.play_sound(self.window.sounds["back"])
-            case arcade.key.KEY_7:
-                self.window.debug = not self.window.debug
-                if self.window.debug:
-                    self.camera.scale = 2
-                else:
-                    self.camera.scale = 1
         return super().on_key_press(symbol, modifiers)
 
     def on_update(self, delta_time):
@@ -45,8 +34,5 @@ class MainMenuView(DigiView):
         # Charm BG
         self.small_logos_forward.draw()
         self.small_logos_backward.draw()
-
-        self.title_label.draw()
-        self.artistalbum_label.draw()
 
         super().on_draw()

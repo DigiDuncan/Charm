@@ -6,15 +6,18 @@ from charmtests.lib.settings import Settings
 
 class DigiView(View):
     def __init__(self, window: Window = None, *, back: View = None,
-                 fade_in: float = 0, bg_color = (0, 0, 0), show_fps = False):
+                 fade_in: float = 0, bg_color = (0, 0, 0)):
         super().__init__(window)
         self.back = back
         self.size = self.window.get_size()
         self.local_time = 0
-        self.show_fps = show_fps
         self.fade_in = fade_in
         self.bg_color = bg_color
         self.camera = arcade.Camera(Settings.width, Settings.height, self.window)
+        self.debug_options = {
+            "camera_scale": 1,
+            "box": False
+        }
 
     def setup(self):
         self.local_time = 0
@@ -23,6 +26,24 @@ class DigiView(View):
 
     def on_resize(self, width: int, height: int):
         self.size = self.window.get_size()
+
+    def on_key_press(self, symbol: int, modifiers: int):
+        if symbol == arcade.key.KEY_7:
+            self.window.debug = not self.window.debug
+            if self.window.debug:
+                self.camera.scale = self.debug_options["camera_scale"]
+            else:
+                self.camera.scale = 1
+        if self.window.debug and modifiers & arcade.key.MOD_SHIFT:
+            match symbol:
+                case arcade.key.Z:  # camera zoon
+                    self.debug_options["camera_scale"] = 2 if self.debug_options["camera_scale"] == 1 else 1
+                    self.camera.scale = self.debug_options["camera_scale"]
+                case arcade.key.B:  # camera outline
+                    self.debug_options["box"] = not self.debug_options["box"]
+                case arcade.key.A:  # show atlas
+                    self.window.ctx.default_atlas.show()
+        return super().on_key_press(symbol, modifiers)
 
     def on_update(self, delta_time: float):
         self.local_time += delta_time
@@ -34,8 +55,7 @@ class DigiView(View):
                 (0, 0, 0, alpha)
             )
 
-        if self.window.debug:
+        if self.window.debug and self.debug_options["box"]:
             arcade.draw_lrtb_rectangle_outline(0, Settings.width, Settings.height, 0, arcade.color.RED, 3)
         
-        if self.show_fps:
-            self.window.fps_draw()
+        self.window.debug_draw()

@@ -17,12 +17,10 @@ SWITCH_DELAY = 0.5 + FADE_DELAY
 
 class TitleView(DigiView):
     def __init__(self):
-        super().__init__(bg_color=CharmColors.FADED_GREEN, show_fps=True)
+        super().__init__(bg_color=CharmColors.FADED_GREEN)
         self.logo = None
-        self.main_sprites = None
         self.song = None
         self.volume = 0.1
-        self.hit_start: None
         self.sounds: dict[str, arcade.Sound] = {}
         self.main_menu_view = SongMenuView(back = self)
 
@@ -89,12 +87,6 @@ class TitleView(DigiView):
             case arcade.key.KEY_0:
                 self.song.delete()
                 self.setup()
-            case arcade.key.KEY_7:
-                self.window.debug = not self.window.debug
-                if self.window.debug:
-                    self.camera.scale = 2
-                else:
-                    self.camera.scale = 1
 
         return super().on_key_press(symbol, modifiers)
 

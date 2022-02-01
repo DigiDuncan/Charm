@@ -42,6 +42,7 @@ class CharmGame(arcade.Window):
         self.time = 0.0
         self.fps_checks = 0
         self.debug = False
+        self.show_fps = True
         self.sounds: dict[str, arcade.Sound] = {}
         self.theme_song: arcade.pyglet.media.Player = None
 
@@ -62,6 +63,12 @@ class CharmGame(arcade.Window):
                           x=1, y=self.height - 1,
                           anchor_x='left', anchor_y='top',
                           color = (0xAA, 0xAA, 0xAA) + (0xFF,))
+        self.more_info_label = arcade.pyglet.text.Label("DEBUG",
+                          font_name='bananaslip plus plus',
+                          font_size=12,
+                          x=0, y=self.height - self.fps_label.content_height - 5, multiline=True, width=Settings.width,
+                          anchor_x='left', anchor_y='top',
+                          color = (0, 0, 0) + (0xFF,))
 
         # Menu sounds
         for soundname in ["back", "select", "valid"]:
@@ -78,7 +85,7 @@ class CharmGame(arcade.Window):
         self.delta_time = delta_time
         self.time += delta_time
 
-    def fps_draw(self):
+    def debug_draw(self):
         self.fps_checks += 1
         self.debug_camera.use()
         if self.fps_checks % (FPS_CAP / 8) == 0:
@@ -89,8 +96,11 @@ class CharmGame(arcade.Window):
         else:
             self.fps_averages.append(1/self.delta_time)
         with self.ctx.pyglet_rendering():
-            self.fps_shadow_label.draw()
-            self.fps_label.draw()
+            if self.show_fps or self.debug:
+                self.fps_shadow_label.draw()
+                self.fps_label.draw()
+            if self.debug:
+                self.more_info_label.draw()
 
 
 def main():

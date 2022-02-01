@@ -15,10 +15,8 @@ from charmtests.views.song import SongView
 
 class SongMenuView(DigiView):
     def __init__(self, *args, **kwargs):
-        super().__init__(fade_in=0.5, bg_color=CharmColors.FADED_GREEN, show_fps=True, *args, **kwargs)
-        self.main_sprites = None
-        self.song = None
-        self.volume = 0.5
+        super().__init__(fade_in=0.5, bg_color=CharmColors.FADED_GREEN, *args, **kwargs)
+
         self.album_art_buffer = Settings.width // 20
         self.static_time = 0.25
 
@@ -26,7 +24,6 @@ class SongMenuView(DigiView):
         super().setup()
 
         self.hit_start = None
-        self.main_sprites = arcade.SpriteList()
 
         # Generate "gum wrapper" background
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
@@ -90,16 +87,12 @@ class SongMenuView(DigiView):
                 arcade.play_sound(self.window.sounds["back"])
                 self.back.setup()
                 self.window.show_view(self.back)
-            case arcade.key.KEY_7:
-                self.window.debug = not self.window.debug
-                if self.window.debug:
-                    self.camera.scale = 2
-                else:
-                    self.camera.scale = 1
         self.menu.selected_id = clamp(0, self.menu.selected_id, len(self.menu.items) - 1)
         if old_id != self.menu.selected_id:
             self.selection_changed = self.local_time
             self.album_art.texture = self.menu.selected.album_art
+
+        return super().on_key_press(symbol, modifiers)
 
     def on_draw(self):
         self.clear()

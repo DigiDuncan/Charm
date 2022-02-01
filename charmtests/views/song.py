@@ -6,11 +6,8 @@ from charmtests.objects.song import Song
 
 class SongView(DigiView):
     def __init__(self, song: Song, *args, **kwargs):
-        super().__init__(fade_in=1,
-        bg_color=CharmColors.FADED_GREEN,
-        show_fps=True, *args, **kwargs)
+        super().__init__(fade_in=1, bg_color=CharmColors.FADED_GREEN, *args, **kwargs)
         
-        self.main_sprites = None
         self.volume = 0.5
         self.songdata = song
 
@@ -39,12 +36,7 @@ class SongView(DigiView):
             case arcade.key.BACKSPACE:
                 self.window.show_view(self.back)
                 arcade.play_sound(self.window.sounds["back"])
-            case arcade.key.KEY_7:
-                self.window.debug = not self.window.debug
-                if self.window.debug:
-                    self.camera.scale = 2
-                else:
-                    self.camera.scale = 1
+
         return super().on_key_press(symbol, modifiers)
 
     def on_update(self, delta_time):
