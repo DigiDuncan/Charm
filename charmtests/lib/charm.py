@@ -16,13 +16,13 @@ class CharmColors:
     FADED_PURPLE = (0xC6, 0xCE, 0xED)
 
 @cache
-def generate_missing_texture(w, h):
+def generate_missing_texture_image(w, h) -> PIL.Image.Image:
     """Generate a classic missing texture of wxh."""
     mt = PIL.Image.new("RGB", (w, h), arcade.color.MAGENTA)
     d = PIL.ImageDraw.Draw(mt)
     d.rectangle((0, h // 2, w // 2, h), arcade.color.BLACK)
     d.rectangle((w // 2, 0, w, h // 2), arcade.color.BLACK)
-    return arcade.Texture(f"_missing_{w}x{h}", mt)
+    return mt
 
 def generate_gum_wrapper(size: tuple[int], buffer: int = 20, alpha = 128) -> tuple[int, SpriteList, SpriteList]:
     """Generate two SpriteLists that makes a gum wrapper-style background."""

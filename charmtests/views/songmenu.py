@@ -87,7 +87,6 @@ class SongMenuView(DigiView):
                 arcade.play_sound(self.window.sounds["back"])
                 self.back.setup()
                 self.window.show_view(self.back)
-        self.menu.selected_id = clamp(0, self.menu.selected_id, len(self.menu.items) - 1)
         if old_id != self.menu.selected_id:
             self.selection_changed = self.local_time
             self.album_art.texture = self.menu.selected.album_art

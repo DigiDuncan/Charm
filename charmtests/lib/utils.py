@@ -1,5 +1,4 @@
 import importlib.resources as pkg_resources
-import math
 import PIL.Image
 import arcade
 

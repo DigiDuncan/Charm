@@ -2,7 +2,6 @@ import io
 import logging
 import string
 import requests
-import sys
 
 import arcade
 from arcade import Sprite, generate_uuid_from_kwargs
@@ -11,6 +10,7 @@ import PIL.Image
 from charmtests.lib.anim import ease_circout
 from charmtests.lib.charm import CharmColors
 from charmtests.lib.settings import Settings
+from charmtests.lib.utils import clamp
 from charmtests.objects.song import Song
 
 logger = logging.getLogger(__package__)
@@ -84,7 +84,7 @@ class SongMenu:
         self._selected_id = 0
 
         self.local_time = 0
-        self.move_start = sys.maxsize
+        self.move_start = 0
 
     @property
     def selected_id(self) -> int:
@@ -92,7 +92,7 @@ class SongMenu:
 
     @selected_id.setter
     def selected_id(self, v: int):
-        self._selected_id = v
+        self._selected_id = clamp(0, v, len(self.items) - 1)
         self.move_start = self.local_time
 
     @property

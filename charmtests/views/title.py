@@ -10,6 +10,7 @@ from charmtests.lib.anim import bounce, ease_linear, ease_quadinout
 from charmtests.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charmtests.lib.digiview import DigiView
 from charmtests.lib.utils import img_from_resource
+from charmtests.views.mainmenu import MainMenuView
 from charmtests.views.songmenu import SongMenuView
 
 FADE_DELAY = 1
@@ -22,7 +23,7 @@ class TitleView(DigiView):
         self.song = None
         self.volume = 0.25
         self.sounds: dict[str, arcade.Sound] = {}
-        self.main_menu_view = SongMenuView(back = self)
+        self.main_menu_view = MainMenuView(back = self)
 
     def setup(self):
         self.hit_start = None
