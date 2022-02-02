@@ -1,3 +1,4 @@
+from functools import cache
 import math
 
 import arcade
@@ -14,12 +15,14 @@ class CharmColors:
     PURPLE = (0x83, 0x94, 0xD8)
     FADED_PURPLE = (0xC6, 0xCE, 0xED)
 
-mt = PIL.Image.new("RGB", (200, 200), arcade.color.MAGENTA)
-d = PIL.ImageDraw.Draw(mt)
-d.rectangle((0, 100, 100, 200), arcade.color.BLACK)
-d.rectangle((100, 0, 200, 100), arcade.color.BLACK)
-MISSING_TEXTURE = arcade.Texture("_missing_200x200", mt)
-
+@cache
+def generate_missing_texture(w, h):
+    """Generate a classic missing texture of wxh."""
+    mt = PIL.Image.new("RGB", (w, h), arcade.color.MAGENTA)
+    d = PIL.ImageDraw.Draw(mt)
+    d.rectangle((0, h // 2, w // 2, h), arcade.color.BLACK)
+    d.rectangle((w // 2, 0, w, h // 2), arcade.color.BLACK)
+    return arcade.Texture(f"_missing_{w}x{h}", mt)
 
 def generate_gum_wrapper(size: tuple[int], buffer: int = 20, alpha = 128) -> tuple[int, SpriteList, SpriteList]:
     """Generate two SpriteLists that makes a gum wrapper-style background."""
