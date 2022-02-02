@@ -12,6 +12,7 @@ class CharmColors:
     GREEN = (0x55, 0xD7, 0x90)
     FADED_GREEN = (0xB5, 0xED, 0xCE)
     PURPLE = (0x83, 0x94, 0xD8)
+    FADED_PURPLE = (0xC6, 0xCE, 0xED)
 
 mt = PIL.Image.new("RGB", (200, 200), arcade.color.MAGENTA)
 d = PIL.ImageDraw.Draw(mt)

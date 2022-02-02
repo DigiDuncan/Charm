@@ -9,6 +9,7 @@ from arcade import Sprite, generate_uuid_from_kwargs
 import PIL.Image
 
 from charmtests.lib.anim import ease_circout
+from charmtests.lib.charm import CharmColors
 from charmtests.lib.settings import Settings
 from charmtests.objects.song import Song
 
@@ -52,8 +53,8 @@ class SongMenuItem(Sprite):
 
         with self._sprite_list.atlas.render_into(self._tex) as fbo:
             fbo.clear()
-            arcade.draw_circle_filled(self.width - self.height / 2, self.height / 2, self.height / 2, arcade.color.WHITE)
-            arcade.draw_lrtb_rectangle_filled(0, self.width - self.height / 2, self.height, 0, arcade.color.WHITE)
+            arcade.draw_circle_filled(self.width - self.height / 2, self.height / 2, self.height / 2, CharmColors.FADED_PURPLE)
+            arcade.draw_lrtb_rectangle_filled(0, self.width - self.height / 2, self.height, 0, CharmColors.FADED_PURPLE)
             arcade.draw_text(
                 self.title, self.width - self.height / 2 - 5, self.height / 2, arcade.color.BLACK,
                 font_size=self.height/3 * (3/4), font_name="bananaslip plus plus", anchor_x="right"
