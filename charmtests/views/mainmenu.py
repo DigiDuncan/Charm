@@ -33,6 +33,7 @@ class MainMenuView(DigiView):
             case arcade.key.LEFT:
                 self.menu.selected_id -= 1
             case arcade.key.BACKSPACE:
+                self.back.setup()
                 self.window.show_view(self.back)
                 arcade.play_sound(self.window.sounds["back"])
             case arcade.key.ENTER:

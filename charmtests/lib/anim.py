@@ -6,6 +6,8 @@ def time_to_zero_one_ramp(start: float, end: float, time: float) -> float:
     """Convert a time to its progress through the range start -> end, from 0 to 1.
     
     https://www.desmos.com/calculator/d2qdk3lceh"""
+    if end - start == 0:
+        return 1
     y = ((1 / (end - start)) * time) - (start / (end - start))
     return clamp(0, y, 1)
 
@@ -38,7 +40,7 @@ def ease_quadinout(minimum: float, maximum: float, start: float, end: float, x: 
     return zero_one_to_range(minimum, maximum, zo)
 
 def ease_circout(minimum: float, maximum: float, start: float, end: float, x: float) -> float:
-    """https://easings.net/#easeInOutQuad"""
+    """https://easings.net/#easeOutCirc"""
     x = time_to_zero_one_ramp(start, end, x)
     zo = math.sqrt(1 - math.pow(x - 1, 2))
     return zero_one_to_range(minimum, maximum, zo)

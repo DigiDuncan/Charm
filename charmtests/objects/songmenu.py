@@ -67,7 +67,7 @@ class SongMenuItem(Sprite):
         logger.info(f"Loaded MenuItem {self.title}")
 
 class SongMenu:
-    def __init__(self, songs: list[Song] = None, radius = 4, buffer = 5, move_speed = 2.5) -> None:
+    def __init__(self, songs: list[Song] = None, radius = 4, buffer = 5, move_speed = 0.2) -> None:
         self._songs = songs
         self.items: list[SongMenuItem] = []
         if songs:
@@ -85,6 +85,9 @@ class SongMenu:
 
         self.local_time = 0
         self.move_start = 0
+        self.old_pos = {}
+        for item in self.items:
+            self.old_pos[item] = (item.left, item.center_y)
 
     @property
     def selected_id(self) -> int:
@@ -94,6 +97,8 @@ class SongMenu:
     def selected_id(self, v: int):
         self._selected_id = clamp(0, v, len(self.items) - 1)
         self.move_start = self.local_time
+        for item in self.items:
+            self.old_pos[item] = (item.left, item.center_y)
 
     @property
     def selected(self) -> SongMenuItem:
@@ -110,12 +115,9 @@ class SongMenu:
 
     def update(self, local_time: float):
         self.local_time = local_time
-        old_pos = {}
-        for item in self.items:
-            old_pos[item] = (item.left, item.center_y)
         current = self.items[self.selected_id]
-        current.left = ease_circout(old_pos[current][0], 0, self.move_start, self.move_end, self.local_time)
-        current.center_y = ease_circout(old_pos[current][1], Settings.height // 2, self.move_start, self.move_end, self.local_time)
+        current.left = ease_circout(self.old_pos[current][0], 0, self.move_start, self.move_end, self.local_time)
+        current.center_y = ease_circout(self.old_pos[current][1], Settings.height // 2, self.move_start, self.move_end, self.local_time)
         up_id = self.selected_id
         down_id = self.selected_id
         x_delta = current.width / (self.radius + 1) / 1.5
@@ -128,12 +130,12 @@ class SongMenu:
             y_offset += current.height + self.buffer
             if up_id > -1:
                 up = self.items[up_id]
-                up.left = ease_circout(old_pos[up][0], current.left - x_offset, self.move_start, self.move_end, self.local_time)
-                up.center_y = ease_circout(old_pos[up][1], y_offset + current.center_y, self.move_start, self.move_end, self.local_time)
+                up.left = ease_circout(self.old_pos[up][0], current.left - x_offset, self.move_start, self.move_end, self.local_time)
+                up.center_y = ease_circout(self.old_pos[up][1], y_offset + current.center_y, self.move_start, self.move_end, self.local_time)
             if down_id < len(self.items):
                 down = self.items[down_id]
-                down.left = ease_circout(old_pos[down][0], current.left - x_offset, self.move_start, self.move_end, self.local_time)
-                down.center_y = ease_circout(old_pos[down][1], -y_offset + current.center_y, self.move_start, self.move_end, self.local_time)
+                down.left = ease_circout(self.old_pos[down][0], current.left - x_offset, self.move_start, self.move_end, self.local_time)
+                down.center_y = ease_circout(self.old_pos[down][1], -y_offset + current.center_y, self.move_start, self.move_end, self.local_time)
 
     def draw(self):
         self.sprite_list.draw()

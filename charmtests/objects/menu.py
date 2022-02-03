@@ -25,7 +25,8 @@ class MainMenuItem(Sprite):
 
         self.goto = goto
 
-        self.label = arcade.Text(label, 0, 0, CharmColors.PURPLE, anchor_x='center', anchor_y="top", font_name="bananaslip plus plus", font_size=24)
+        self.label = arcade.Text(label, 0, 0, CharmColors.PURPLE, anchor_x='center', anchor_y="top",
+                                 font_name="bananaslip plus plus", font_size=24)
         self.center_y = Settings.height // 2
 
 class MainMenu:
@@ -40,7 +41,11 @@ class MainMenu:
 
         self.local_time = 0
         self.move_start = 0
-        self.move_speed = 0.5
+        self.move_speed = 0.3
+
+        self.old_pos = {}
+        for item in self.items:
+            self.old_pos[item] = (item.center_x, item.scale, item.alpha)
 
     @property
     def selected_id(self) -> int:
@@ -48,8 +53,10 @@ class MainMenu:
 
     @selected_id.setter
     def selected_id(self, v: int):
-        self._selected_id = clamp(0, v, len(self.items) - 1)
+        self._selected_id = v % len(self.items)
         self.move_start = self.local_time
+        for item in self.items:
+            self.old_pos[item] = (item.center_x, item.scale, item.alpha)
 
     @property
     def selected(self) -> MainMenuItem:
@@ -66,41 +73,29 @@ class MainMenu:
 
     def update(self, local_time: float):
         self.local_time = local_time
-        old_pos = {}
-        for item in self.items:
-            old_pos[item] = (item.center_x, item.scale, item.alpha)
+        if self.local_time >= self.move_end:
+            return  # prevent floating point nonsense from making this update every frame
         current = self.items[self.selected_id]
-        current.center_x = ease_circout(old_pos[current][0], Settings.width // 2, self.move_start, self.move_end, self.local_time)
-        current.scale = ease_circout(old_pos[current][1], 1, self.move_start, self.move_end, self.local_time)
-        current.alpha = ease_circout(old_pos[current][2], 255, self.move_start, self.move_end, self.local_time)
+        current.center_x = ease_circout(self.old_pos[current][0], Settings.width // 2, self.move_start, self.move_end, self.local_time)
+        current.scale = ease_circout(self.old_pos[current][1], 1, self.move_start, self.move_end, self.local_time)
+        current.alpha = ease_circout(self.old_pos[current][2], 255, self.move_start, self.move_end, self.local_time)
+        current.label.x = current.center_x
+        current.label.y = current.bottom
 
         x_bumper = Settings.width // 4
-        left_item = self.items[self.selected_id - 1]
-        left_item.center_x = ease_circout(old_pos[left_item][0], x_bumper, self.move_start, self.move_end, self.local_time)
-        left_item.scale = ease_circout(old_pos[left_item][1], 0.5, self.move_start, self.move_end, self.local_time)
-        left_item.alpha = ease_circout(old_pos[left_item][2], 127, self.move_start, self.move_end, self.local_time)
-
-        right_id = self.selected_id + 1
-        if right_id >= len(self.items):
-            right_id = len(self.items) - 1 - right_id
-        right_item = self.items[right_id]
-        right_item.center_x = ease_circout(old_pos[right_item][0], Settings.width - x_bumper, self.move_start, self.move_end, self.local_time)
-        right_item.scale = ease_circout(old_pos[right_item][1], 0.5, self.move_start, self.move_end, self.local_time)
-        right_item.alpha = ease_circout(old_pos[left_item][2], 127, self.move_start, self.move_end, self.local_time)
-
-        for i in [current, left_item, right_item]:
-            i.label.x = i.center_x
-            i.label.y = i.bottom
-            i.label.scale = i.scale
+        
+        for n, item in enumerate(self.items):
+            rel_id = n - self.selected_id
+            if rel_id == 0:  # current item
+                continue
+            item.center_x = ease_circout(self.old_pos[item][0], current.center_x + (x_bumper * rel_id), self.move_start, self.move_end, self.local_time)
+            item.scale = ease_circout(self.old_pos[item][1], 0.5, self.move_start, self.move_end, self.local_time)
+            item.alpha = ease_circout(self.old_pos[item][2], 127, self.move_start, self.move_end, self.local_time)
+            item.label.x = item.center_x
+            item.label.y = item.bottom
 
     def draw(self):
         self.sprite_list.draw()
-        current = self.items[self.selected_id]
-        left_item = self.items[self.selected_id - 1]
-        right_id = self.selected_id + 1
-        if right_id >= len(self.items):
-            right_id = len(self.items) - 1 - right_id
-        right_item = self.items[right_id]
 
-        for i in [current, left_item, right_item]:
+        for i in self.items:
             i.label.draw()
