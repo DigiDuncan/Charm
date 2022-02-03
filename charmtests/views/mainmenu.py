@@ -1,4 +1,5 @@
 import arcade
+from charmtests.lib.anim import ease_quartout
 
 from charmtests.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charmtests.lib.digiview import DigiView
@@ -57,6 +58,9 @@ class MainMenuView(DigiView):
         # Charm BG
         self.small_logos_forward.draw()
         self.small_logos_backward.draw()
+
+        left = ease_quartout(self.size[0], 0, 0.5, 1.5, self.local_time)
+        arcade.draw_lrtb_rectangle_filled(left, self.size[0], (self.size[1] // 4) * 3, self.size[1] // 4, arcade.color.WHITE + (63,))
 
         self.menu.draw()
 

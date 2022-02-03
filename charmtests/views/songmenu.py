@@ -5,6 +5,7 @@ import arcade
 
 import charmtests.data.audio
 import charmtests.data.images
+from charmtests.lib.anim import ease_quartout
 from charmtests.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charmtests.lib.digiview import DigiView
 from charmtests.lib.settings import Settings
@@ -101,7 +102,8 @@ class SongMenuView(DigiView):
         self.small_logos_forward.draw()
         self.small_logos_backward.draw()
 
-        arcade.draw_lrtb_rectangle_filled(self.album_art.left - self.album_art_buffer, self.size[0], self.size[1], 0, arcade.color.WHITE + (63,))
+        bottom = ease_quartout(self.size[1], 0, 0.5, 1.5, self.local_time)
+        arcade.draw_lrtb_rectangle_filled(self.album_art.left - self.album_art_buffer, self.size[0], self.size[1], bottom, arcade.color.WHITE + (63,))
 
         self.menu.draw()
         if self.local_time < self.selection_changed + self.static_time:

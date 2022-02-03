@@ -39,6 +39,12 @@ def ease_quadinout(minimum: float, maximum: float, start: float, end: float, x: 
         zo = 1 - math.pow(-2 * x + 2, 2) / 2
     return zero_one_to_range(minimum, maximum, zo)
 
+def ease_quartout(minimum: float, maximum: float, start: float, end: float, x: float) -> float:
+    """https://easings.net/#easeOutQuart"""
+    x = time_to_zero_one_ramp(start, end, x)
+    zo = 1 - math.pow(1 - x, 4)
+    return zero_one_to_range(minimum, maximum, zo)
+
 def ease_circout(minimum: float, maximum: float, start: float, end: float, x: float) -> float:
     """https://easings.net/#easeOutCirc"""
     x = time_to_zero_one_ramp(start, end, x)
