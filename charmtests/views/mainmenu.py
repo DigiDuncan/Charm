@@ -60,7 +60,7 @@ class MainMenuView(DigiView):
         self.small_logos_backward.draw()
 
         left = ease_quartout(self.size[0], 0, 0.5, 1.5, self.local_time)
-        arcade.draw_lrtb_rectangle_filled(left, self.size[0], (self.size[1] // 4) * 3, self.size[1] // 4, arcade.color.WHITE + (63,))
+        arcade.draw_lrtb_rectangle_filled(left, self.size[0], (self.size[1] // 4) * 3, self.size[1] // 4, arcade.color.WHITE + (127,))
 
         self.menu.draw()
 
