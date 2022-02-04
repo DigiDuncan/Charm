@@ -1,9 +1,6 @@
 import getpass
 import importlib.resources as pkg_resources
-import os
 import random
-import socket
-from turtle import width
 
 import arcade
 
@@ -85,7 +82,7 @@ class TitleView(DigiView):
         self.welcome_label = arcade.Text(f"welcome, {getpass.getuser()}!",
                           font_name='bananaslip plus plus',
                           font_size=14,
-                          start_x=self.window.width//2, start_y=10,
+                          start_x=self.window.width//2, start_y=6,
                           anchor_x='center', anchor_y='bottom',
                           color = (0,0,0) + (0xFF,))
 
@@ -139,8 +136,8 @@ class TitleView(DigiView):
         self.small_logos_backward.draw()
 
         arcade.draw_polygon_filled(
-            [(self.welcome_label.x - self.welcome_label._label.content_width // 2, self.welcome_label._label.content_height + 6),
-            (self.welcome_label.x - self.welcome_label._label.content_width // 2 + self.welcome_label._label.content_width, self.welcome_label._label.content_height + 6),
+            [(self.welcome_label.x - self.welcome_label._label.content_width // 2, self.welcome_label._label.content_height + 10),
+            (self.welcome_label.x - self.welcome_label._label.content_width // 2 + self.welcome_label._label.content_width, self.welcome_label._label.content_height + 10),
             (self.welcome_label.x - self.welcome_label._label.content_width // 2 + self.welcome_label._label.content_width + 20, 0), (self.welcome_label.x - self.welcome_label._label.content_width // 2 - 20, 0)],
             CharmColors.FADED_PURPLE
         )
