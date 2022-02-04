@@ -1,3 +1,4 @@
+import math
 from arcade import Color, Sprite
 import arcade
 import PIL.Image, PIL.ImageOps
@@ -28,6 +29,7 @@ class MainMenuItem(Sprite):
         self.label = arcade.Text(label, 0, 0, CharmColors.PURPLE, anchor_x='center', anchor_y="top",
                                  font_name="bananaslip plus plus", font_size=24)
         self.center_y = Settings.height // 2
+        self.jiggle_start = 0
 
 class MainMenu:
     def __init__(self, items: list[MainMenuItem] = []) -> None:
@@ -73,8 +75,6 @@ class MainMenu:
 
     def update(self, local_time: float):
         self.local_time = local_time
-        if self.local_time >= self.move_end:
-            return  # prevent floating point nonsense from making this update every frame
         current = self.items[self.selected_id]
         current.center_x = ease_circout(self.old_pos[current][0], Settings.width // 2, self.move_start, self.move_end, self.local_time)
         current.scale = ease_circout(self.old_pos[current][1], 1, self.move_start, self.move_end, self.local_time)
@@ -93,6 +93,12 @@ class MainMenu:
             item.alpha = ease_circout(self.old_pos[item][2], 127, self.move_start, self.move_end, self.local_time)
             item.label.x = item.center_x
             item.label.y = item.bottom
+
+        JIGGLE_TIME = 0.5
+        JIGGLES = 5
+        if self.selected.jiggle_start != 0 and self.local_time <= self.selected.jiggle_start + JIGGLE_TIME:
+            jiggle_amount = 20 * math.sin(self.local_time * ((JIGGLES * 2) / JIGGLE_TIME))
+            current.center_x += jiggle_amount
 
     def draw(self):
         self.sprite_list.draw()

@@ -42,6 +42,8 @@ class MainMenuView(DigiView):
                     self.menu.selected.goto.setup()
                     self.window.show_view(self.menu.selected.goto)
                     arcade.play_sound(self.window.sounds["valid"])
+                else:
+                    self.menu.selected.jiggle_start = self.local_time
 
         return super().on_key_press(symbol, modifiers)
 
