@@ -1,6 +1,9 @@
+import getpass
 import importlib.resources as pkg_resources
-import math
+import os
 import random
+import socket
+from turtle import width
 
 import arcade
 
@@ -11,7 +14,6 @@ from charmtests.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wra
 from charmtests.lib.digiview import DigiView
 from charmtests.lib.utils import img_from_resource
 from charmtests.views.mainmenu import MainMenuView
-from charmtests.views.songmenu import SongMenuView
 
 FADE_DELAY = 1
 SWITCH_DELAY = 0.5 + FADE_DELAY
@@ -80,6 +82,13 @@ class TitleView(DigiView):
                           anchor_x='center', anchor_y='center',
                           color = CharmColors.PURPLE + (0xFF,))
 
+        self.welcome_label = arcade.Text(f"welcome, {getpass.getuser()}!",
+                          font_name='bananaslip plus plus',
+                          font_size=14,
+                          start_x=self.window.width//2, start_y=10,
+                          anchor_x='center', anchor_y='bottom',
+                          color = (0,0,0) + (0xFF,))
+
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:
             case arcade.key.ENTER:
@@ -128,6 +137,15 @@ class TitleView(DigiView):
         # Charm BG
         self.small_logos_forward.draw()
         self.small_logos_backward.draw()
+
+        arcade.draw_polygon_filled(
+            [(self.welcome_label.x - self.welcome_label._label.content_width // 2, self.welcome_label._label.content_height + 6),
+            (self.welcome_label.x - self.welcome_label._label.content_width // 2 + self.welcome_label._label.content_width, self.welcome_label._label.content_height + 6),
+            (self.welcome_label.x - self.welcome_label._label.content_width // 2 + self.welcome_label._label.content_width + 20, 0), (self.welcome_label.x - self.welcome_label._label.content_width // 2 - 20, 0)],
+            CharmColors.FADED_PURPLE
+        )
+
+        self.welcome_label.draw()
 
         # Logo and text
         self.main_sprites.draw()
