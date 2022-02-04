@@ -16,7 +16,7 @@ class MainMenuItem(Sprite):
                  width: int = 200, border_color: Color = arcade.color.WHITE, border_width: int = 5,
                  *args, **kwargs):
         try:
-            self.icon = img_from_resource(charmtests.data.icons, f"icon.png")
+            self.icon = img_from_resource(charmtests.data.icons, f"{icon}.png")
             self.icon.resize((width, width), PIL.Image.LANCZOS)
         except:
             self.icon = generate_missing_texture_image(width, width)
