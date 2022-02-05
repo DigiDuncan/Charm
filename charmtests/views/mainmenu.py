@@ -3,11 +3,9 @@ from charmtests.lib.anim import ease_quartout
 
 from charmtests.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charmtests.lib.digiview import DigiView
-from charmtests.lib.utils import clamp
 from charmtests.objects.menu import MainMenu, MainMenuItem
-from charmtests.objects.song import Song
-from charmtests.views.song import SongView
 from charmtests.views.songmenu import SongMenuView
+from charmtests.views.test import TestView
 
 class MainMenuView(DigiView):
     def __init__(self, *args, **kwargs):
@@ -22,8 +20,9 @@ class MainMenuView(DigiView):
         self.menu = MainMenu(
             [
                 MainMenuItem("Playlists", "playlist", None),
-                MainMenuItem("Songs", "songs", SongMenuView( back = self)),
-                MainMenuItem("Options", "option", None)
+                MainMenuItem("Songs", "songs", SongMenuView(back = self)),
+                MainMenuItem("Options", "option", None),
+                MainMenuItem("Test", "test", TestView(back = self))
             ]
         )
 

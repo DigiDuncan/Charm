@@ -16,8 +16,7 @@ class DigiView(View):
         self.camera = arcade.Camera(Settings.width, Settings.height, self.window)
         self.debug_options = {
             "camera_scale": 1,
-            "box": False
-        }
+            "box": False}
 
     def setup(self):
         self.local_time = 0
@@ -43,6 +42,8 @@ class DigiView(View):
                     self.debug_options["box"] = not self.debug_options["box"]
                 case arcade.key.A:  # show atlas
                     self.window.ctx.default_atlas.show()
+                case arcade.key.L:  # show log
+                    self.window.show_log = not self.window.show_log
         return super().on_key_press(symbol, modifiers)
 
     def on_update(self, delta_time: float):

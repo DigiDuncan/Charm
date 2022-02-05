@@ -44,6 +44,7 @@ class CharmGame(arcade.Window):
         self.fps_checks = 0
         self.debug = False
         self.show_fps = True
+        self.show_log = False
         self.sounds: dict[str, arcade.Sound] = {}
         self.theme_song: arcade.pyglet.media.Player = None
 
