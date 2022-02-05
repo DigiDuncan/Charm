@@ -14,8 +14,8 @@ from .views.title import TitleView
 
 SCREEN_WIDTH = Settings.width
 SCREEN_HEIGHT = Settings.height
+FPS_CAP = Settings.fps
 SCREEN_TITLE = "Charm"
-FPS_CAP = 240
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
