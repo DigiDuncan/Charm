@@ -88,6 +88,7 @@ class CharmGame(arcade.Window):
 
     def debug_draw(self):
         self.fps_checks += 1
+        _cam = self.current_camera
         self.debug_camera.use()
         if self.fps_checks % (FPS_CAP / 8) == 0:
             average = statistics.mean(self.fps_averages)
@@ -102,6 +103,8 @@ class CharmGame(arcade.Window):
                 self.fps_label.draw()
             if self.debug:
                 self.more_info_label.draw()
+        if _cam is not None:
+            _cam.use()
 
 
 def main():
