@@ -20,6 +20,7 @@ SCREEN_TITLE = "Charm"
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 dfhandler = digilogger.DigiFormatterHandler()
+dfhandlersource = digilogger.DigiFormatterHandler(showsource=True)
 
 logger = logging.getLogger(__package__)
 logger.handlers = []
@@ -30,7 +31,7 @@ arcadelogger = logging.getLogger("arcade")
 arcadelogger.setLevel(logging.WARN)
 arcadelogger.handlers = []
 arcadelogger.propagate = False
-arcadelogger.addHandler(dfhandler)
+arcadelogger.addHandler(dfhandlersource)
 
 class CharmGame(arcade.Window):
     def __init__(self):
