@@ -9,6 +9,7 @@ import charmtests
 import charmtests.data.images
 from charmtests.lib.settings import Settings
 from charmtests.lib.utils import pyglet_img_from_resource
+from charmtests.objects.debug_log import DebugLog, PygletHandler
 
 from .views.title import TitleView
 
@@ -21,17 +22,21 @@ SCREEN_TITLE = "Charm"
 logging.basicConfig(level=logging.INFO)
 dfhandler = digilogger.DigiFormatterHandler()
 dfhandlersource = digilogger.DigiFormatterHandler(showsource=True)
+phandler = PygletHandler()
+phandlersource = PygletHandler(showsource=True)
 
 logger = logging.getLogger(__package__)
 logger.handlers = []
 logger.propagate = False
 logger.addHandler(dfhandler)
+logger.addHandler(phandler)
 
 arcadelogger = logging.getLogger("arcade")
 arcadelogger.setLevel(logging.WARN)
 arcadelogger.handlers = []
 arcadelogger.propagate = False
 arcadelogger.addHandler(dfhandlersource)
+arcadelogger.addHandler(phandlersource)
 
 class CharmGame(arcade.Window):
     def __init__(self):
@@ -72,6 +77,10 @@ class CharmGame(arcade.Window):
                           anchor_x='left', anchor_y='top',
                           color = (0, 0, 0) + (0xFF,))
 
+        self.debug_log = DebugLog()
+        self.log = self.debug_log.layout
+        self.log.position = (5, 5)
+
         # Menu sounds
         for soundname in ["back", "select", "valid"]:
             with pkg_resources.path(charmtests.data.audio, f"sfx-{soundname}.wav") as p:
@@ -104,6 +113,8 @@ class CharmGame(arcade.Window):
                 self.fps_label.draw()
             if self.debug:
                 self.more_info_label.draw()
+                if self.show_log:
+                    self.log.draw()
         if _cam is not None:
             _cam.use()
 

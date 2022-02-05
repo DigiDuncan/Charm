@@ -10,6 +10,12 @@ class TestView(DigiView):
     def setup(self):
         super().setup()
 
+        doc = arcade.pyglet.text.decode_attributed(
+            f"{{color {arcade.color.RED + (0xFF,)}}}This is red text!{{color {arcade.color.BLUE + (0xFF,)}}} Now it's blue!"
+        )
+        self.layout = arcade.pyglet.text.layout.TextLayout(doc)
+        
+
         # Generate "gum wrapper" background
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
 
@@ -34,5 +40,8 @@ class TestView(DigiView):
         # Charm BG
         self.small_logos_forward.draw()
         self.small_logos_backward.draw()
+
+        with self.window.ctx.pyglet_rendering():
+            self.layout.draw()
 
         super().on_draw()
