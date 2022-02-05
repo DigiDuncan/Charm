@@ -1,6 +1,7 @@
 import logging
 
 import arcade
+import pyglet
 import arrow
 
 from charmtests.lib.settings import Settings
@@ -54,17 +55,17 @@ class DebugMessage:
 class DebugLog:
     def __init__(self) -> None:
         self.messages: list[DebugMessage] = []
-        self.doc = arcade.pyglet.text.document.FormattedDocument()
-        self.layout = arcade.pyglet.text.layout.TextLayout(self.doc, width = Settings.width, multiline=True)
+        self.doc = pyglet.text.document.FormattedDocument()
+        self.layout = pyglet.text.layout.TextLayout(self.doc, width = Settings.width, multiline=True)
 
     def render(self) -> str:
-        renderstr = "\n\n".join([m.render() for m in self.messages[-5:]])
+        renderstr = "\n\n".join([m.render() for m in self.messages[-10:]])
         print(renderstr)
         return renderstr
 
     def _log(self, message: str, level = logging.INFO):
         self.messages.append(DebugMessage(message, level))
-        self.layout.document = arcade.pyglet.text.decode_attributed(self.render())
+        self.layout.document = pyglet.text.decode_attributed(self.render())
 
 class PygletHandler(logging.Handler):
     def __init__(self, *args, showsource=False, **kwargs):

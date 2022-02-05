@@ -1,4 +1,5 @@
 import arcade
+import pyglet
 
 from charmtests.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charmtests.lib.digiview import DigiView
@@ -10,10 +11,10 @@ class TestView(DigiView):
     def setup(self):
         super().setup()
 
-        doc = arcade.pyglet.text.decode_attributed(
+        doc = pyglet.text.decode_attributed(
             f"{{color {arcade.color.RED + (0xFF,)}}}This is red text!{{color {arcade.color.BLUE + (0xFF,)}}} Now it's blue!"
         )
-        self.layout = arcade.pyglet.text.layout.TextLayout(doc)
+        self.layout = pyglet.text.layout.TextLayout(doc)
         
 
         # Generate "gum wrapper" background
