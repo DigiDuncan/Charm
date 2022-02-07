@@ -5,7 +5,7 @@ import importlib.resources as pkg_resources
 from charmtests.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charmtests.lib.digiview import DigiView
 import charmtests.data.charts.fnf
-from charmtests.lib.gamemodes.fnf import FNFSong, wordmap, colormap
+from charmtests.lib.gamemodes.fnf import FNFSong, altcolormap, wordmap, colormap
 
 class TestView(DigiView):
     def __init__(self, *args, **kwargs):
@@ -27,13 +27,14 @@ class TestView(DigiView):
                                         anchor_x="center", anchor_y="center")
         self.player2_text = arcade.Text("????", (self.size[0] // 4), self.size[1] // 2, font_size = 72,
                                         anchor_x="center", anchor_y="center")
-        self.local_time_text = arcade.Text("????", (self.size[0] // 2), 0, font_size = 36,
-                                        anchor_x="center", color=arcade.color.BLACK)
-        self.song_time_text = arcade.Text("????", (self.size[0] // 2), 50, font_size = 18,
+        self.song_time_text = arcade.Text("????", (self.size[0] // 2), 10, font_size = 18,
                                         anchor_x="center", color=arcade.color.BLACK)
 
         # Generate "gum wrapper" background
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
+
+        self.last_player1_note = None
+        self.last_player2_note = None
 
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:
@@ -50,19 +51,32 @@ class TestView(DigiView):
 
         move_gum_wrapper(self.logo_width, self.small_logos_forward, self.small_logos_backward, delta_time)
 
-        self.local_time_text._label.text = str(round(self.local_time, 3))
         self.song_time_text._label.text = str(round(self.song.time, 3))
 
-        player1notes = [n for n in self.songdata.charts[0].notes if n.position <= self.local_time]
+        player1notes = [n for n in self.songdata.charts[0].notes if n.position <= self.song.time]
         if player1notes:
-            player1note = player1notes[-1].lane
-            self.player1_text._label.text = wordmap[player1note]
-            self.player1_text.color = colormap[player1note]
-        player2notes = [n for n in self.songdata.charts[1].notes if n.position <= self.local_time]
+            current_player1_note = player1notes[-1]
+            if self.last_player1_note != current_player1_note:
+                self.player1_text._label.text = wordmap[current_player1_note.lane]
+                color = colormap[current_player1_note.lane]
+                if self.last_player1_note is not None and self.last_player1_note.lane == current_player1_note.lane:
+                    color = altcolormap[current_player1_note.lane] if len(player1notes) % 2 else colormap[current_player1_note.lane]
+                else:
+                    color = colormap[current_player1_note.lane]
+                self.player1_text.color = color
+            self.last_player1_note = current_player1_note
+
+        player2notes = [n for n in self.songdata.charts[1].notes if n.position <= self.song.time]
         if player2notes:
-            player2note = player2notes[-1].lane
-            self.player2_text._label.text = wordmap[player2note]
-            self.player2_text.color = colormap[player2note]
+            current_player2_note = player2notes[-1]
+            if self.last_player2_note != current_player2_note:
+                self.player2_text._label.text = wordmap[current_player2_note.lane]
+                if self.last_player2_note is not None and self.last_player2_note.lane == current_player2_note.lane:
+                    color = altcolormap[current_player2_note.lane] if len(player2notes) % 2 else colormap[current_player2_note.lane]
+                else:
+                    color = colormap[current_player2_note.lane]
+                self.player2_text.color = color
+            self.last_player2_note = current_player2_note
 
     def on_draw(self):
         self.clear()
@@ -74,7 +88,6 @@ class TestView(DigiView):
 
         self.player1_text.draw()
         self.player2_text.draw()
-        self.local_time_text.draw()
         self.song_time_text.draw()
         
         super().on_draw()

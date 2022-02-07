@@ -10,10 +10,17 @@ PlayerNum = Literal[1, 2]
 JsonLaneNum = Literal[0, 1, 2, 3, 4, 5, 6, 7]
 
 colormap = {
-    0: arcade.color.MAGENTA,
-    1: arcade.color.CYAN,
-    2: arcade.color.GREEN,
-    3: arcade.color.RED
+    0: arcade.color.MAGENTA + (0xFF,),
+    1: arcade.color.CYAN + (0xFF,),
+    2: arcade.color.GREEN + (0xFF,),
+    3: arcade.color.RED + (0xFF,)
+}
+
+altcolormap = {
+    0: arcade.color.DARK_MAGENTA + (0xFF,),
+    1: arcade.color.DARK_CYAN + (0xFF,),
+    2: arcade.color.DARK_GREEN + (0xFF,),
+    3: arcade.color.DARK_RED + (0xFF,)
 }
 
 wordmap = {
