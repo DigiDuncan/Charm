@@ -1,10 +1,11 @@
 import arcade
 import importlib.resources as pkg_resources
+from charmtests.lib import anim
 
 from charmtests.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charmtests.lib.digiview import DigiView
 import charmtests.data.charts.fnf
-from charmtests.lib.gamemodes.fnf import FNFHighway, FNFSong, altcolormap, wordmap, colormap
+from charmtests.lib.gamemodes.fnf import CameraFocusEvent, FNFHighway, FNFSong, altcolormap, wordmap, colormap
 from charmtests.lib.settings import Settings
 
 class TestView(DigiView):
@@ -38,6 +39,11 @@ class TestView(DigiView):
 
         self.last_player1_note = None
         self.last_player2_note = None
+        self.last_camera_event = CameraFocusEvent(0, 1)
+        self.last_spotlight_position = 0
+        self.last_spotlight_change = 0
+        self.go_to_spotlight_position = 0
+        self.spotlight_position = 0
 
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:
@@ -59,6 +65,7 @@ class TestView(DigiView):
             self.song_time_text._label.text = time
 
         # self.text_update()
+        self.get_spotlight_position(self.song.time)
 
         self.highway_1.update(self.song.time)
         self.highway_2.update(self.song.time)
@@ -89,6 +96,22 @@ class TestView(DigiView):
                 self.player2_text.color = color
             self.last_player2_note = current_player2_note
 
+    def get_spotlight_position(self, song_time: float):
+        focus_pos = {
+            2: Settings.width // 2,
+            1: 0
+        }
+        cameraevents = [e for e in self.songdata.events if isinstance(e, CameraFocusEvent) and e.position < self.song.time + 0.25]
+        if cameraevents:
+            current_camera_event = cameraevents[-1]
+            if self.last_camera_event != current_camera_event:
+                self.last_spotlight_change = song_time
+                self.last_spotlight_position = self.spotlight_position
+                self.go_to_spotlight_position = focus_pos[current_camera_event.focused_player]
+                self.last_camera_event = current_camera_event
+        self.spotlight_position = anim.ease_circout(self.last_spotlight_position, self.go_to_spotlight_position, self.last_spotlight_change, self.last_spotlight_change + 0.25, song_time)
+                
+
     def on_draw(self):
         self.clear()
         self.camera.use()
@@ -103,5 +126,10 @@ class TestView(DigiView):
 
         self.highway_1.draw()
         self.highway_2.draw()
+
+        arcade.draw_lrtb_rectangle_filled(
+            self.spotlight_position, self.spotlight_position + Settings.width // 2, Settings.height, 0,
+            arcade.color.BLACK + (127,)
+        )
         
         super().on_draw()

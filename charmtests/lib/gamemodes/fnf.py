@@ -160,6 +160,9 @@ class FNFSong(Song):
             c.events.sort()
             logger.debug(f"Parsed chart {c.instrument} with {len(c.notes)} notes.")
 
+        returnsong.events = songevents
+        returnsong.events.sort()
+
         return returnsong
 
 class FNFHighway(Highway):

@@ -27,7 +27,7 @@ class Note:
 
     def __lt__(self, other) -> bool:
         if isinstance(other, Note):
-            return (self.position, self.lane) < (self.position, self.lane)
+            return (self.position, self.lane) < (other.position, other.lane)
         elif isinstance(other, Event):
             if self.position == other.position:
                 return False
@@ -37,6 +37,9 @@ class Note:
 class Event:
     """A very basic event that happens at a time."""
     position: Seconds
+
+    def __lt__(self, other) -> bool:
+        return self.position < other.position
 
 @dataclass
 class BPMChangeEvent(Event):
@@ -74,8 +77,8 @@ class Song:
     def __init__(self, name: str, bpm: float) -> None:
         self.name = name
         self.bpm = bpm
-        self.charts: list[Chart]
-        self.events: list[Event]
+        self.charts: list[Chart] = []
+        self.events: list[Event] = []
     
     @classmethod
     def parse(cls, s: str):
