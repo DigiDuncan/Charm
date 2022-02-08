@@ -38,7 +38,7 @@ class Highway:
 
     @property
     def note_size(self) -> int:
-        return (self.w - (self.gap * self.chart.lanes)) // self.chart.lanes
+        return (self.w // self.chart.lanes) - self.gap
 
     @property
     def strikeline_y(self):
@@ -52,7 +52,7 @@ class Highway:
         return (rpos[0] + self.pos[0], rpos[1] + self.pos[1])
 
     def lane_x(self, lane_num):
-        return (self.note_size * (lane_num) + (self.gap * (lane_num) - 1)) + self.x
+        return (self.note_size + self.gap) * lane_num + self.x
 
     def note_y(self, at: float):
         rt = at - self.song_time

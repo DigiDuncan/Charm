@@ -18,7 +18,7 @@ class TestView(DigiView):
         c = pkg_resources.read_text(charmtests.data.charts.fnf, "ballistic.json")
         self.songdata = FNFSong.parse(c)
         self.highway_1 = FNFHighway(self.songdata.charts[0], (((Settings.width // 3) * 2), 0))
-        self.highway_2 = FNFHighway(self.songdata.charts[1], (0, 0), auto = True)
+        self.highway_2 = FNFHighway(self.songdata.charts[1], (10, 0), auto = True)
 
         with pkg_resources.path(charmtests.data.charts.fnf, "ballistic.mp3") as p:
             song = arcade.load_sound(p)
@@ -29,8 +29,9 @@ class TestView(DigiView):
                                         anchor_x="center", anchor_y="center")
         self.player2_text = arcade.Text("????", (self.size[0] // 4), self.size[1] // 2, font_size = 72,
                                         anchor_x="center", anchor_y="center")
-        self.song_time_text = arcade.Text("????", (self.size[0] // 2), 10, font_size = 18,
-                                          anchor_x="center", color=arcade.color.BLACK)
+        self.song_time_text = arcade.Text("??:??", (self.size[0] // 2), 10, font_size = 24,
+                                          anchor_x="center", color=arcade.color.BLACK,
+                                          font_name="bananaslip plus plus")
 
         # Generate "gum wrapper" background
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
@@ -53,7 +54,9 @@ class TestView(DigiView):
 
         move_gum_wrapper(self.logo_width, self.small_logos_forward, self.small_logos_backward, delta_time)
 
-        self.song_time_text._label.text = str(round(self.song.time, 3))
+        time = f"{int(self.song.time // 60)}:{int(self.song.time % 60):02}"
+        if self.song_time_text._label.text != time:
+            self.song_time_text._label.text = time
 
         # self.text_update()
 
@@ -94,8 +97,8 @@ class TestView(DigiView):
         self.small_logos_forward.draw()
         self.small_logos_backward.draw()
 
-        self.player1_text.draw()
-        self.player2_text.draw()
+        # self.player1_text.draw()
+        # self.player2_text.draw()
         self.song_time_text.draw()
 
         self.highway_1.draw()

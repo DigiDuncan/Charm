@@ -9,6 +9,7 @@ import PIL.Image
 from charmtests.lib.charm import generate_missing_texture_image
 
 from charmtests.lib.highway import Highway
+from charmtests.lib.settings import Settings
 from charmtests.lib.song import BPMChangeEvent, Chart, Event, Milliseconds, Note, Song
 from charmtests.lib.utils import img_from_resource
 import charmtests.data.images.skins.fnf as fnfskin
@@ -72,7 +73,7 @@ class FNFNote(arcade.Sprite):
         try:
             icon = f"{self.note.type}-{wordmap[self.note.lane]}"
             self.icon = img_from_resource(fnfskin, f"{icon}.png")
-            self.icon.resize((width, width), PIL.Image.LANCZOS)
+            self.icon = self.icon.resize((width, width), PIL.Image.LANCZOS)
         except:
             self.icon = generate_missing_texture_image(width, width)
 
@@ -164,6 +165,8 @@ class FNFSong(Song):
 class FNFHighway(Highway):
     def __init__(self, chart: FNFChart, pos: tuple[int, int], size: tuple[int, int] = None, gap=5, auto=False):
         viewport = 1 / chart.notespeed
+        if size is None:
+            size = int(Settings.width / (1280 / 400)), Settings.height
         
         super().__init__(chart, pos, size, gap, viewport)
         
@@ -172,6 +175,14 @@ class FNFHighway(Highway):
             sprite = FNFNote(note, self.note_size)
             sprite.alpha = 0
             self.sprite_list.append(sprite)
+        
+        self.strikeline = arcade.SpriteList()
+        for i in [0,1,2,3]:
+            sprite = FNFNote(Note(i, 0, i, 0), self.note_size)
+            sprite.top = self.strikeline_y
+            sprite.left = self.lane_x(sprite.lane)
+            sprite.alpha = 64
+            self.strikeline.append(sprite)
 
         logger.debug(f"Generated highway for chart {chart.instrument}.")
 
@@ -203,9 +214,10 @@ class FNFHighway(Highway):
             self.sprite_list.remove(n)
 
     def draw(self):
-        prev_camera = arcade.get_window().current_camera
-        self.camera.use()
+        # prev_camera = arcade.get_window().current_camera
+        # self.camera.use()
 
+        self.strikeline.draw()
         self.sprite_list.draw()
 
-        prev_camera.use()
+        # prev_camera.use()
