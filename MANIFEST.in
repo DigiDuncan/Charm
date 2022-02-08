@@ -1,3 +1,3 @@
-graft charmtests/data
+graft charm/data
 graft docs
 recursive-include tests *.py

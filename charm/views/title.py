@@ -4,13 +4,13 @@ import random
 
 import arcade
 
-import charmtests.data.audio
-import charmtests.data.images
-from charmtests.lib.anim import bounce, ease_linear, ease_quadinout
-from charmtests.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
-from charmtests.lib.digiview import DigiView
-from charmtests.lib.utils import img_from_resource
-from charmtests.views.mainmenu import MainMenuView
+import charm.data.audio
+import charm.data.images
+from charm.lib.anim import bounce, ease_linear, ease_quadinout
+from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
+from charm.lib.digiview import DigiView
+from charm.lib.utils import img_from_resource
+from charm.views.mainmenu import MainMenuView
 
 FADE_DELAY = 1
 SWITCH_DELAY = 0.5 + FADE_DELAY
@@ -33,7 +33,7 @@ class TitleView(DigiView):
         self.main_sprites = arcade.SpriteList()
 
         # Set up main logo
-        logo_img = img_from_resource(charmtests.data.images, "logo.png")
+        logo_img = img_from_resource(charm.data.images, "logo.png")
         logo_texture = arcade.Texture("logo", logo_img)
         self.logo = arcade.Sprite(texture=logo_texture)
         self.logo.scale = 1 / 3
@@ -43,7 +43,7 @@ class TitleView(DigiView):
         self.main_sprites.append(self.logo)
 
         # Splash text
-        self.splash_text = random.choice(pkg_resources.read_text(charmtests.data, "splashes.txt").splitlines())
+        self.splash_text = random.choice(pkg_resources.read_text(charm.data, "splashes.txt").splitlines())
         self.splash_label = arcade.pyglet.text.Label("",
                           font_name='bananaslip plus plus',
                           font_size=24,
@@ -55,7 +55,7 @@ class TitleView(DigiView):
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
 
         # Play music
-        with pkg_resources.path(charmtests.data.audio, "song.mp3") as p:
+        with pkg_resources.path(charm.data.audio, "song.mp3") as p:
             song = arcade.load_sound(p)
             self.window.theme_song = arcade.play_sound(song, self.volume, looping=True)
         self.window.theme_song.seek(self.local_time + 3)

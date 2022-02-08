@@ -7,11 +7,11 @@ import arcade
 from arcade import Sprite, generate_uuid_from_kwargs
 import PIL.Image
 
-from charmtests.lib.anim import ease_circout
-from charmtests.lib.charm import CharmColors
-from charmtests.lib.settings import Settings
-from charmtests.lib.utils import clamp
-from charmtests.objects.song import Song
+from charm.lib.anim import ease_circout
+from charm.lib.charm import CharmColors
+from charm.lib.settings import Settings
+from charm.lib.utils import clamp
+from charm.objects.song import Song
 
 logger = logging.getLogger("charm")
 

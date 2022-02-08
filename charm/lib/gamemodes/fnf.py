@@ -6,13 +6,13 @@ from uuid import uuid4
 
 import arcade
 import PIL.Image
-from charmtests.lib.charm import generate_missing_texture_image
+from charm.lib.charm import generate_missing_texture_image
 
-from charmtests.lib.highway import Highway
-from charmtests.lib.settings import Settings
-from charmtests.lib.song import BPMChangeEvent, Chart, Event, Milliseconds, Note, Song
-from charmtests.lib.utils import img_from_resource
-import charmtests.data.images.skins.fnf as fnfskin
+from charm.lib.highway import Highway
+from charm.lib.settings import Settings
+from charm.lib.song import BPMChangeEvent, Chart, Event, Milliseconds, Note, Song
+from charm.lib.utils import img_from_resource
+import charm.data.images.skins.fnf as fnfskin
 
 logger = logging.getLogger("charm")
 

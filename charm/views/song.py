@@ -1,8 +1,8 @@
 import arcade
 
-from charmtests.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
-from charmtests.lib.digiview import DigiView
-from charmtests.objects.song import Song
+from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
+from charm.lib.digiview import DigiView
+from charm.objects.song import Song
 
 
 class SongView(DigiView):

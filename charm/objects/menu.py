@@ -3,12 +3,12 @@ from arcade import Color, Sprite
 import arcade
 import PIL.Image, PIL.ImageOps  # noqa: E401
 
-import charmtests.data.icons
-from charmtests.lib.anim import ease_circout
-from charmtests.lib.charm import CharmColors, generate_missing_texture_image
-from charmtests.lib.digiview import DigiView
-from charmtests.lib.settings import Settings
-from charmtests.lib.utils import img_from_resource
+import charm.data.icons
+from charm.lib.anim import ease_circout
+from charm.lib.charm import CharmColors, generate_missing_texture_image
+from charm.lib.digiview import DigiView
+from charm.lib.settings import Settings
+from charm.lib.utils import img_from_resource
 
 
 class MainMenuItem(Sprite):
@@ -16,7 +16,7 @@ class MainMenuItem(Sprite):
                  width: int = 200, border_color: Color = arcade.color.WHITE, border_width: int = 5,
                  *args, **kwargs):
         try:
-            self.icon = img_from_resource(charmtests.data.icons, f"{icon}.png")
+            self.icon = img_from_resource(charm.data.icons, f"{icon}.png")
             self.icon.resize((width, width), PIL.Image.LANCZOS)
         except Exception:
             self.icon = generate_missing_texture_image(width, width)

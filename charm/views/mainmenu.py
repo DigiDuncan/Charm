@@ -1,11 +1,11 @@
 import arcade
-from charmtests.lib.anim import ease_quartout
+from charm.lib.anim import ease_quartout
 
-from charmtests.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
-from charmtests.lib.digiview import DigiView
-from charmtests.objects.menu import MainMenu, MainMenuItem
-from charmtests.views.songmenu import SongMenuView
-from charmtests.views.test import TestView
+from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
+from charm.lib.digiview import DigiView
+from charm.objects.menu import MainMenu, MainMenuItem
+from charm.views.songmenu import SongMenuView
+from charm.views.test import TestView
 
 
 class MainMenuView(DigiView):

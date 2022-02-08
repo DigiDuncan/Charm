@@ -1,7 +1,7 @@
 from arcade import Camera
 import arcade
 from .song import Chart
-from charmtests.lib.settings import Settings
+from charm.lib.settings import Settings
 
 
 class Highway:

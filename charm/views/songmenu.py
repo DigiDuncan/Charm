@@ -3,15 +3,15 @@ import math
 
 import arcade
 
-import charmtests.data.audio
-import charmtests.data.images
-from charmtests.lib.anim import ease_quartout
-from charmtests.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
-from charmtests.lib.digiview import DigiView
-from charmtests.lib.settings import Settings
-from charmtests.objects.songmenu import SongMenu
-from charmtests.objects.song import Song
-from charmtests.views.song import SongView
+import charm.data.audio
+import charm.data.images
+from charm.lib.anim import ease_quartout
+from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
+from charm.lib.digiview import DigiView
+from charm.lib.settings import Settings
+from charm.objects.songmenu import SongMenu
+from charm.objects.song import Song
+from charm.views.song import SongView
 
 
 class SongMenuView(DigiView):
@@ -52,7 +52,7 @@ class SongMenuView(DigiView):
         self.album_art.right = self.size[0] - self.album_art_buffer
         self.album_art.original_bottom = self.album_art.bottom = self.size[1] // 2
 
-        self.static = arcade.load_animated_gif(pkg_resources.path(charmtests.data.images, "static.gif"))
+        self.static = arcade.load_animated_gif(pkg_resources.path(charm.data.images, "static.gif"))
         self.static.right = self.size[0] - self.album_art_buffer
         self.static.original_bottom = self.album_art.bottom = self.size[1] // 2
 

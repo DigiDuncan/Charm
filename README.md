@@ -1,4 +1,4 @@
-![Charm logo.](charmtests/data/images/logo.png)
+![Charm logo.](charm/data/images/logo.png)
 
 # Charm
 A Python-based rhythm engine/game/chart player. Feels like an arcade cabinet, is the hope. Too many features, really!

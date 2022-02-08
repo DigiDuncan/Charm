@@ -6,8 +6,8 @@ from arcade import SpriteList
 import PIL.Image
 import PIL.ImageDraw
 
-import charmtests.data.images
-from charmtests.lib.utils import img_from_resource
+import charm.data.images
+from charm.lib.utils import img_from_resource
 
 
 class CharmColors:
@@ -33,7 +33,7 @@ def generate_gum_wrapper(size: tuple[int], buffer: int = 20, alpha = 128) -> tup
     """Generate two SpriteLists that makes a gum wrapper-style background."""
     small_logos_forward = arcade.SpriteList()
     small_logos_backward = arcade.SpriteList()
-    small_logo_img = img_from_resource(charmtests.data.images, "small-logo.png")
+    small_logo_img = img_from_resource(charm.data.images, "small-logo.png")
     small_logo_texture = arcade.Texture("small_logo", small_logo_img)
     sprites_horiz = math.ceil(size[0] / small_logo_texture.width)
     sprites_vert = math.ceil(size[1] / small_logo_texture.height / 1.5)

@@ -1,8 +1,8 @@
 import arcade
 from arcade import View, Window
 
-from charmtests.lib.anim import ease_linear
-from charmtests.lib.settings import Settings
+from charm.lib.anim import ease_linear
+from charm.lib.settings import Settings
 
 
 class DigiView(View):

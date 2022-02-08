@@ -4,7 +4,7 @@ import arcade
 import pyglet
 import arrow
 
-from charmtests.lib.settings import Settings
+from charm.lib.settings import Settings
 
 
 class DebugMessage:

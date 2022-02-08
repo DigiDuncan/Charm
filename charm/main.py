@@ -5,11 +5,11 @@ import statistics
 import arcade
 from digiformatter import logger as digilogger
 
-import charmtests
-import charmtests.data.images
-from charmtests.lib.settings import Settings
-from charmtests.lib.utils import pyglet_img_from_resource
-from charmtests.objects.debug_log import DebugLog, PygletHandler
+import charm
+import charm.data.images
+from charm.lib.settings import Settings
+from charm.lib.utils import pyglet_img_from_resource
+from charm.objects.debug_log import DebugLog, PygletHandler
 
 from .views.title import TitleView
 
@@ -43,7 +43,7 @@ arcadelogger.addHandler(phandlersource)
 class CharmGame(arcade.Window):
     def __init__(self):
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE, update_rate=1 / FPS_CAP)
-        icon = pyglet_img_from_resource(charmtests.data.images, "charm-icon32t.png")
+        icon = pyglet_img_from_resource(charm.data.images, "charm-icon32t.png")
         self.set_icon(icon)
 
         self.delta_time = 0.0
@@ -91,7 +91,7 @@ class CharmGame(arcade.Window):
 
         # Menu sounds
         for soundname in ["back", "select", "valid"]:
-            with pkg_resources.path(charmtests.data.audio, f"sfx-{soundname}.wav") as p:
+            with pkg_resources.path(charm.data.audio, f"sfx-{soundname}.wav") as p:
                 self.sounds[soundname] = arcade.load_sound(p)
 
         self.title_view = TitleView()

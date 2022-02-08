@@ -1,12 +1,12 @@
 import arcade
 import importlib.resources as pkg_resources
-from charmtests.lib import anim
+from charm.lib import anim
 
-from charmtests.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
-from charmtests.lib.digiview import DigiView
-import charmtests.data.charts.fnf
-from charmtests.lib.gamemodes.fnf import CameraFocusEvent, FNFHighway, FNFSong
-from charmtests.lib.settings import Settings
+from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
+from charm.lib.digiview import DigiView
+import charm.data.charts.fnf
+from charm.lib.gamemodes.fnf import CameraFocusEvent, FNFHighway, FNFSong
+from charm.lib.settings import Settings
 
 
 class TestView(DigiView):
@@ -17,12 +17,12 @@ class TestView(DigiView):
     def setup(self):
         super().setup()
 
-        c = pkg_resources.read_text(charmtests.data.charts.fnf, "ballistic.json")
+        c = pkg_resources.read_text(charm.data.charts.fnf, "ballistic.json")
         self.songdata = FNFSong.parse(c)
         self.highway_1 = FNFHighway(self.songdata.charts[0], (((Settings.width // 3) * 2), 0))
         self.highway_2 = FNFHighway(self.songdata.charts[1], (10, 0), auto=True)
 
-        with pkg_resources.path(charmtests.data.charts.fnf, "ballistic.mp3") as p:
+        with pkg_resources.path(charm.data.charts.fnf, "ballistic.mp3") as p:
             song = arcade.load_sound(p)
             self.song = arcade.play_sound(song, self.volume, looping=False)
         self.window.theme_song.volume = 0
