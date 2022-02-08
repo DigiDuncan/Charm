@@ -207,6 +207,10 @@ class FNFHighway(Highway):
 
         logger.debug(f"Generated highway for chart {chart.instrument}.")
 
+    @property
+    def px_per_s(self) -> float:
+        return self.note_y(1) - self.note_y(0)
+
     def note_visible(self, n: FNFNote):
         if self.auto:
             return self.song_time < n.note_position <= self.song_time + self.viewport
