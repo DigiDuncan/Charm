@@ -24,6 +24,11 @@ class TitleView(DigiView):
         self.volume = 0.1
         self.sounds: dict[str, arcade.Sound] = {}
         self.main_menu_view = MainMenuView(back=self)
+        # Play music
+        with pkg_resources.path(charm.data.audio, "song.mp3") as p:
+            song = arcade.load_sound(p)
+            self.window.theme_song = arcade.play_sound(song, self.volume, looping=True)
+        self.window.theme_song.seek(self.local_time + 3)
 
     def setup(self):
         self.hit_start = None
@@ -53,12 +58,6 @@ class TitleView(DigiView):
 
         # Generate "gum wrapper" background
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
-
-        # Play music
-        with pkg_resources.path(charm.data.audio, "song.mp3") as p:
-            song = arcade.load_sound(p)
-            self.window.theme_song = arcade.play_sound(song, self.volume, looping=True)
-        self.window.theme_song.seek(self.local_time + 3)
 
         # Song details
         self.song_label = arcade.pyglet.text.Label("Run Around The Character Code!\nCamellia feat. nanahira\n3LEEP!",
