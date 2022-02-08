@@ -26,10 +26,6 @@ class TestView(DigiView):
             self.song = arcade.play_sound(song, self.volume, looping = False)
         self.window.theme_song.volume = 0
 
-        self.player1_text = arcade.Text("????", (self.size[0] // 4) * 3, self.size[1] // 2, font_size = 72,
-                                        anchor_x="center", anchor_y="center")
-        self.player2_text = arcade.Text("????", (self.size[0] // 4), self.size[1] // 2, font_size = 72,
-                                        anchor_x="center", anchor_y="center")
         self.song_time_text = arcade.Text("??:??", (self.size[0] // 2), 10, font_size = 24,
                                           anchor_x="center", color=arcade.color.BLACK,
                                           font_name="bananaslip plus plus")
@@ -52,8 +48,29 @@ class TestView(DigiView):
                 self.song.delete()
                 self.window.show_view(self.back)
                 arcade.play_sound(self.window.sounds["back"])
+            case arcade.key.D:
+                self.highway_1.strikeline[0].alpha = 255
+            case arcade.key.F:
+                self.highway_1.strikeline[1].alpha = 255
+            case arcade.key.J:
+                self.highway_1.strikeline[2].alpha = 255
+            case arcade.key.K:
+                self.highway_1.strikeline[3].alpha = 255
 
         return super().on_key_press(symbol, modifiers)
+
+    def on_key_release(self, symbol: int, modifiers: int):
+        match symbol:
+            case arcade.key.D:
+                self.highway_1.strikeline[0].alpha = 64
+            case arcade.key.F:
+                self.highway_1.strikeline[1].alpha = 64
+            case arcade.key.J:
+                self.highway_1.strikeline[2].alpha = 64
+            case arcade.key.K:
+                self.highway_1.strikeline[3].alpha = 64
+        
+        return super().on_key_release(symbol, modifiers)
 
     def on_update(self, delta_time):
         super().on_update(delta_time)
@@ -64,37 +81,10 @@ class TestView(DigiView):
         if self.song_time_text._label.text != time:
             self.song_time_text._label.text = time
 
-        # self.text_update()
         self.get_spotlight_position(self.song.time)
 
         self.highway_1.update(self.song.time)
         self.highway_2.update(self.song.time)
-
-    def text_update(self):
-        player1notes = [n for n in self.songdata.charts[0].notes if n.position <= self.song.time]
-        if player1notes:
-            current_player1_note = player1notes[-1]
-            if self.last_player1_note != current_player1_note:
-                self.player1_text._label.text = wordmap[current_player1_note.lane]
-                color = colormap[current_player1_note.lane]
-                if self.last_player1_note is not None and self.last_player1_note.lane == current_player1_note.lane:
-                    color = altcolormap[current_player1_note.lane] if len(player1notes) % 2 else colormap[current_player1_note.lane]
-                else:
-                    color = colormap[current_player1_note.lane]
-                self.player1_text.color = color
-            self.last_player1_note = current_player1_note
-
-        player2notes = [n for n in self.songdata.charts[1].notes if n.position <= self.song.time]
-        if player2notes:
-            current_player2_note = player2notes[-1]
-            if self.last_player2_note != current_player2_note:
-                self.player2_text._label.text = wordmap[current_player2_note.lane]
-                if self.last_player2_note is not None and self.last_player2_note.lane == current_player2_note.lane:
-                    color = altcolormap[current_player2_note.lane] if len(player2notes) % 2 else colormap[current_player2_note.lane]
-                else:
-                    color = colormap[current_player2_note.lane]
-                self.player2_text.color = color
-            self.last_player2_note = current_player2_note
 
     def get_spotlight_position(self, song_time: float):
         focus_pos = {
@@ -109,8 +99,7 @@ class TestView(DigiView):
                 self.last_spotlight_position = self.spotlight_position
                 self.go_to_spotlight_position = focus_pos[current_camera_event.focused_player]
                 self.last_camera_event = current_camera_event
-        self.spotlight_position = anim.ease_circout(self.last_spotlight_position, self.go_to_spotlight_position, self.last_spotlight_change, self.last_spotlight_change + 0.25, song_time)
-                
+        self.spotlight_position = anim.ease_circout(self.last_spotlight_position, self.go_to_spotlight_position, self.last_spotlight_change, self.last_spotlight_change + 0.125, song_time)
 
     def on_draw(self):
         self.clear()
@@ -120,8 +109,6 @@ class TestView(DigiView):
         self.small_logos_forward.draw()
         self.small_logos_backward.draw()
 
-        # self.player1_text.draw()
-        # self.player2_text.draw()
         self.song_time_text.draw()
 
         self.highway_1.draw()
