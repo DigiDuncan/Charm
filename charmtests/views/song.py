@@ -4,6 +4,7 @@ from charmtests.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wra
 from charmtests.lib.digiview import DigiView
 from charmtests.objects.song import Song
 
+
 class SongView(DigiView):
     def __init__(self, song: Song, *args, **kwargs):
         super().__init__(fade_in=1, bg_color=CharmColors.FADED_GREEN, *args, **kwargs)
@@ -19,16 +20,16 @@ class SongView(DigiView):
         self.title_label = arcade.Text(self.songdata.title,
                           font_name='bananaslip plus plus',
                           font_size=60,
-                          start_x=self.window.width//2, start_y=self.window.height//2,
+                          start_x=self.window.width // 2, start_y=self.window.height // 2,
                           anchor_x='center', anchor_y='bottom',
-                          color = CharmColors.PURPLE + (0xFF,))
+                          color=CharmColors.PURPLE + (0xFF,))
 
         self.artistalbum_label = arcade.Text(self.songdata.artist + " - " + self.songdata.album,
                           font_name='bananaslip plus plus',
                           font_size=40,
-                          start_x=self.window.width//2, start_y=self.window.height//2,
+                          start_x=self.window.width // 2, start_y=self.window.height // 2,
                           anchor_x='center', anchor_y='top',
-                          color = CharmColors.PURPLE + (0xFF,))
+                          color=CharmColors.PURPLE + (0xFF,))
 
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:

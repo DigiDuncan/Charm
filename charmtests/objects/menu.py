@@ -1,14 +1,14 @@
 import math
 from arcade import Color, Sprite
 import arcade
-import PIL.Image, PIL.ImageOps
+import PIL.Image, PIL.ImageOps  # noqa: E401
 
 import charmtests.data.icons
 from charmtests.lib.anim import ease_circout
 from charmtests.lib.charm import CharmColors, generate_missing_texture_image
 from charmtests.lib.digiview import DigiView
 from charmtests.lib.settings import Settings
-from charmtests.lib.utils import clamp, img_from_resource
+from charmtests.lib.utils import img_from_resource
 
 
 class MainMenuItem(Sprite):
@@ -18,11 +18,11 @@ class MainMenuItem(Sprite):
         try:
             self.icon = img_from_resource(charmtests.data.icons, f"{icon}.png")
             self.icon.resize((width, width), PIL.Image.LANCZOS)
-        except:
+        except Exception:
             self.icon = generate_missing_texture_image(width, width)
-        self.icon = PIL.ImageOps.expand(self.icon ,border=border_width, fill=border_color)
+        self.icon = PIL.ImageOps.expand(self.icon, border=border_width, fill=border_color)
         tex = arcade.Texture(f"_icon_{icon}", image=self.icon, hit_box_algorithm=None)
-        super().__init__(texture = tex, *args, **kwargs)
+        super().__init__(texture=tex, *args, **kwargs)
 
         self.goto = goto
 
@@ -30,6 +30,7 @@ class MainMenuItem(Sprite):
                                  font_name="bananaslip plus plus", font_size=24)
         self.center_y = Settings.height // 2
         self.jiggle_start = 0
+
 
 class MainMenu:
     def __init__(self, items: list[MainMenuItem] = []) -> None:
@@ -83,7 +84,7 @@ class MainMenu:
         current.label.y = current.bottom
 
         x_bumper = Settings.width // 4
-        
+
         for n, item in enumerate(self.items):
             rel_id = n - self.selected_id
             if rel_id == 0:  # current item

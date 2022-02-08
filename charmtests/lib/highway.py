@@ -1,9 +1,8 @@
-from calendar import setfirstweekday
 from arcade import Camera
 import arcade
 from .song import Chart
 from charmtests.lib.settings import Settings
-from charmtests.lib import anim
+
 
 class Highway:
     def __init__(self, chart: Chart, pos: tuple[int, int], size: tuple[int, int] = None,

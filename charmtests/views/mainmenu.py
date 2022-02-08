@@ -7,6 +7,7 @@ from charmtests.objects.menu import MainMenu, MainMenuItem
 from charmtests.views.songmenu import SongMenuView
 from charmtests.views.test import TestView
 
+
 class MainMenuView(DigiView):
     def __init__(self, *args, **kwargs):
         super().__init__(fade_in=1, bg_color=CharmColors.FADED_GREEN, *args, **kwargs)
@@ -20,9 +21,9 @@ class MainMenuView(DigiView):
         self.menu = MainMenu(
             [
                 MainMenuItem("Playlists", "playlist", None),
-                MainMenuItem("Songs", "songs", SongMenuView(back = self)),
+                MainMenuItem("Songs", "songs", SongMenuView(back=self)),
                 MainMenuItem("Options", "option", None),
-                MainMenuItem("Test", "test", TestView(back = self))
+                MainMenuItem("Test", "test", TestView(back=self))
             ]
         )
 

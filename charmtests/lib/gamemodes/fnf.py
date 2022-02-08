@@ -40,6 +40,7 @@ wordmap = {
     3: "right"
 }
 
+
 class SongFileJson(TypedDict):
     song: "SongJson"
 
@@ -57,13 +58,15 @@ class NoteJson(TypedDict):
     sectionNotes: list[tuple[Milliseconds, JsonLaneNum, Milliseconds]]
     lengthInSteps: int
 
+
 @dataclass
 class CameraFocusEvent(Event):
     focused_player: int
-    
+
     @property
     def icon(self) -> str:
         return f"cam_p{self.focused_player}"
+
 
 class FNFNote(arcade.Sprite):
     def __init__(self, note: Note, width: 128, *args, **kwargs):
@@ -74,16 +77,18 @@ class FNFNote(arcade.Sprite):
             icon = f"{self.note.type}-{wordmap[self.note.lane]}"
             self.icon = img_from_resource(fnfskin, f"{icon}.png")
             self.icon = self.icon.resize((width, width), PIL.Image.LANCZOS)
-        except:
+        except Exception:
             self.icon = generate_missing_texture_image(width, width)
 
         tex = arcade.Texture(f"_fnf_note_{icon}", image=self.icon, hit_box_algorithm=None)
-        super().__init__(texture = tex, *args, **kwargs)
+        super().__init__(texture=tex, *args, **kwargs)
+
 
 class FNFChart(Chart):
-    def __init__(self, difficulty: str, instrument: str, notespeed :float = 1) -> None:
+    def __init__(self, difficulty: str, instrument: str, notespeed: float = 1) -> None:
         self.notespeed = notespeed
         super().__init__("fnf", difficulty, instrument, 4)
+
 
 class FNFSong(Song):
     @classmethod
@@ -99,9 +104,9 @@ class FNFSong(Song):
         returnsong.charts = [
             FNFChart("hard", "player1", speed),
             FNFChart("hard", "player2", speed)]
-        
+
         sections = song["song"]
-        
+
         last_bpm = bpm
         last_focus: Optional[PlayerNum] = None
         section_start = 0.0
@@ -165,22 +170,23 @@ class FNFSong(Song):
 
         return returnsong
 
+
 class FNFHighway(Highway):
     def __init__(self, chart: FNFChart, pos: tuple[int, int], size: tuple[int, int] = None, gap=5, auto=False):
         viewport = 1 / chart.notespeed
         if size is None:
             size = int(Settings.width / (1280 / 400)), Settings.height
-        
+
         super().__init__(chart, pos, size, gap, viewport)
-        
+
         self.auto = auto
         for note in self.notes:
             sprite = FNFNote(note, self.note_size)
             sprite.alpha = 0
             self.sprite_list.append(sprite)
-        
+
         self.strikeline = arcade.SpriteList()
-        for i in [0,1,2,3]:
+        for i in [0, 1, 2, 3]:
             sprite = FNFNote(Note(i, 0, i, 0), self.note_size)
             sprite.top = self.strikeline_y
             sprite.left = self.lane_x(sprite.lane)

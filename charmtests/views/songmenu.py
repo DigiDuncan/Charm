@@ -9,10 +9,10 @@ from charmtests.lib.anim import ease_quartout
 from charmtests.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charmtests.lib.digiview import DigiView
 from charmtests.lib.settings import Settings
-from charmtests.lib.utils import clamp
 from charmtests.objects.songmenu import SongMenu
 from charmtests.objects.song import Song
 from charmtests.views.song import SongView
+
 
 class SongMenuView(DigiView):
     def __init__(self, *args, **kwargs):
@@ -56,7 +56,6 @@ class SongMenuView(DigiView):
         self.static.right = self.size[0] - self.album_art_buffer
         self.static.original_bottom = self.album_art.bottom = self.size[1] // 2
 
-
     def on_show(self):
         return super().on_show()
 
@@ -81,7 +80,7 @@ class SongMenuView(DigiView):
                 arcade.play_sound(self.window.sounds["select"])
             case arcade.key.ENTER:
                 arcade.play_sound(self.window.sounds["valid"])
-                songview = SongView(self.menu.selected, back = self)
+                songview = SongView(self.menu.selected, back=self)
                 songview.setup()
                 self.window.show_view(songview)
             case arcade.key.BACKSPACE:

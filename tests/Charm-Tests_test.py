@@ -1,2 +1,2 @@
-def test_Charm-Tests():
+def test_charm():
     assert False

@@ -15,6 +15,7 @@ from charmtests.views.mainmenu import MainMenuView
 FADE_DELAY = 1
 SWITCH_DELAY = 0.5 + FADE_DELAY
 
+
 class TitleView(DigiView):
     def __init__(self):
         super().__init__(bg_color=CharmColors.FADED_GREEN)
@@ -22,7 +23,7 @@ class TitleView(DigiView):
         self.song = None
         self.volume = 0.1
         self.sounds: dict[str, arcade.Sound] = {}
-        self.main_menu_view = MainMenuView(back = self)
+        self.main_menu_view = MainMenuView(back=self)
 
     def setup(self):
         self.hit_start = None
@@ -34,7 +35,7 @@ class TitleView(DigiView):
         # Set up main logo
         logo_img = img_from_resource(charmtests.data.images, "logo.png")
         logo_texture = arcade.Texture("logo", logo_img)
-        self.logo = arcade.Sprite(texture = logo_texture)
+        self.logo = arcade.Sprite(texture=logo_texture)
         self.logo.scale = 1 / 3
         self.logo.center_x = self.size[0] // 2
         self.logo.bottom = self.size[1] // 2
@@ -46,9 +47,9 @@ class TitleView(DigiView):
         self.splash_label = arcade.pyglet.text.Label("",
                           font_name='bananaslip plus plus',
                           font_size=24,
-                          x=self.window.width//2, y=self.window.height//2,
+                          x=self.window.width // 2, y=self.window.height // 2,
                           anchor_x='left', anchor_y='top',
-                          color = CharmColors.PURPLE + (0xFF,))
+                          color=CharmColors.PURPLE + (0xFF,))
 
         # Generate "gum wrapper" background
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
@@ -56,7 +57,7 @@ class TitleView(DigiView):
         # Play music
         with pkg_resources.path(charmtests.data.audio, "song.mp3") as p:
             song = arcade.load_sound(p)
-            self.window.theme_song = arcade.play_sound(song, self.volume, looping = True)
+            self.window.theme_song = arcade.play_sound(song, self.volume, looping=True)
         self.window.theme_song.seek(self.local_time + 3)
 
         # Song details
@@ -67,7 +68,7 @@ class TitleView(DigiView):
                           x=5, y=5,
                           anchor_x='left', anchor_y='bottom',
                           multiline=True,
-                          color = CharmColors.PURPLE + (0xFF,))
+                          color=CharmColors.PURPLE + (0xFF,))
         self.song_label.original_x = self.song_label.x
         self.song_label.x = -self.song_label.width
 
@@ -75,16 +76,16 @@ class TitleView(DigiView):
         self.press_label = arcade.pyglet.text.Label("<press start>",
                           font_name='bananaslip plus plus',
                           font_size=32,
-                          x=self.window.width//2, y=self.window.height//4,
+                          x=self.window.width // 2, y=self.window.height // 4,
                           anchor_x='center', anchor_y='center',
-                          color = CharmColors.PURPLE + (0xFF,))
+                          color=CharmColors.PURPLE + (0xFF,))
 
         self.welcome_label = arcade.Text(f"welcome, {getpass.getuser()}!",
                           font_name='bananaslip plus plus',
                           font_size=14,
-                          start_x=self.window.width//2, start_y=6,
+                          start_x=self.window.width // 2, start_y=6,
                           anchor_x='center', anchor_y='bottom',
-                          color = (0,0,0) + (0xFF,))
+                          color=(0, 0, 0) + (0xFF,))
 
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:
@@ -101,7 +102,7 @@ class TitleView(DigiView):
         self.local_time += delta_time
 
         move_gum_wrapper(self.logo_width, self.small_logos_forward, self.small_logos_backward, delta_time)
-        
+
         # Logo bounce
         m = 0.325
         bpm = 220

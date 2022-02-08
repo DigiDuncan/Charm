@@ -3,7 +3,8 @@ import math
 
 import arcade
 from arcade import SpriteList
-import PIL.Image, PIL.ImageDraw
+import PIL.Image
+import PIL.ImageDraw
 
 import charmtests.data.images
 from charmtests.lib.utils import img_from_resource
@@ -17,6 +18,7 @@ class CharmColors:
     FADED_PINK = (0xe8, 0xb3, 0xe7)
     FADED_PURPLE = (0xda, 0xcc, 0xff)
 
+
 @cache
 def generate_missing_texture_image(w, h) -> PIL.Image.Image:
     """Generate a classic missing texture of wxh."""
@@ -25,6 +27,7 @@ def generate_missing_texture_image(w, h) -> PIL.Image.Image:
     d.rectangle((0, h // 2, w // 2, h), arcade.color.BLACK)
     d.rectangle((w // 2, 0, w, h // 2), arcade.color.BLACK)
     return mt
+
 
 def generate_gum_wrapper(size: tuple[int], buffer: int = 20, alpha = 128) -> tuple[int, SpriteList, SpriteList]:
     """Generate two SpriteLists that makes a gum wrapper-style background."""
@@ -37,7 +40,7 @@ def generate_gum_wrapper(size: tuple[int], buffer: int = 20, alpha = 128) -> tup
     logo_width = small_logo_texture.width + buffer
     for i in range(sprites_vert):
         for j in range(sprites_horiz):
-            s = arcade.Sprite(texture = small_logo_texture)
+            s = arcade.Sprite(texture=small_logo_texture)
             s.original_bottom = s.bottom = small_logo_texture.height * i * 1.5
             s.original_left = s.left = logo_width * (j - 2)
             if i % 2:
@@ -47,6 +50,7 @@ def generate_gum_wrapper(size: tuple[int], buffer: int = 20, alpha = 128) -> tup
     small_logos_forward.alpha = alpha
     small_logos_backward.alpha = alpha
     return (logo_width, small_logos_forward, small_logos_backward)
+
 
 def move_gum_wrapper(logo_width: int, small_logos_forward: SpriteList, small_logos_backward: SpriteList, delta_time: float, speed = 4) -> None:
     """Move background logos forwards and backwards, looping."""

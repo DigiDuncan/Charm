@@ -39,9 +39,10 @@ arcadelogger.propagate = False
 arcadelogger.addHandler(dfhandlersource)
 arcadelogger.addHandler(phandlersource)
 
+
 class CharmGame(arcade.Window):
     def __init__(self):
-        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE, update_rate=1/FPS_CAP)
+        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE, update_rate=1 / FPS_CAP)
         icon = pyglet_img_from_resource(charmtests.data.images, "charm-icon32t.png")
         self.set_icon(icon)
 
@@ -64,25 +65,25 @@ class CharmGame(arcade.Window):
                           font_size=12,
                           x=0, y=self.height,
                           anchor_x='left', anchor_y='top',
-                          color = (0, 0, 0) + (0xFF,))
+                          color=(0, 0, 0) + (0xFF,))
         self.fps_shadow_label = arcade.pyglet.text.Label("???.? FPS",
                           font_name='bananaslip plus plus',
                           font_size=12,
                           x=1, y=self.height - 1,
                           anchor_x='left', anchor_y='top',
-                          color = (0xAA, 0xAA, 0xAA) + (0xFF,))
+                          color=(0xAA, 0xAA, 0xAA) + (0xFF,))
         self.more_info_label = arcade.pyglet.text.Label("DEBUG",
                           font_name='bananaslip plus plus',
                           font_size=12,
                           x=0, y=self.height - self.fps_label.content_height - 5, multiline=True, width=Settings.width,
                           anchor_x='left', anchor_y='top',
-                          color = (0, 0, 0) + (0xFF,))
+                          color=(0, 0, 0) + (0xFF,))
         self.alpha_label = arcade.pyglet.text.Label("ALPHA",
                           font_name='bananaslip plus plus',
                           font_size=16,
-                          x=self.width - 5, y= 5,
+                          x=self.width - 5, y=5,
                           anchor_x='right', anchor_y='bottom',
-                          color = (0, 0, 0) + (32,))
+                          color=(0, 0, 0) + (32,))
 
         self.debug_log = DebugLog()
         self.log = self.debug_log.layout
@@ -113,7 +114,7 @@ class CharmGame(arcade.Window):
             self.fps_label.text = self.fps_shadow_label.text = f"{average:.1f} FPS"
             self.fps_averages.clear()
         else:
-            self.fps_averages.append(1/self.delta_time)
+            self.fps_averages.append(1 / self.delta_time)
         with self.ctx.pyglet_rendering():
             if self.show_fps or self.debug:
                 self.fps_shadow_label.draw()

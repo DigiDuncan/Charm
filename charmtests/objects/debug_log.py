@@ -6,6 +6,7 @@ import arrow
 
 from charmtests.lib.settings import Settings
 
+
 class DebugMessage:
     def __init__(self, message: str, level: int = logging.INFO) -> None:
         self.message = message
@@ -52,11 +53,12 @@ class DebugMessage:
                 f"{{background_color (0, 0, 0, 255)}}{{color {self.color}}}"
                 f"{self.message}")
 
+
 class DebugLog:
     def __init__(self) -> None:
         self.messages: list[DebugMessage] = []
         self.doc = pyglet.text.document.FormattedDocument()
-        self.layout = pyglet.text.layout.TextLayout(self.doc, width = Settings.width, multiline=True)
+        self.layout = pyglet.text.layout.TextLayout(self.doc, width=Settings.width, multiline=True)
 
     def render(self) -> str:
         renderstr = "\n\n".join([m.render() for m in self.messages[-10:]])
@@ -65,6 +67,7 @@ class DebugLog:
     def _log(self, message: str, level = logging.INFO):
         self.messages.append(DebugMessage(message, level))
         self.layout.document = pyglet.text.decode_attributed(self.render())
+
 
 class PygletHandler(logging.Handler):
     def __init__(self, *args, showsource=False, **kwargs):

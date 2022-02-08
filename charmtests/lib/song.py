@@ -5,11 +5,12 @@ from typing import Iterable, Optional
 Seconds = float
 Milliseconds = float
 
+
 @dataclass
 @total_ordering
 class Note:
     """Represents a note on a chart.
-    
+
     - `position: float`: (in seconds, 0 is the beginning of the song)
     - `lane: int`: The key the user will have to hit to trigger this note
     (which usually corrosponds with it's X position on the highway)
@@ -33,6 +34,7 @@ class Note:
                 return False
             return self.position < other.position
 
+
 @dataclass
 class Event:
     """A very basic event that happens at a time."""
@@ -41,10 +43,12 @@ class Event:
     def __lt__(self, other) -> bool:
         return self.position < other.position
 
+
 @dataclass
 class BPMChangeEvent(Event):
     new_bpm: int
     icon = "bpm"
+
 
 class Chart:
     def __init__(self, gamemode: str, difficulty: str, instrument: str, lanes: int) -> None:
@@ -73,15 +77,14 @@ class Chart:
                 yield note
             n += 1
 
+
 class Song:
     def __init__(self, name: str, bpm: float) -> None:
         self.name = name
         self.bpm = bpm
         self.charts: list[Chart] = []
         self.events: list[Event] = []
-    
+
     @classmethod
     def parse(cls, s: str):
         raise NotImplementedError
-
-

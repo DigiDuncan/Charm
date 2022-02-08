@@ -5,8 +5,9 @@ from charmtests.lib import anim
 from charmtests.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charmtests.lib.digiview import DigiView
 import charmtests.data.charts.fnf
-from charmtests.lib.gamemodes.fnf import CameraFocusEvent, FNFHighway, FNFSong, altcolormap, wordmap, colormap
+from charmtests.lib.gamemodes.fnf import CameraFocusEvent, FNFHighway, FNFSong
 from charmtests.lib.settings import Settings
+
 
 class TestView(DigiView):
     def __init__(self, *args, **kwargs):
@@ -19,14 +20,14 @@ class TestView(DigiView):
         c = pkg_resources.read_text(charmtests.data.charts.fnf, "ballistic.json")
         self.songdata = FNFSong.parse(c)
         self.highway_1 = FNFHighway(self.songdata.charts[0], (((Settings.width // 3) * 2), 0))
-        self.highway_2 = FNFHighway(self.songdata.charts[1], (10, 0), auto = True)
+        self.highway_2 = FNFHighway(self.songdata.charts[1], (10, 0), auto=True)
 
         with pkg_resources.path(charmtests.data.charts.fnf, "ballistic.mp3") as p:
             song = arcade.load_sound(p)
-            self.song = arcade.play_sound(song, self.volume, looping = False)
+            self.song = arcade.play_sound(song, self.volume, looping=False)
         self.window.theme_song.volume = 0
 
-        self.song_time_text = arcade.Text("??:??", (self.size[0] // 2), 10, font_size = 24,
+        self.song_time_text = arcade.Text("??:??", (self.size[0] // 2), 10, font_size=24,
                                           anchor_x="center", color=arcade.color.BLACK,
                                           font_name="bananaslip plus plus")
 
@@ -69,7 +70,7 @@ class TestView(DigiView):
                 self.highway_1.strikeline[2].alpha = 64
             case arcade.key.K:
                 self.highway_1.strikeline[3].alpha = 64
-        
+
         return super().on_key_release(symbol, modifiers)
 
     def on_update(self, delta_time):
@@ -118,5 +119,5 @@ class TestView(DigiView):
             self.spotlight_position, self.spotlight_position + Settings.width // 2, Settings.height, 0,
             arcade.color.BLACK + (127,)
         )
-        
+
         super().on_draw()

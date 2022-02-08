@@ -19,7 +19,7 @@ logger = logging.getLogger("charm")
 class SongMenuItem(Sprite):
     def __init__(self, song: Song, w: int = None, h: int = None, *args, **kwargs):
         self.song = song
-    
+
         self.title = song.title
         self.artist = song.artist
         self.album = song.album
@@ -45,7 +45,7 @@ class SongMenuItem(Sprite):
         self._h = h if h else Settings.height // 8
 
         self._tex = arcade.Texture.create_empty(f"{self.key}-menuitem", (self._w, self._h))
-        super().__init__(texture = self._tex, *args, **kwargs)
+        super().__init__(texture=self._tex, *args, **kwargs)
         self._sprite_list = arcade.SpriteList()
         self._sprite_list.append(self)
 
@@ -57,14 +57,15 @@ class SongMenuItem(Sprite):
             arcade.draw_lrtb_rectangle_filled(0, self.width - self.height / 2, self.height, 0, CharmColors.FADED_PURPLE)
             arcade.draw_text(
                 self.title, self.width - self.height / 2 - 5, self.height / 2, arcade.color.BLACK,
-                font_size=self.height/3 * (3/4), font_name="bananaslip plus plus", anchor_x="right"
+                font_size=self.height / 3 * (3 / 4), font_name="bananaslip plus plus", anchor_x="right"
             )
             arcade.draw_text(
                 self.artist + ", " + self.album, self.width - self.height / 2 - 5, self.height / 2, arcade.color.BLACK,
-                font_size=self.height/4 * (3/4), font_name="bananaslip plus plus", anchor_x="right", anchor_y="top"
+                font_size=self.height / 4 * (3 / 4), font_name="bananaslip plus plus", anchor_x="right", anchor_y="top"
             )
 
         logger.info(f"Loaded MenuItem {self.title}")
+
 
 class SongMenu:
     def __init__(self, songs: list[Song] = None, radius = 4, buffer = 5, move_speed = 0.2) -> None:
