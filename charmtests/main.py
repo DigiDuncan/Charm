@@ -77,6 +77,12 @@ class CharmGame(arcade.Window):
                           x=0, y=self.height - self.fps_label.content_height - 5, multiline=True, width=Settings.width,
                           anchor_x='left', anchor_y='top',
                           color = (0, 0, 0) + (0xFF,))
+        self.alpha_label = arcade.pyglet.text.Label("ALPHA",
+                          font_name='bananaslip plus plus',
+                          font_size=16,
+                          x=self.width - 5, y= 5,
+                          anchor_x='right', anchor_y='bottom',
+                          color = (0, 0, 0) + (32,))
 
         self.debug_log = DebugLog()
         self.log = self.debug_log.layout
@@ -116,6 +122,7 @@ class CharmGame(arcade.Window):
                 self.more_info_label.draw()
                 if self.show_log:
                     self.log.draw()
+            self.alpha_label.draw()
         if _cam is not None:
             _cam.use()
 
