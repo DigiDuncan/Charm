@@ -20,7 +20,7 @@ class TitleView(DigiView):
         super().__init__(bg_color=CharmColors.FADED_GREEN)
         self.logo = None
         self.song = None
-        self.volume = 0
+        self.volume = 0.1
         self.sounds: dict[str, arcade.Sound] = {}
         self.main_menu_view = MainMenuView(back = self)
 

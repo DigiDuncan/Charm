@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from functools import total_ordering
-from typing import Iterable, Literal, Optional, TypedDict
+from typing import Iterable, Optional
 
 Seconds = float
 Milliseconds = float
@@ -15,6 +15,7 @@ class Note:
     (which usually corrosponds with it's X position on the highway)
     - `length: float`: the length of the note in seconds, 0 by default.
     - `type: str`: the note's type, 'normal' be default."""
+    uuid: str
     position: Seconds
     lane: int
     length: Seconds = 0
@@ -43,21 +44,23 @@ class BPMChangeEvent(Event):
     icon = "bpm"
 
 class Chart:
-    def __init__(self, gamemode: str, difficulty: str, instrument: str) -> None:
+    def __init__(self, gamemode: str, difficulty: str, instrument: str, lanes: int) -> None:
         self.gamemode = gamemode
         self.difficulty = difficulty
         self.instrument = instrument
+        self.lanes = lanes
         self.notes: list[Note] = []
         self.events: list[Event] = []
 
         self.active_notes: list[Note] = []
+        self.note_by_uuid: dict[str, Note] = {}
 
     def get_hittable_notes(self, current_time: Seconds, hit_window: Seconds) -> Iterable[Note]:
         n = 0
         while n < len(self.active_notes):
             note = self.active_notes[n]
-            is_expired = note.pos < current_time - (hit_window / 2)
-            is_waiting = note.pos > current_time + (hit_window / 2)
+            is_expired = note.position < current_time - (hit_window / 2)
+            is_waiting = note.position > current_time + (hit_window / 2)
             if is_expired:
                 del self.active_notes[n]
                 n -= 1

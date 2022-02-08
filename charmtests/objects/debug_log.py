@@ -60,7 +60,6 @@ class DebugLog:
 
     def render(self) -> str:
         renderstr = "\n\n".join([m.render() for m in self.messages[-10:]])
-        print(renderstr)
         return renderstr
 
     def _log(self, message: str, level = logging.INFO):

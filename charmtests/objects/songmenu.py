@@ -13,7 +13,7 @@ from charmtests.lib.settings import Settings
 from charmtests.lib.utils import clamp
 from charmtests.objects.song import Song
 
-logger = logging.getLogger(__package__)
+logger = logging.getLogger("charm")
 
 
 class SongMenuItem(Sprite):

@@ -1,11 +1,11 @@
 import arcade
-import pyglet
 import importlib.resources as pkg_resources
 
 from charmtests.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charmtests.lib.digiview import DigiView
 import charmtests.data.charts.fnf
-from charmtests.lib.gamemodes.fnf import FNFSong, altcolormap, wordmap, colormap
+from charmtests.lib.gamemodes.fnf import FNFHighway, FNFSong, altcolormap, wordmap, colormap
+from charmtests.lib.settings import Settings
 
 class TestView(DigiView):
     def __init__(self, *args, **kwargs):
@@ -17,6 +17,8 @@ class TestView(DigiView):
 
         c = pkg_resources.read_text(charmtests.data.charts.fnf, "ballistic.json")
         self.songdata = FNFSong.parse(c)
+        self.highway_1 = FNFHighway(self.songdata.charts[0], (((Settings.width // 3) * 2), 0))
+        self.highway_2 = FNFHighway(self.songdata.charts[1], (0, 0), auto = True)
 
         with pkg_resources.path(charmtests.data.charts.fnf, "ballistic.mp3") as p:
             song = arcade.load_sound(p)
@@ -28,7 +30,7 @@ class TestView(DigiView):
         self.player2_text = arcade.Text("????", (self.size[0] // 4), self.size[1] // 2, font_size = 72,
                                         anchor_x="center", anchor_y="center")
         self.song_time_text = arcade.Text("????", (self.size[0] // 2), 10, font_size = 18,
-                                        anchor_x="center", color=arcade.color.BLACK)
+                                          anchor_x="center", color=arcade.color.BLACK)
 
         # Generate "gum wrapper" background
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
@@ -53,6 +55,12 @@ class TestView(DigiView):
 
         self.song_time_text._label.text = str(round(self.song.time, 3))
 
+        # self.text_update()
+
+        self.highway_1.update(self.song.time)
+        self.highway_2.update(self.song.time)
+
+    def text_update(self):
         player1notes = [n for n in self.songdata.charts[0].notes if n.position <= self.song.time]
         if player1notes:
             current_player1_note = player1notes[-1]
@@ -89,5 +97,8 @@ class TestView(DigiView):
         self.player1_text.draw()
         self.player2_text.draw()
         self.song_time_text.draw()
+
+        self.highway_1.draw()
+        self.highway_2.draw()
         
         super().on_draw()

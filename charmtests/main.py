@@ -25,7 +25,8 @@ dfhandlersource = digilogger.DigiFormatterHandler(showsource=True)
 phandler = PygletHandler()
 phandlersource = PygletHandler(showsource=True)
 
-logger = logging.getLogger(__package__)
+logger = logging.getLogger("charm")
+logger.setLevel(logging.DEBUG)
 logger.handlers = []
 logger.propagate = False
 logger.addHandler(dfhandler)
