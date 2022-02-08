@@ -69,16 +69,17 @@ class CameraFocusEvent(Event):
 
 
 class FNFNote(arcade.Sprite):
-    def __init__(self, note: Note, width: 128, *args, **kwargs):
+    def __init__(self, note: Note, height: 128, *args, **kwargs):
         self.note = note
         self.note_position = note.position
         self.lane = note.lane
         try:
             icon = f"{self.note.type}-{wordmap[self.note.lane]}"
             self.icon = img_from_resource(fnfskin, f"{icon}.png")
-            self.icon = self.icon.resize((width, width), PIL.Image.LANCZOS)
+            whratio = self.icon.width / self.icon.height
+            self.icon = self.icon.resize((int(height * whratio), height), PIL.Image.LANCZOS)
         except Exception:
-            self.icon = generate_missing_texture_image(width, width)
+            self.icon = generate_missing_texture_image(height, height)
 
         tex = arcade.Texture(f"_fnf_note_{icon}", image=self.icon, hit_box_algorithm=None)
         super().__init__(texture=tex, *args, **kwargs)
@@ -123,6 +124,15 @@ class FNFSong(Song):
                     last_bpm = new_bpm
             section_starts.append((section_start, bpm))
 
+            # Since in theory you can have events in these sections
+            # without there being notes there, I need to calculate where this
+            # section occurs from scratch, and some engines have a startTime
+            # thing here but I can't guarantee it so it's basically pointless
+            seconds_per_beat = 60 / bpm
+            seconds_per_measure = seconds_per_beat * 4
+            seconds_per_sixteenth = seconds_per_measure / 16
+            section_length = section["lengthInSteps"] * seconds_per_sixteenth
+
             # Create a camera focus event like they should have in the first place
             if section["mustHitSection"]:
                 focused, unfocused = 1, 2
@@ -149,14 +159,16 @@ class FNFSong(Song):
                 returnsong.charts[note_player - 1].notes.append(thisnote)
                 returnsong.charts[note_player - 1].note_by_uuid[thisnote.uuid] = thisnote
 
-            # Since in theory you can have events in these sections
-            # without there being notes there, I need to calculate where this
-            # section occurs from scratch, and some engines have a startTime
-            # thing here but I can't guarantee it so it's basically pointless
-            seconds_per_beat = 60 / bpm
-            seconds_per_measure = seconds_per_beat * 4
-            seconds_per_sixteenth = seconds_per_measure / 16
-            section_length = section["lengthInSteps"] * seconds_per_sixteenth
+                # Fake sustains (change this.)
+                seconds_per_thirtysecond = seconds_per_sixteenth / 2
+                if thisnote.length != 0:
+                    sustainbeats = round(thisnote.length / seconds_per_thirtysecond)
+                    for i in range(sustainbeats):
+                        j = i + 1
+                        thisnote = Note(str(uuid4()), pos + (seconds_per_thirtysecond * (i + 1)), chart_lane, 0, "sustain")
+                        returnsong.charts[note_player - 1].notes.append(thisnote)
+                        returnsong.charts[note_player - 1].note_by_uuid[thisnote.uuid] = thisnote
+
             section_start += section_length
 
         for c in returnsong.charts:
