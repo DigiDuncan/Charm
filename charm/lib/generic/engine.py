@@ -1,5 +1,5 @@
 from typing import Iterable
-from charm.lib.song import Chart, Note, Seconds
+from charm.lib.generic.song import Chart, Note, Seconds
 
 
 class Engine:

@@ -8,9 +8,9 @@ import arcade
 import PIL.Image
 from charm.lib.charm import generate_missing_texture_image
 
-from charm.lib.highway import Highway
+from charm.lib.generic.highway import Highway
 from charm.lib.settings import Settings
-from charm.lib.song import BPMChangeEvent, Chart, Event, Milliseconds, Note, Song
+from charm.lib.generic.song import BPMChangeEvent, Chart, Event, Milliseconds, Note, Song
 from charm.lib.utils import img_from_resource
 import charm.data.images.skins.fnf as fnfskin
 
