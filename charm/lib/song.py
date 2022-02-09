@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from functools import total_ordering
-from typing import Iterable, Optional
+from typing import Optional
 
 Seconds = float
 Milliseconds = float
@@ -61,21 +61,6 @@ class Chart:
 
         self.active_notes: list[Note] = []
         self.note_by_uuid: dict[str, Note] = {}
-
-    def get_hittable_notes(self, current_time: Seconds, hit_window: Seconds) -> Iterable[Note]:
-        n = 0
-        while n < len(self.active_notes):
-            note = self.active_notes[n]
-            is_expired = note.position < current_time - (hit_window / 2)
-            is_waiting = note.position > current_time + (hit_window / 2)
-            if is_expired:
-                del self.active_notes[n]
-                n -= 1
-            elif is_waiting:
-                break
-            else:
-                yield note
-            n += 1
 
 
 class Song:
