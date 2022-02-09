@@ -59,7 +59,6 @@ class Chart:
         self.notes: list[Note] = []
         self.events: list[Event] = []
 
-        self.active_notes: list[Note] = []
         self.note_by_uuid: dict[str, Note] = {}
 
 

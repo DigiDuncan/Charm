@@ -8,6 +8,8 @@ class Engine:
         self.hit_window = hit_window
         self.score = 0
 
+        self.active_notes = self.chart.notes.copy()
+
     def update(self, song_time):
         pass
 
