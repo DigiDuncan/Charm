@@ -1,12 +1,16 @@
-import arcade
 import importlib.resources as pkg_resources
-from charm.lib import anim
+import logging
 
+import arcade
+
+from charm.lib import anim
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView
-import charm.data.charts.fnf
-from charm.lib.gamemodes.fnf import CameraFocusEvent, FNFHighway, FNFSong
+from charm.lib.gamemodes.fnf import CameraFocusEvent, FNFEngine, FNFHighway, FNFSong
 from charm.lib.settings import Settings
+import charm.data.charts.fnf
+
+logger = logging.getLogger("charm")
 
 
 class TestView(DigiView):
@@ -21,6 +25,7 @@ class TestView(DigiView):
         self.songdata = FNFSong.parse(c)
         self.highway_1 = FNFHighway(self.songdata.charts[0], (((Settings.width // 3) * 2), 0))
         self.highway_2 = FNFHighway(self.songdata.charts[1], (10, 0), auto=True)
+        self.engine = FNFEngine(self.songdata.charts[0])
 
         with pkg_resources.path(charm.data.charts.fnf, "ballistic.mp3") as p:
             song = arcade.load_sound(p)
@@ -30,6 +35,14 @@ class TestView(DigiView):
         self.song_time_text = arcade.Text("??:??", (self.size[0] // 2), 10, font_size=24,
                                           anchor_x="center", color=arcade.color.BLACK,
                                           font_name="bananaslip plus plus")
+
+        self.score_text = arcade.Text("0", (self.size[0] // 2), self.size[1] - 10, font_size=24,
+                                      anchor_x="center", anchor_y="top", color=arcade.color.BLACK,
+                                      font_name="bananaslip plus plus")
+
+        self.judge_text = arcade.Text("", (self.size[0] // 2), self.size[1] // 2, font_size=48,
+                                      anchor_x="center", anchor_y="center", color=arcade.color.BLACK,
+                                      font_name="bananaslip plus plus")
 
         # Generate "gum wrapper" background
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
@@ -42,6 +55,8 @@ class TestView(DigiView):
         self.go_to_spotlight_position = 0
         self.spotlight_position = 0
 
+        self.key_state = [False] * 4
+
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:
             case arcade.key.BACKSPACE:
@@ -50,27 +65,35 @@ class TestView(DigiView):
                 self.window.show_view(self.back)
                 arcade.play_sound(self.window.sounds["back"])
             case arcade.key.D:
+                self.key_state[0] = True
                 self.highway_1.strikeline[0].alpha = 255
             case arcade.key.F:
+                self.key_state[1] = True
                 self.highway_1.strikeline[1].alpha = 255
             case arcade.key.J:
+                self.key_state[2] = True
                 self.highway_1.strikeline[2].alpha = 255
             case arcade.key.K:
+                self.key_state[3] = True
                 self.highway_1.strikeline[3].alpha = 255
-
+        self.engine.process_keystate(self.key_state)
         return super().on_key_press(symbol, modifiers)
 
     def on_key_release(self, symbol: int, modifiers: int):
         match symbol:
             case arcade.key.D:
+                self.key_state[0] = False
                 self.highway_1.strikeline[0].alpha = 64
             case arcade.key.F:
+                self.key_state[1] = False
                 self.highway_1.strikeline[1].alpha = 64
             case arcade.key.J:
+                self.key_state[2] = False
                 self.highway_1.strikeline[2].alpha = 64
             case arcade.key.K:
+                self.key_state[3] = False
                 self.highway_1.strikeline[3].alpha = 64
-
+        self.engine.process_keystate(self.key_state)
         return super().on_key_release(symbol, modifiers)
 
     def on_update(self, delta_time):
@@ -111,6 +134,8 @@ class TestView(DigiView):
         self.small_logos_backward.draw()
 
         self.song_time_text.draw()
+        self.score_text.draw()
+        self.judge_text.draw()
 
         self.highway_1.draw()
         self.highway_2.draw()

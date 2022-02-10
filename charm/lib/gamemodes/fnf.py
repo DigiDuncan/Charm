@@ -9,7 +9,7 @@ import arcade
 import PIL.Image
 
 from charm.lib.charm import generate_missing_texture_image
-from charm.lib.generic.engine import Engine, Judgement
+from charm.lib.generic.engine import DigitalKeyEvent, Engine, Judgement, KeyStates
 from charm.lib.generic.highway import Highway
 from charm.lib.generic.song import BPMChangeEvent, Chart, Event, Milliseconds, Note, Seconds, Song
 from charm.lib.settings import Settings
@@ -251,7 +251,7 @@ class FNFHighway(Highway):
         # prev_camera.use()
 
 
-class FNFENgine(Engine):
+class FNFEngine(Engine):
     def __init__(self, chart: Chart, offset: Seconds = 0):
         hit_window = 0.166
         mapping = [arcade.key.D, arcade.key.F, arcade.key.J, arcade.key.K]
@@ -264,3 +264,19 @@ class FNFENgine(Engine):
             Judgement("miss",  math.inf, 0,     -1,   -0.1)
         ]
         super().__init__(chart, mapping, hit_window, judgements, offset)
+
+        self.new_events = []
+
+    def process_keystate(self, key_states: KeyStates):
+        self.new_events.clear()
+        last_state = self.key_state
+        for n in range(len(key_states)):
+            if key_states[n] is True and last_state[n] is False:
+                e = DigitalKeyEvent(n, "down", self.chart_time)
+                self.current_events.append(e)
+                self.new_events.append(e)
+            elif key_states[n] is False and last_state[n] is True:
+                e = DigitalKeyEvent(n, "up", self.chart_time)
+                self.current_events.append(e)
+                self.new_events.append(e)
+        self.key_state = key_states.copy()

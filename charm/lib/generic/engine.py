@@ -1,8 +1,8 @@
 from dataclasses import dataclass
-from typing import Iterable
+from typing import Iterable, Literal
 from charm.lib.generic.song import Chart, Note, Seconds
 
-KeyStates = tuple[bool]
+KeyStates = list[bool]
 
 
 @dataclass
@@ -21,6 +21,20 @@ class Judgement:
         return self.ms < other.ms
 
 
+class EngineEvent:
+    pass
+
+
+@dataclass
+class DigitalKeyEvent(EngineEvent):
+    key: int
+    new_state: Literal["up", "down"]
+    time: float
+
+    def __lt__(self, other):
+        (self.time, self.key) < (self.time, self.key)
+
+
 class Engine:
     def __init__(self, chart: Chart, mapping: list[int], hit_window: Seconds, judgements: list[Judgement] = [], offset: Seconds = 0) -> None:
         self.chart = chart
@@ -33,6 +47,7 @@ class Engine:
         self.active_notes = self.chart.notes.copy()
 
         self.key_state = [False] * len(mapping)
+        self.current_events: list[EngineEvent] = []
 
         # Scoring
         self.score = 0
