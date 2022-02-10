@@ -64,35 +64,18 @@ class TestView(DigiView):
                 self.song.delete()
                 self.window.show_view(self.back)
                 arcade.play_sound(self.window.sounds["back"])
-            case arcade.key.D:
-                self.key_state[0] = True
-                self.highway_1.strikeline[0].alpha = 255
-            case arcade.key.F:
-                self.key_state[1] = True
-                self.highway_1.strikeline[1].alpha = 255
-            case arcade.key.J:
-                self.key_state[2] = True
-                self.highway_1.strikeline[2].alpha = 255
-            case arcade.key.K:
-                self.key_state[3] = True
-                self.highway_1.strikeline[3].alpha = 255
+        if symbol in self.engine.mapping:
+            i = self.engine.mapping.index(symbol)
+            self.key_state[i] = True
+            self.highway_1.strikeline[i].alpha = 255
         self.engine.process_keystate(self.key_state)
         return super().on_key_press(symbol, modifiers)
 
     def on_key_release(self, symbol: int, modifiers: int):
-        match symbol:
-            case arcade.key.D:
-                self.key_state[0] = False
-                self.highway_1.strikeline[0].alpha = 64
-            case arcade.key.F:
-                self.key_state[1] = False
-                self.highway_1.strikeline[1].alpha = 64
-            case arcade.key.J:
-                self.key_state[2] = False
-                self.highway_1.strikeline[2].alpha = 64
-            case arcade.key.K:
-                self.key_state[3] = False
-                self.highway_1.strikeline[3].alpha = 64
+        if symbol in self.engine.mapping:
+            i = self.engine.mapping.index(symbol)
+            self.key_state[i] = False
+            self.highway_1.strikeline[i].alpha = 64
         self.engine.process_keystate(self.key_state)
         return super().on_key_release(symbol, modifiers)
 
@@ -104,6 +87,8 @@ class TestView(DigiView):
         time = f"{int(self.song.time // 60)}:{int(self.song.time % 60):02}"
         if self.song_time_text._label.text != time:
             self.song_time_text._label.text = time
+        if self.score_text._label.text != str(self.engine.score):
+            self.score_text._label.text = str(self.engine.score)
 
         self.get_spotlight_position(self.song.time)
 
