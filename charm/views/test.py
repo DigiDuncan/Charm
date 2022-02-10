@@ -82,6 +82,8 @@ class TestView(DigiView):
     def on_update(self, delta_time):
         super().on_update(delta_time)
 
+        self.engine.update(self.song.time)
+
         move_gum_wrapper(self.logo_width, self.small_logos_forward, self.small_logos_backward, delta_time)
 
         time = f"{int(self.song.time // 60)}:{int(self.song.time % 60):02}"
