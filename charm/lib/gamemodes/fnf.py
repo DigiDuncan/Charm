@@ -265,6 +265,12 @@ class FNFEngine(Engine):
         ]
         super().__init__(chart, mapping, hit_window, judgements, offset)
 
+        self.hp = 0.5
+        self.max_hp = 1
+        self.current_events: list[DigitalKeyEvent] = []
+
+        self.latest_judgement = ""
+
         self.new_events = []
 
     def process_keystate(self, key_states: KeyStates):
@@ -280,3 +286,27 @@ class FNFEngine(Engine):
                 self.current_events.append(e)
                 self.new_events.append(e)
         self.key_state = key_states.copy()
+        self.calculate_score()
+
+    def calculate_score(self):
+        self.score = 0
+        self.hp = 0.5
+        self.weighted_hit_notes = 0
+        for note in [n for n in self.chart.notes if n.type == "normal" and not n.hit and not n.missed]:
+            if self.chart_time > note.position + self.hit_window:
+                note.missed = True
+                note.hit_time = math.inf  # how smart is this? :thinking:
+            else:
+                for event in [e for e in self.current_events if e.new_state == "down"]:
+                    if event.key == note.lane and abs(event.time - note.position) <= self.hit_window:
+                        note.hit = True
+                        note.hit_time = event.time
+        for note in [n for n in self.chart.notes if n.type == "normal"
+                     and (n.hit or n.missed)
+                     and n.position + self.hit_window < self.chart_time]:
+            j = self.get_note_judgement(note)
+            self.score += j.score
+            self.weighted_hit_notes += j.accuracy_weight
+            self.hp += j.hp_change
+            self.hp = max(self.max_hp, self.hp)
+            self.latest_judgement = j.name

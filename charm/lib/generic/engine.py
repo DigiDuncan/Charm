@@ -21,6 +21,7 @@ class Judgement:
         return self.ms < other.ms
 
 
+@dataclass
 class EngineEvent:
     pass
 
@@ -76,3 +77,10 @@ class Engine:
             else:
                 yield note
             n += 1
+
+    def get_note_judgement(self, note: Note):
+        rt = abs(note.hit_time - note.position)
+        for j in self.judgements:
+            if rt <= j.seconds:
+                return j
+        return self.judgements[-1]
