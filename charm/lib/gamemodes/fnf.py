@@ -1,17 +1,20 @@
 from dataclasses import dataclass
 import json
 import logging
+import math
 from typing import Literal, Optional, TypedDict
 from uuid import uuid4
 
 import arcade
 import PIL.Image
-from charm.lib.charm import generate_missing_texture_image
 
+from charm.lib.charm import generate_missing_texture_image
+from charm.lib.generic.engine import Engine, Judgement
 from charm.lib.generic.highway import Highway
+from charm.lib.generic.song import BPMChangeEvent, Chart, Event, Milliseconds, Note, Seconds, Song
 from charm.lib.settings import Settings
-from charm.lib.generic.song import BPMChangeEvent, Chart, Event, Milliseconds, Note, Song
 from charm.lib.utils import img_from_resource
+
 import charm.data.images.skins.fnf as fnfskin
 
 logger = logging.getLogger("charm")
@@ -246,3 +249,18 @@ class FNFHighway(Highway):
         self.sprite_list.draw()
 
         # prev_camera.use()
+
+
+class FNFENgine(Engine):
+    def __init__(self, chart: Chart, offset: Seconds = 0):
+        hit_window = 0.166
+        mapping = [arcade.key.D, arcade.key.F, arcade.key.J, arcade.key.K]
+        judgements = [
+            #        ("name",  ms,       score, acc,  hp = 0)
+            Judgement("sick",  45,       350,   1,    0.04),
+            Judgement("good",  90,       200,   0.75),
+            Judgement("bad",   135,      100,   0.5,  -0.03),
+            Judgement("awful", 166,      50,    -1,   -0.06),  # I'm not calling this "s***", it's not funny.
+            Judgement("miss",  math.inf, 0,     -1,   -0.1)
+        ]
+        super().__init__(chart, mapping, hit_window, judgements, offset)
