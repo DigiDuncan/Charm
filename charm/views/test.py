@@ -85,6 +85,11 @@ class TestView(DigiView):
         super().on_update(delta_time)
 
         self.engine.update(self.song.time)
+
+        # TODO: Lag? Maybe not calculate this every tick?
+        # The only way to solve this I think is to create something like an
+        # on_note_valid and on_note_expired event, which you can do with
+        # Arcade.schedule() if we need to look into that.
         self.engine.calculate_score()
 
         move_gum_wrapper(self.logo_width, self.small_logos_forward, self.small_logos_backward, delta_time)
