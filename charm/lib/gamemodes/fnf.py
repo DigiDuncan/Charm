@@ -217,7 +217,7 @@ class FNFHighway(Highway):
     def note_visible(self, n: FNFNote):
         if self.auto:
             return self.song_time < n.note_position <= self.song_time + self.viewport
-        return self.song_time - self.viewport < n.note_position <= self.song_time + self.viewport
+        return self.song_time - (self.viewport / 2) < n.note_position <= self.song_time + self.viewport
 
     def note_expired(self, n: FNFNote):
         if self.auto:
@@ -238,6 +238,8 @@ class FNFHighway(Highway):
             n.alpha = 255
             n.top = self.note_y(n.note_position)
             n.left = self.lane_x(n.lane)
+            if n.note.hit:
+                self.sprite_list.remove(n)
         for n in self.expired_notes:
             self.sprite_list.remove(n)
 
@@ -277,6 +279,12 @@ class FNFEngine(Engine):
 
     def process_keystate(self, key_states: KeyStates):
         last_state = self.key_state
+        # ignore spam during front/back porch
+        if (self.chart_time < self.chart.notes[0].position - self.hit_window
+           or self.chart_time > self.chart.notes[-1].position + self.hit_window):
+            return
+        if self.current_notes[0].position > self.chart_time + self.hit_window:
+            return
         for n in range(len(key_states)):
             if key_states[n] is True and last_state[n] is False:
                 e = DigitalKeyEvent(n, "down", self.chart_time)
