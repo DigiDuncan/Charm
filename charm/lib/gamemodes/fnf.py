@@ -74,7 +74,7 @@ class CameraFocusEvent(Event):
 class FNFNote(arcade.Sprite):
     def __init__(self, note: Note, height: 128, *args, **kwargs):
         self.note = note
-        self.note_position = note.position
+        self.time = note.time
         self.lane = note.lane
         try:
             icon = f"{self.note.type}-{wordmap[self.note.lane]}"
@@ -216,13 +216,13 @@ class FNFHighway(Highway):
 
     def note_visible(self, n: FNFNote):
         if self.auto:
-            return self.song_time < n.note_position <= self.song_time + self.viewport
-        return self.song_time - (self.viewport / 2) < n.note_position <= self.song_time + self.viewport
+            return self.song_time < n.time <= self.song_time + self.viewport
+        return self.song_time - (self.viewport / 2) < n.time <= self.song_time + self.viewport
 
     def note_expired(self, n: FNFNote):
         if self.auto:
-            return self.song_time > n.note_position
-        return self.song_time - self.viewport > n.note_position
+            return self.song_time > n.time
+        return self.song_time - self.viewport > n.time
 
     @property
     def visible_notes(self):
@@ -236,7 +236,7 @@ class FNFHighway(Highway):
         super().update(song_time)
         for n in self.visible_notes:
             n.alpha = 255
-            n.top = self.note_y(n.note_position)
+            n.top = self.note_y(n.time)
             n.left = self.lane_x(n.lane)
             if n.note.hit:
                 self.sprite_list.remove(n)
@@ -280,10 +280,10 @@ class FNFEngine(Engine):
     def process_keystate(self, key_states: KeyStates):
         last_state = self.key_state
         # ignore spam during front/back porch
-        if (self.chart_time < self.chart.notes[0].position - self.hit_window
-           or self.chart_time > self.chart.notes[-1].position + self.hit_window):
+        if (self.chart_time < self.chart.notes[0].time - self.hit_window
+           or self.chart_time > self.chart.notes[-1].time + self.hit_window):
             return
-        if self.current_notes[0].position > self.chart_time + self.hit_window:
+        if self.current_notes[0].time > self.chart_time + self.hit_window:
             return
         for n in range(len(key_states)):
             if key_states[n] is True and last_state[n] is False:
@@ -293,30 +293,30 @@ class FNFEngine(Engine):
                 e = DigitalKeyEvent(n, "up", self.chart_time)
                 self.current_events.append(e)
         self.key_state = key_states.copy()
-        self.calculate_score()
+        # self.calculate_score()
 
     def calculate_score(self):
-        score_these = []
-        for note in [n for n in self.current_notes if n.type == "normal"]:
-            if self.chart_time > note.position + self.hit_window:
+        for note in [n for n in self.current_notes if n.type == "normal" and n.time <= self.chart_time + self.hit_window]:
+            if self.chart_time > note.time + self.hit_window:
                 note.missed = True
                 note.hit_time = math.inf  # how smart is this? :thinking:
-                score_these.append(note)
+                self.score_note(note)
                 self.current_notes.remove(note)
             else:
                 for event in [e for e in self.current_events if e.new_state == "down"]:
-                    if event.key == note.lane and abs(event.time - note.position) <= self.hit_window:
+                    if event.key == note.lane and abs(event.time - note.time) <= self.hit_window:
                         note.hit = True
                         note.hit_time = event.time
-                        score_these.append(note)
+                        self.score_note(note)
                         self.current_notes.remove(note)
                         self.current_events.remove(event)
                         break
-        for note in [n for n in score_these]:
-            j = self.get_note_judgement(note)
-            self.score += j.score
-            self.weighted_hit_notes += j.accuracy_weight
-            self.hp += j.hp_change
-            self.hp = clamp(self.min_hp, self.hp, self.max_hp)
-            self.latest_judgement = j.name
-            self.latest_judgement_time = self.chart_time
+        self.hp = clamp(self.min_hp, self.hp, self.max_hp)
+
+    def score_note(self, note: FNFNote):
+        j = self.get_note_judgement(note)
+        self.score += j.score
+        self.weighted_hit_notes += j.accuracy_weight
+        self.hp += j.hp_change
+        self.latest_judgement = j.name
+        self.latest_judgement_time = self.chart_time

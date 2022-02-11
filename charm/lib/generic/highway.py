@@ -45,7 +45,7 @@ class Highway:
 
     @property
     def visible_notes(self):
-        return [n for n in self.notes if self.song_time - self.viewport < n.position <= self.song_time + self.viewport]
+        return [n for n in self.notes if self.song_time - self.viewport < n.time <= self.song_time + self.viewport]
 
     def apos(self, rpos: tuple[int, int]) -> tuple[int, int]:
         return (rpos[0] + self.pos[0], rpos[1] + self.pos[1])

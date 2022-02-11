@@ -85,6 +85,7 @@ class TestView(DigiView):
         super().on_update(delta_time)
 
         self.engine.update(self.song.time)
+        self.engine.calculate_score()
 
         move_gum_wrapper(self.logo_width, self.small_logos_forward, self.small_logos_backward, delta_time)
 
@@ -108,7 +109,7 @@ class TestView(DigiView):
             2: Settings.width // 2,
             1: 0
         }
-        cameraevents = [e for e in self.songdata.events if isinstance(e, CameraFocusEvent) and e.position < self.song.time + 0.25]
+        cameraevents = [e for e in self.songdata.events if isinstance(e, CameraFocusEvent) and e.time < self.song.time + 0.25]
         if cameraevents:
             current_camera_event = cameraevents[-1]
             if self.last_camera_event != current_camera_event:

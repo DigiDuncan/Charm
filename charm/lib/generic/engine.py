@@ -64,7 +64,8 @@ class Engine:
         raise NotImplementedError
 
     def get_note_judgement(self, note: Note):
-        rt = abs(note.hit_time - note.position)
+        rt = abs(note.hit_time - note.time)
+        # FIXME: Lag?
         for j in self.judgements:
             if rt <= j.seconds:
                 return j
@@ -74,8 +75,8 @@ class Engine:
     #     n = 0
     #     while n < len(self.active_notes):
     #         note = self.active_notes[n]
-    #         is_expired = note.position < current_time - (self.hit_window / 2)
-    #         is_waiting = note.position > current_time + (self.hit_window / 2)
+    #         is_expired = note.time < current_time - (self.hit_window / 2)
+    #         is_waiting = note.time > current_time + (self.hit_window / 2)
     #         if is_expired:
     #             del self.active_notes[n]
     #             n -= 1
