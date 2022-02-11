@@ -55,8 +55,9 @@ class TestView(DigiView):
         self.go_to_spotlight_position = 0
         self.spotlight_position = 0
 
+        self.hp_bar_length = 250
+
         self.key_state = [False] * 4
-        self.last_judgement_time = 0
 
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:
@@ -94,14 +95,13 @@ class TestView(DigiView):
             self.score_text._label.text = str(self.engine.score)
         if self.judge_text._label.text != self.engine.latest_judgement:
             self.judge_text._label.text = self.engine.latest_judgement
-            self.last_judgement_time = self.song.time
 
         self.get_spotlight_position(self.song.time)
 
         self.highway_1.update(self.song.time)
         self.highway_2.update(self.song.time)
 
-        self.judge_text.y = anim.ease_circout((self.size[1] // 2) + 20, self.size[1] // 2, self.last_judgement_time, self.last_judgement_time + 0.25, self.song.time)
+        self.judge_text.y = anim.ease_circout((self.size[1] // 2) + 20, self.size[1] // 2, self.engine.latest_judgement_time, self.engine.latest_judgement_time + 0.25, self.engine.chart_time)
 
     def get_spotlight_position(self, song_time: float):
         focus_pos = {
@@ -129,6 +129,16 @@ class TestView(DigiView):
         self.song_time_text.draw()
         self.score_text.draw()
         self.judge_text.draw()
+
+        hp_min = self.size[0] // 2 - self.hp_bar_length // 2
+        hp_max = self.size[0] // 2 + self.hp_bar_length // 2
+        hp = anim.zero_one_to_range(hp_min, hp_max, self.engine.hp)
+        arcade.draw_lrtb_rectangle_filled(
+            hp_min, hp_max,
+            self.size[1] - 100, self.size[1] - 110,
+            arcade.color.BLACK
+        )
+        arcade.draw_circle_filled(hp, self.size[1] - 105, 20, arcade.color.BLUE)
 
         self.highway_1.draw()
         self.highway_2.draw()

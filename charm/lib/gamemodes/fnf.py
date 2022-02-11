@@ -13,7 +13,7 @@ from charm.lib.generic.engine import DigitalKeyEvent, Engine, Judgement, KeyStat
 from charm.lib.generic.highway import Highway
 from charm.lib.generic.song import BPMChangeEvent, Chart, Event, Milliseconds, Note, Seconds, Song
 from charm.lib.settings import Settings
-from charm.lib.utils import img_from_resource
+from charm.lib.utils import clamp, img_from_resource
 
 import charm.data.images.skins.fnf as fnfskin
 
@@ -265,48 +265,50 @@ class FNFEngine(Engine):
         ]
         super().__init__(chart, mapping, hit_window, judgements, offset)
 
+        self.min_hp = 0
         self.hp = 0.5
         self.max_hp = 1
-        self.current_events: list[DigitalKeyEvent] = []
 
         self.latest_judgement = ""
+        self.latest_judgement_time = 0
 
-        self.new_events = []
+        self.current_notes: list[FNFNote] = self.chart.notes.copy()
+        self.current_events: list[DigitalKeyEvent] = []
 
     def process_keystate(self, key_states: KeyStates):
-        self.new_events.clear()
         last_state = self.key_state
         for n in range(len(key_states)):
             if key_states[n] is True and last_state[n] is False:
                 e = DigitalKeyEvent(n, "down", self.chart_time)
                 self.current_events.append(e)
-                self.new_events.append(e)
             elif key_states[n] is False and last_state[n] is True:
                 e = DigitalKeyEvent(n, "up", self.chart_time)
                 self.current_events.append(e)
-                self.new_events.append(e)
         self.key_state = key_states.copy()
         self.calculate_score()
 
     def calculate_score(self):
-        self.score = 0
-        self.hp = 0.5
-        self.weighted_hit_notes = 0
-        for note in [n for n in self.chart.notes if n.type == "normal" and not n.hit and not n.missed]:
+        score_these = []
+        for note in [n for n in self.current_notes if n.type == "normal"]:
             if self.chart_time > note.position + self.hit_window:
                 note.missed = True
                 note.hit_time = math.inf  # how smart is this? :thinking:
+                score_these.append(note)
+                self.current_notes.remove(note)
             else:
                 for event in [e for e in self.current_events if e.new_state == "down"]:
                     if event.key == note.lane and abs(event.time - note.position) <= self.hit_window:
                         note.hit = True
                         note.hit_time = event.time
-        for note in [n for n in self.chart.notes if n.type == "normal"
-                     and (n.hit or n.missed)
-                     and n.position + self.hit_window < self.chart_time]:
+                        score_these.append(note)
+                        self.current_notes.remove(note)
+                        self.current_events.remove(event)
+                        break
+        for note in [n for n in score_these]:
             j = self.get_note_judgement(note)
             self.score += j.score
             self.weighted_hit_notes += j.accuracy_weight
             self.hp += j.hp_change
-            self.hp = max(self.max_hp, self.hp)
+            self.hp = clamp(self.min_hp, self.hp, self.max_hp)
             self.latest_judgement = j.name
+            self.latest_judgement_time = self.chart_time
