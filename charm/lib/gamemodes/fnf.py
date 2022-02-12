@@ -254,7 +254,7 @@ class FNFHighway(Highway):
 
 
 class FNFEngine(Engine):
-    def __init__(self, chart: Chart, offset: Seconds = 0):
+    def __init__(self, chart: Chart, offset: Seconds = -0.075):  # FNF defaults to a 75ms input offset.
         hit_window = 0.166
         mapping = [arcade.key.D, arcade.key.F, arcade.key.J, arcade.key.K]
         judgements = [
@@ -270,6 +270,8 @@ class FNFEngine(Engine):
         self.min_hp = 0
         self.hp = 0.5
         self.max_hp = 1
+
+        self.misses = 0
 
         self.latest_judgement = ""
         self.latest_judgement_time = 0
