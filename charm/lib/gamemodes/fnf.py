@@ -76,6 +76,9 @@ class FNFNote(arcade.Sprite):
         self.note = note
         self.time = note.time
         self.lane = note.lane
+        self.hit = note.hit
+        self.hit_time = note.hit_time
+        self.missed = note.missed
         try:
             icon = f"{self.note.type}-{wordmap[self.note.lane]}"
             self.icon = img_from_resource(fnfskin, f"{icon}.png")
@@ -271,8 +274,6 @@ class FNFEngine(Engine):
         self.hp = 0.5
         self.max_hp = 1
 
-        self.misses = 0
-
         self.latest_judgement = ""
         self.latest_judgement_time = 0
 
@@ -322,3 +323,7 @@ class FNFEngine(Engine):
         self.hp += j.hp_change
         self.latest_judgement = j.name
         self.latest_judgement_time = self.chart_time
+        if note.hit:
+            self.hits += 1
+        elif note.missed:
+            self.misses += 1

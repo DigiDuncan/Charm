@@ -52,10 +52,50 @@ class Engine:
 
         # Scoring
         self.score = 0
+        self.hits = 0
+        self.misses = 0
 
         # Accuracy
         self.max_notes = len(self.chart.notes)
         self.weighted_hit_notes = 0
+
+    @property
+    def accuracy(self):
+        if self.hits or self.misses:
+            return self.weighted_hit_notes / self.max_notes
+        return None
+
+    @property
+    def grade(self):
+        accuracy = self.accuracy
+        if accuracy is not None:
+            if accuracy >= 97.5:
+                return "SS"
+            elif accuracy >= 95:
+                return "S"
+            elif accuracy >= 90:
+                return "A"
+            elif accuracy >= 80:
+                return "B"
+            elif accuracy >= 70:
+                return "C"
+            elif accuracy >= 60:
+                return "D"
+            else:
+                return "F"
+        return "C"
+
+    @property
+    def fc_type(self):
+        if self.accuracy is not None:
+            if self.misses == 0:
+                if self.grade in ["SS", "S", "A"]:
+                    return f"{self.grade}FC"
+                else:
+                    return "FC"
+            elif self.misses < 10:
+                return f"SDCB (-{self.misses})"
+        return "Clear"
 
     def update(self, song_time: Seconds):
         self.chart_time = song_time + self.offset

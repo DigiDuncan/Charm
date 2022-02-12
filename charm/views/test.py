@@ -44,6 +44,10 @@ class TestView(DigiView):
                                       anchor_x="center", anchor_y="center", color=arcade.color.BLACK,
                                       font_name="bananaslip plus plus")
 
+        self.grade_text = arcade.Text("Clear", (self.size[0] // 2), self.size[1] - 135, font_size=16,
+                                      anchor_x="center", anchor_y="center", color=arcade.color.BLACK,
+                                      font_name="bananaslip plus plus")
+
         # Generate "gum wrapper" background
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
 
@@ -71,6 +75,8 @@ class TestView(DigiView):
             self.key_state[i] = True
             self.highway_1.strikeline[i].alpha = 255
         self.engine.process_keystate(self.key_state)
+        if self.grade_text._label.text != self.engine.fc_type:
+            self.grade_text._label.text = self.engine.fc_type
         return super().on_key_press(symbol, modifiers)
 
     def on_key_release(self, symbol: int, modifiers: int):
@@ -79,6 +85,8 @@ class TestView(DigiView):
             self.key_state[i] = False
             self.highway_1.strikeline[i].alpha = 64
         self.engine.process_keystate(self.key_state)
+        if self.grade_text._label.text != self.engine.fc_type:
+            self.grade_text._label.text = self.engine.fc_type
         return super().on_key_release(symbol, modifiers)
 
     def on_update(self, delta_time):
@@ -135,6 +143,7 @@ class TestView(DigiView):
         self.song_time_text.draw()
         self.score_text.draw()
         self.judge_text.draw()
+        self.grade_text.draw()
 
         hp_min = self.size[0] // 2 - self.hp_bar_length // 2
         hp_max = self.size[0] // 2 + self.hp_bar_length // 2
