@@ -86,7 +86,7 @@ class AdobeSprite(Sprite):
         with open(self._xml_path, "r", encoding="utf-8") as f:
             self._xml = f.read()
         self._ata = AdobeTextureAtlas.parse(self._xml)
-        self.texture_map: dict[str, int] = {}
+        self.texture_map: dict[Subtexture, int] = {}
         textures = []
         for n, st in enumerate(self._ata.subtextures):
             tx = arcade.load_texture(self._image_path, st.x, st.y, st.width, st.height)
@@ -97,6 +97,7 @@ class AdobeSprite(Sprite):
         for tx in textures:
             self.append_texture(tx)
         self.set_texture(0)
+        self.animations = set([st.name for st in self.texture_map])
 
         self._current_animation = []
         self._current_animation_index = 0
