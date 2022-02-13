@@ -1,3 +1,4 @@
+import logging
 from os import PathLike
 from pathlib import Path
 import importlib.resources as pkg_resources
@@ -8,6 +9,8 @@ from arcade import Sprite
 import arcade
 
 import charm.data.images.spritesheets
+
+logger = logging.getLogger("charm")
 
 subtexture_name = re.compile(r"(.+?)(\d+)$")
 
@@ -40,6 +43,12 @@ class Subtexture:
         self.frame_y = strint(frame_y)
         self.frame_width = strint(frame_width)
         self.frame_height = strint(frame_height)
+
+    def __str__(self):
+        return f"<Subtexture {self._name}>"
+
+    def __repr__(self) -> str:
+        return str(self)
 
 
 class AdobeTextureAtlas:
@@ -107,6 +116,7 @@ class AdobeSprite(Sprite):
         self._animation_time = 0
 
     def set_animation(self, name: str):
+        self._current_animation = []
         for st, n in self.texture_map.items():
             if st.name == name:
                 self._current_animation.append(n)

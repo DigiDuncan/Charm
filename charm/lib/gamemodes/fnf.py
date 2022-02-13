@@ -280,8 +280,13 @@ class FNFEngine(Engine):
         self.current_notes: list[FNFNote] = self.chart.notes.copy()
         self.current_events: list[DigitalKeyEvent] = []
 
+        self.last_p1_note = None
+        self.last_note_missed = False
+
     def process_keystate(self, key_states: KeyStates):
         last_state = self.key_state
+        if self.last_p1_note in (0, 1, 2, 3) and key_states[self.last_p1_note] is False:
+            self.last_p1_note = None
         # ignore spam during front/back porch
         if (self.chart_time < self.chart.notes[0].time - self.hit_window
            or self.chart_time > self.chart.notes[-1].time + self.hit_window):
@@ -325,5 +330,8 @@ class FNFEngine(Engine):
         self.latest_judgement_time = self.chart_time
         if note.hit:
             self.hits += 1
+            self.last_p1_note = note.lane
+            self.last_note_missed = False
         elif note.missed:
             self.misses += 1
+            self.last_note_missed = True

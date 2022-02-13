@@ -4,6 +4,7 @@ import logging
 import arcade
 
 from charm.lib import anim
+from charm.lib.adobexml import sprite_from_adobe
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView
 from charm.lib.gamemodes.fnf import CameraFocusEvent, FNFEngine, FNFHighway, FNFSong
@@ -63,6 +64,14 @@ class TestView(DigiView):
 
         self.key_state = [False] * 4
 
+        self.boyfriend = sprite_from_adobe("BOYFRIEND")
+        self.boyfriend.set_animation("BF idle dance")
+        self.boyfriend.scale = 0.5
+        self.boyfriend.right = Settings.width - 10
+        self.boyfriend.bottom = 10
+        self.boyfriend_anim = None
+        self.boyfriend_anim_missed = False
+
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:
             case arcade.key.BACKSPACE:
@@ -117,6 +126,33 @@ class TestView(DigiView):
 
         self.judge_text.y = anim.ease_circout((self.size[1] // 2) + 20, self.size[1] // 2, self.engine.latest_judgement_time, self.engine.latest_judgement_time + 0.25, self.engine.chart_time)
 
+        if self.engine.last_p1_note != self.boyfriend_anim or self.engine.last_note_missed != self.boyfriend_anim_missed:
+            if self.engine.last_p1_note is None:
+                self.boyfriend.set_animation("BF idle dance")
+            else:
+                a = ""
+                match self.engine.last_p1_note:
+                    case 0:
+                        a = "BF NOTE LEFT"
+                        self.boyfriend_anim = self.engine.last_p1_note
+                    case 1:
+                        a = "BF NOTE DOWN"
+                        self.boyfriend_anim = self.engine.last_p1_note
+                    case 2:
+                        a = "BF NOTE UP"
+                        self.boyfriend_anim = self.engine.last_p1_note
+                    case 3:
+                        a = "BF NOTE RIGHT"
+                        self.boyfriend_anim = self.engine.last_p1_note
+                if self.engine.last_note_missed:
+                    a += " MISS"
+                    self.boyfriend_anim_missed = True
+                else:
+                    self.boyfriend_anim_missed = False
+                self.boyfriend.set_animation(a)
+
+        self.boyfriend.update_animation(delta_time)
+
     def get_spotlight_position(self, song_time: float):
         focus_pos = {
             2: Settings.width // 2,
@@ -139,6 +175,8 @@ class TestView(DigiView):
         # Charm BG
         self.small_logos_forward.draw()
         self.small_logos_backward.draw()
+
+        self.boyfriend.draw()
 
         self.song_time_text.draw()
         self.score_text.draw()
