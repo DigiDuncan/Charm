@@ -14,12 +14,12 @@ class SpriteTestView(DigiView):
     def setup(self):
         super().setup()
 
-        with pkg_resources.path(charm.data.images.spritesheets, "BOYFRIEND.xml") as p:
+        with pkg_resources.path(charm.data.images.spritesheets, "Whitty.xml") as p:
             parent = p.parent
-            self.sprite = AdobeSprite(parent, "BOYFRIEND")
+            self.sprite = AdobeSprite(parent, "Whitty")
         self.sprite.bottom = 0
         self.sprite.left = 0
-        self.sprite.set_animation("boyfriend dodge")
+        self.sprite.set_animation("Idle")
 
         # Generate "gum wrapper" background
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
