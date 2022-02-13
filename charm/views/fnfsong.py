@@ -4,6 +4,7 @@ import logging
 import arcade
 
 from charm.lib import anim
+from charm.lib.adobexml import sprite_from_adobe
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView
 from charm.lib.gamemodes.fnf import CameraFocusEvent, FNFEngine, FNFHighway, FNFSong
@@ -14,21 +15,20 @@ logger = logging.getLogger("charm")
 
 
 class FNFSongView(DigiView):
-    def __init__(self, song_name: str, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(fade_in=1, bg_color=CharmColors.FADED_GREEN, *args, **kwargs)
         self.volume = 0.5
-        self.song_name = song_name
 
     def setup(self):
         super().setup()
 
-        c = pkg_resources.read_text(charm.data.charts.fnf, f"{self.song_name}.json")
+        c = pkg_resources.read_text(charm.data.charts.fnf, "helloworld.json")
         self.songdata = FNFSong.parse(c)
         self.highway_1 = FNFHighway(self.songdata.charts[0], (((Settings.width // 3) * 2), 0))
         self.highway_2 = FNFHighway(self.songdata.charts[1], (10, 0), auto=True)
         self.engine = FNFEngine(self.songdata.charts[0])
 
-        with pkg_resources.path(charm.data.charts.fnf, f"{self.song_name}.mp3") as p:
+        with pkg_resources.path(charm.data.charts.fnf, "helloworld.mp3") as p:
             song = arcade.load_sound(p)
             self.song = arcade.play_sound(song, self.volume, looping=False)
         self.window.theme_song.volume = 0
@@ -42,6 +42,10 @@ class FNFSongView(DigiView):
                                       font_name="bananaslip plus plus")
 
         self.judge_text = arcade.Text("", (self.size[0] // 2), self.size[1] // 2, font_size=48,
+                                      anchor_x="center", anchor_y="center", color=arcade.color.BLACK,
+                                      font_name="bananaslip plus plus")
+
+        self.grade_text = arcade.Text("Clear", (self.size[0] // 2), self.size[1] - 135, font_size=16,
                                       anchor_x="center", anchor_y="center", color=arcade.color.BLACK,
                                       font_name="bananaslip plus plus")
 
@@ -60,6 +64,14 @@ class FNFSongView(DigiView):
 
         self.key_state = [False] * 4
 
+        self.boyfriend = sprite_from_adobe("BOYFRIEND")
+        self.boyfriend.set_animation("BF idle dance")
+        self.boyfriend.scale = 0.5
+        self.boyfriend.right = Settings.width - 10
+        self.boyfriend.bottom = 10
+        self.boyfriend_anim = None
+        self.boyfriend_anim_missed = False
+
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:
             case arcade.key.BACKSPACE:
@@ -72,6 +84,8 @@ class FNFSongView(DigiView):
             self.key_state[i] = True
             self.highway_1.strikeline[i].alpha = 255
         self.engine.process_keystate(self.key_state)
+        if self.grade_text._label.text != self.engine.fc_type:
+            self.grade_text._label.text = self.engine.fc_type
         return super().on_key_press(symbol, modifiers)
 
     def on_key_release(self, symbol: int, modifiers: int):
@@ -80,6 +94,8 @@ class FNFSongView(DigiView):
             self.key_state[i] = False
             self.highway_1.strikeline[i].alpha = 64
         self.engine.process_keystate(self.key_state)
+        if self.grade_text._label.text != self.engine.fc_type:
+            self.grade_text._label.text = self.engine.fc_type
         return super().on_key_release(symbol, modifiers)
 
     def on_update(self, delta_time):
@@ -110,6 +126,33 @@ class FNFSongView(DigiView):
 
         self.judge_text.y = anim.ease_circout((self.size[1] // 2) + 20, self.size[1] // 2, self.engine.latest_judgement_time, self.engine.latest_judgement_time + 0.25, self.engine.chart_time)
 
+        if self.engine.last_p1_note != self.boyfriend_anim or self.engine.last_note_missed != self.boyfriend_anim_missed:
+            if self.engine.last_p1_note is None:
+                self.boyfriend.set_animation("BF idle dance")
+            else:
+                a = ""
+                match self.engine.last_p1_note:
+                    case 0:
+                        a = "BF NOTE LEFT"
+                        self.boyfriend_anim = self.engine.last_p1_note
+                    case 1:
+                        a = "BF NOTE DOWN"
+                        self.boyfriend_anim = self.engine.last_p1_note
+                    case 2:
+                        a = "BF NOTE UP"
+                        self.boyfriend_anim = self.engine.last_p1_note
+                    case 3:
+                        a = "BF NOTE RIGHT"
+                        self.boyfriend_anim = self.engine.last_p1_note
+                if self.engine.last_note_missed:
+                    a += " MISS"
+                    self.boyfriend_anim_missed = True
+                else:
+                    self.boyfriend_anim_missed = False
+                self.boyfriend.set_animation(a)
+
+        self.boyfriend.update_animation(delta_time)
+
     def get_spotlight_position(self, song_time: float):
         focus_pos = {
             2: Settings.width // 2,
@@ -133,9 +176,12 @@ class FNFSongView(DigiView):
         self.small_logos_forward.draw()
         self.small_logos_backward.draw()
 
+        self.boyfriend.draw()
+
         self.song_time_text.draw()
         self.score_text.draw()
         self.judge_text.draw()
+        self.grade_text.draw()
 
         hp_min = self.size[0] // 2 - self.hp_bar_length // 2
         hp_max = self.size[0] // 2 + self.hp_bar_length // 2
