@@ -6,7 +6,7 @@ from charm.lib.digiview import DigiView
 from charm.objects.menu import MainMenu, MainMenuItem
 from charm.views.songmenu import SongMenuView
 from charm.views.spritetest import SpriteTestView
-from charm.views.test import FNFSongView
+from charm.views.fnfsong import FNFSongView
 
 
 class MainMenuView(DigiView):
@@ -24,7 +24,7 @@ class MainMenuView(DigiView):
                 MainMenuItem("Playlists", "playlist", None),
                 MainMenuItem("Songs", "songs", SongMenuView(back=self)),
                 MainMenuItem("Options", "option", None),
-                MainMenuItem("Test", "test", FNFSongView(back=self)),
+                MainMenuItem("Test", "test", FNFSongView("helloworld", back=self)),
                 MainMenuItem("Sprite Test", "spritetest", SpriteTestView(back=self))
             ]
         )

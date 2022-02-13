@@ -15,22 +15,26 @@ logger = logging.getLogger("charm")
 
 
 class FNFSongView(DigiView):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, name: str, *args, **kwargs):
         super().__init__(fade_in=1, bg_color=CharmColors.FADED_GREEN, *args, **kwargs)
         self.volume = 0.5
+        self.name = name
 
     def setup(self):
         super().setup()
 
-        c = pkg_resources.read_text(charm.data.charts.fnf, "helloworld.json")
-        self.songdata = FNFSong.parse(c)
+        with pkg_resources.path(charm.data.charts.fnf, "__init__.py") as p:
+            path = p.parent
+            self.path = path / self.name
+        with open(self.path / f"{self.name}.json", encoding="utf-8") as chart:
+            c = chart.read()
+            self.songdata = FNFSong.parse(c)
         self.highway_1 = FNFHighway(self.songdata.charts[0], (((Settings.width // 3) * 2), 0))
         self.highway_2 = FNFHighway(self.songdata.charts[1], (10, 0), auto=True)
         self.engine = FNFEngine(self.songdata.charts[0])
 
-        with pkg_resources.path(charm.data.charts.fnf, "helloworld.mp3") as p:
-            song = arcade.load_sound(p)
-            self.song = arcade.play_sound(song, self.volume, looping=False)
+        song = arcade.load_sound(self.path / f"{self.name}.mp3")
+        self.song = arcade.play_sound(song, self.volume, looping=False)
         self.window.theme_song.volume = 0
 
         self.song_time_text = arcade.Text("??:??", (self.size[0] // 2), 10, font_size=24,
