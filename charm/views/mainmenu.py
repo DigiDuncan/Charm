@@ -5,6 +5,7 @@ from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView
 from charm.objects.menu import MainMenu, MainMenuItem
 from charm.views.songmenu import SongMenuView
+from charm.views.spritetest import SpriteTestView
 from charm.views.test import TestView
 
 
@@ -23,7 +24,8 @@ class MainMenuView(DigiView):
                 MainMenuItem("Playlists", "playlist", None),
                 MainMenuItem("Songs", "songs", SongMenuView(back=self)),
                 MainMenuItem("Options", "option", None),
-                MainMenuItem("Test", "test", TestView(back=self))
+                MainMenuItem("Test", "test", TestView(back=self)),
+                MainMenuItem("Sprite Test", "spritetest", SpriteTestView(back=self))
             ]
         )
 
