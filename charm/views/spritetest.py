@@ -1,10 +1,8 @@
-import importlib.resources as pkg_resources
 import arcade
-from charm.lib.adobexml import AdobeSprite
+from charm.lib.adobexml import sprite_from_adobe
 
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView
-import charm.data.images.spritesheets
 
 
 class SpriteTestView(DigiView):
@@ -14,9 +12,7 @@ class SpriteTestView(DigiView):
     def setup(self):
         super().setup()
 
-        with pkg_resources.path(charm.data.images.spritesheets, "Whitty.xml") as p:
-            parent = p.parent
-            self.sprite = AdobeSprite(parent, "Whitty")
+        self.sprite = sprite_from_adobe("Whitty")
         self.sprite.bottom = 0
         self.sprite.left = 0
         self.sprite.set_animation("Idle")

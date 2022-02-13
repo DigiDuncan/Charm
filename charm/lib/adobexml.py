@@ -1,11 +1,13 @@
 from os import PathLike
 from pathlib import Path
+import importlib.resources as pkg_resources
 import re
-
 import xml.etree.ElementTree as ET
 
 from arcade import Sprite
 import arcade
+
+import charm.data.images.spritesheets
 
 subtexture_name = re.compile(r"(.+?)(\d+)$")
 
@@ -120,3 +122,9 @@ class AdobeSprite(Sprite):
                 self.set_texture(self._current_animation[self._current_animation_index])
                 self._animation_time = 0
         return super().update_animation(delta_time)
+
+
+def sprite_from_adobe(s: str) -> AdobeSprite:
+    with pkg_resources.path(charm.data.images.spritesheets, f"{s}.xml") as p:
+        parent = p.parent
+        return AdobeSprite(parent, s)
