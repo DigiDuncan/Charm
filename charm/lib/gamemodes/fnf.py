@@ -159,7 +159,10 @@ class FNFSong(Song):
                 note_in_focused_lane = lane < 4
                 note_player = focused if note_in_focused_lane else unfocused
                 lanemap = [0, 1, 2, 3, 0, 1, 2, 3]
-                chart_lane = lanemap[lane]
+                try:
+                    chart_lane = lanemap[lane]
+                except IndexError:
+                    logger.warn(f"Lane {lane} out of range.")
 
                 thisnote = Note(str(uuid4()), pos, chart_lane, length)
                 returnsong.charts[note_player - 1].notes.append(thisnote)

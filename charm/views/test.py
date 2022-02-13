@@ -17,18 +17,18 @@ logger = logging.getLogger("charm")
 class TestView(DigiView):
     def __init__(self, *args, **kwargs):
         super().__init__(fade_in=1, bg_color=CharmColors.FADED_GREEN, *args, **kwargs)
-        self.volume = 1
+        self.volume = 0.5
 
     def setup(self):
         super().setup()
 
-        c = pkg_resources.read_text(charm.data.charts.fnf, "ejected.json")
+        c = pkg_resources.read_text(charm.data.charts.fnf, "hellclown.json")
         self.songdata = FNFSong.parse(c)
         self.highway_1 = FNFHighway(self.songdata.charts[0], (((Settings.width // 3) * 2), 0))
         self.highway_2 = FNFHighway(self.songdata.charts[1], (10, 0), auto=True)
         self.engine = FNFEngine(self.songdata.charts[0])
 
-        with pkg_resources.path(charm.data.charts.fnf, "ejected.mp3") as p:
+        with pkg_resources.path(charm.data.charts.fnf, "hellclown.mp3") as p:
             song = arcade.load_sound(p)
             self.song = arcade.play_sound(song, self.volume, looping=False)
         self.window.theme_song.volume = 0
