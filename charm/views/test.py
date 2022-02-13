@@ -14,7 +14,7 @@ import charm.data.charts.fnf
 logger = logging.getLogger("charm")
 
 
-class TestView(DigiView):
+class FNFSongView(DigiView):
     def __init__(self, *args, **kwargs):
         super().__init__(fade_in=1, bg_color=CharmColors.FADED_GREEN, *args, **kwargs)
         self.volume = 0.5
