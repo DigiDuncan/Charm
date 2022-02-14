@@ -92,7 +92,7 @@ class TitleView(DigiView):
                 self.hit_start = self.local_time
                 arcade.play_sound(self.window.sounds["valid"])
             case arcade.key.KEY_0:
-                self.song.delete()
+                self.window.theme_song.seek(3)
                 self.setup()
 
         return super().on_key_press(symbol, modifiers)
