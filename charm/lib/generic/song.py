@@ -65,6 +65,11 @@ class Chart:
 class Song:
     def __init__(self, name: str, bpm: float) -> None:
         self.name = name
+        self.metadata = {
+            "title": name,
+            "artist": "Unknown Artist",
+            "album": "Unknown Album"
+        }
         self.bpm = bpm
         self.charts: list[Chart] = []
         self.events: list[Event] = []

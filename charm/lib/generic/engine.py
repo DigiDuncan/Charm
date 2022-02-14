@@ -62,12 +62,12 @@ class Engine:
     @property
     def accuracy(self):
         if self.hits or self.misses:
-            return self.weighted_hit_notes / self.max_notes
+            return self.weighted_hit_notes / (self.hits + self.misses)
         return None
 
     @property
     def grade(self):
-        accuracy = self.accuracy
+        accuracy = self.accuracy * 100
         if accuracy is not None:
             if accuracy >= 97.5:
                 return "SS"

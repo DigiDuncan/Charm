@@ -76,6 +76,16 @@ class FNFSongView(DigiView):
         self.boyfriend_anim = None
         self.boyfriend_anim_missed = False
 
+    def on_key_something(self, symbol: int, modifiers: int, press: bool):
+        if symbol in self.engine.mapping:
+            i = self.engine.mapping.index(symbol)
+            self.key_state[i] = press
+            self.highway_1.strikeline[i].alpha = 255 if press else 64
+        self.engine.process_keystate(self.key_state)
+        if self.engine.accuracy:
+            if self.grade_text._label.text != f"{self.engine.fc_type} | {round(self.engine.accuracy * 100, 2)}% ({self.engine.grade})":
+                self.grade_text._label.text = f"{self.engine.fc_type} | {round(self.engine.accuracy * 100, 2)}% ({self.engine.grade})"
+
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:
             case arcade.key.BACKSPACE:
@@ -83,23 +93,11 @@ class FNFSongView(DigiView):
                 self.song.delete()
                 self.window.show_view(self.back)
                 arcade.play_sound(self.window.sounds["back"])
-        if symbol in self.engine.mapping:
-            i = self.engine.mapping.index(symbol)
-            self.key_state[i] = True
-            self.highway_1.strikeline[i].alpha = 255
-        self.engine.process_keystate(self.key_state)
-        if self.grade_text._label.text != self.engine.fc_type:
-            self.grade_text._label.text = self.engine.fc_type
+        self.on_key_something(symbol, modifiers, True)
         return super().on_key_press(symbol, modifiers)
 
     def on_key_release(self, symbol: int, modifiers: int):
-        if symbol in self.engine.mapping:
-            i = self.engine.mapping.index(symbol)
-            self.key_state[i] = False
-            self.highway_1.strikeline[i].alpha = 64
-        self.engine.process_keystate(self.key_state)
-        if self.grade_text._label.text != self.engine.fc_type:
-            self.grade_text._label.text = self.engine.fc_type
+        self.on_key_something(symbol, modifiers, False)
         return super().on_key_release(symbol, modifiers)
 
     def on_update(self, delta_time):
