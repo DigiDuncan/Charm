@@ -75,6 +75,7 @@ class FNFNote(arcade.Sprite):
     def __init__(self, note: Note, height: 128, *args, **kwargs):
         self.note = note
         self.time = note.time
+        self.type = note.type
         self.lane = note.lane
         self.hit = note.hit
         self.hit_time = note.hit_time
@@ -168,15 +169,15 @@ class FNFSong(Song):
                 returnsong.charts[note_player - 1].notes.append(thisnote)
                 returnsong.charts[note_player - 1].note_by_uuid[thisnote.uuid] = thisnote
 
-                # Fake sustains (change this.)
+                # TODO: Fake sustains (change this.)
                 seconds_per_thirtysecond = seconds_per_sixteenth / 2
                 if thisnote.length != 0:
                     sustainbeats = round(thisnote.length / seconds_per_thirtysecond)
                     for i in range(sustainbeats):
                         j = i + 1
-                        thisnote = Note(str(uuid4()), pos + (seconds_per_thirtysecond * (i + 1)), chart_lane, 0, "sustain")
-                        returnsong.charts[note_player - 1].notes.append(thisnote)
-                        returnsong.charts[note_player - 1].note_by_uuid[thisnote.uuid] = thisnote
+                        thatnote = Note(str(uuid4()), pos + (seconds_per_thirtysecond * (i + 1)), chart_lane, 0, "sustain", thisnote)
+                        returnsong.charts[note_player - 1].notes.append(thatnote)
+                        returnsong.charts[note_player - 1].note_by_uuid[thatnote.uuid] = thatnote
 
             section_start += section_length
 
@@ -274,8 +275,8 @@ class FNFEngine(Engine):
         super().__init__(chart, mapping, hit_window, judgements, offset)
 
         self.min_hp = 0
-        self.hp = 0.5
-        self.max_hp = 1
+        self.hp = 1
+        self.max_hp = 2
 
         self.latest_judgement = ""
         self.latest_judgement_time = 0
@@ -294,8 +295,9 @@ class FNFEngine(Engine):
         if (self.chart_time < self.chart.notes[0].time - self.hit_window
            or self.chart_time > self.chart.notes[-1].time + self.hit_window):
             return
-        if self.current_notes[0].time > self.chart_time + self.hit_window:
-            return
+        # FIXME: Causes bugs with sustains.
+        # if self.current_notes[0].time > self.chart_time + self.hit_window:
+        #     return
         for n in range(len(key_states)):
             if key_states[n] is True and last_state[n] is False:
                 e = DigitalKeyEvent(n, "down", self.chart_time)
@@ -322,9 +324,28 @@ class FNFEngine(Engine):
                         self.current_notes.remove(note)
                         self.current_events.remove(event)
                         break
+        # aaaaaa do not do this loop
+        for note in [n for n in self.current_notes if n.type == "sustain" and n.time <= self.chart_time + self.hit_window]:
+            if self.chart_time > note.time + self.hit_window:
+                note.missed = True
+                note.hit_time = math.inf  # how smart is this? :thinking:
+                self.score_note(note)
+                self.current_notes.remove(note)
+            else:
+                if self.key_state[note.lane] is True:
+                    note.hit = True
+                    note.hit_time = self.chart_time
+                    self.score_note(note)
+                    self.current_notes.remove(note)
         self.hp = clamp(self.min_hp, self.hp, self.max_hp)
 
     def score_note(self, note: FNFNote):
+        if note.type == "sustain":
+            if note.hit:
+                self.hp += 0.01
+            elif note.missed:
+                self.hp -= 0.025
+            return
         j = self.get_note_judgement(note)
         self.score += j.score
         self.weighted_hit_notes += j.accuracy_weight

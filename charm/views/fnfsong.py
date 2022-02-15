@@ -82,9 +82,6 @@ class FNFSongView(DigiView):
             self.key_state[i] = press
             self.highway_1.strikeline[i].alpha = 255 if press else 64
         self.engine.process_keystate(self.key_state)
-        if self.engine.accuracy:
-            if self.grade_text._label.text != f"{self.engine.fc_type} | {round(self.engine.accuracy * 100, 2)}% ({self.engine.grade})":
-                self.grade_text._label.text = f"{self.engine.fc_type} | {round(self.engine.accuracy * 100, 2)}% ({self.engine.grade})"
 
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:
@@ -127,8 +124,11 @@ class FNFSongView(DigiView):
         self.highway_2.update(self.song.time)
 
         self.judge_text.y = anim.ease_circout((self.size[1] // 2) + 20, self.size[1] // 2, self.engine.latest_judgement_time, self.engine.latest_judgement_time + 0.25, self.engine.chart_time)
+        if self.engine.accuracy:
+            if self.grade_text._label.text != f"{self.engine.fc_type} | {round(self.engine.accuracy * 100, 2)}% ({self.engine.grade})":
+                self.grade_text._label.text = f"{self.engine.fc_type} | {round(self.engine.accuracy * 100, 2)}% ({self.engine.grade})"
 
-        if self.engine.last_p1_note != self.boyfriend_anim or self.engine.last_note_missed != self.boyfriend_anim_missed:
+        if (self.engine.last_p1_note, self.engine.last_note_missed) != (self.boyfriend_anim, self.boyfriend_anim_missed):
             if self.engine.last_p1_note is None:
                 self.boyfriend.set_animation("BF idle dance")
             else:
@@ -170,6 +170,24 @@ class FNFSongView(DigiView):
                 self.last_camera_event = current_camera_event
         self.spotlight_position = anim.ease_circout(self.last_spotlight_position, self.go_to_spotlight_position, self.last_spotlight_change, self.last_spotlight_change + 0.125, song_time)
 
+    def hp_draw(self):
+        hp_min = self.size[0] // 2 - self.hp_bar_length // 2
+        hp_max = self.size[0] // 2 + self.hp_bar_length // 2
+        hp_normalized = anim.time_to_zero_one_ramp(self.engine.min_hp, self.engine.max_hp, self.engine.hp)
+        hp = anim.zero_one_to_range(hp_min, hp_max, hp_normalized)
+        arcade.draw_lrtb_rectangle_filled(
+            hp_min, hp_max,
+            self.size[1] - 100, self.size[1] - 110,
+            arcade.color.BLACK
+        )
+        arcade.draw_circle_filled(hp, self.size[1] - 105, 20, arcade.color.BLUE)
+
+    def spotlight_draw(self):
+        arcade.draw_lrtb_rectangle_filled(
+            self.spotlight_position, self.spotlight_position + Settings.width // 2, Settings.height, 0,
+            arcade.color.BLACK + (127,)
+        )
+
     def on_draw(self):
         self.clear()
         self.camera.use()
@@ -185,22 +203,11 @@ class FNFSongView(DigiView):
         self.judge_text.draw()
         self.grade_text.draw()
 
-        hp_min = self.size[0] // 2 - self.hp_bar_length // 2
-        hp_max = self.size[0] // 2 + self.hp_bar_length // 2
-        hp = anim.zero_one_to_range(hp_min, hp_max, self.engine.hp)
-        arcade.draw_lrtb_rectangle_filled(
-            hp_min, hp_max,
-            self.size[1] - 100, self.size[1] - 110,
-            arcade.color.BLACK
-        )
-        arcade.draw_circle_filled(hp, self.size[1] - 105, 20, arcade.color.BLUE)
+        self.hp_draw()
 
         self.highway_1.draw()
         self.highway_2.draw()
 
-        arcade.draw_lrtb_rectangle_filled(
-            self.spotlight_position, self.spotlight_position + Settings.width // 2, Settings.height, 0,
-            arcade.color.BLACK + (127,)
-        )
+        self.spotlight_draw()
 
         super().on_draw()
