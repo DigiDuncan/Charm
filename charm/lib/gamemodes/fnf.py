@@ -334,7 +334,7 @@ class FNFEngine(Engine):
             else:
                 if self.key_state[note.lane] is True:
                     note.hit = True
-                    note.hit_time = self.chart_time
+                    note.hit_time = note.time
                     self.score_note(note)
                     self.current_notes.remove(note)
         self.hp = clamp(self.min_hp, self.hp, self.max_hp)
