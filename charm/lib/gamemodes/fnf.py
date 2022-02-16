@@ -232,11 +232,11 @@ class FNFHighway(Highway):
         return self.song_time - self.viewport > n.time
 
     @property
-    def visible_notes(self):
+    def visible_notes(self) -> list[FNFNote]:
         return [n for n in self.sprite_list if self.note_visible(n)]
 
     @property
-    def expired_notes(self):
+    def expired_notes(self) -> list[FNFNote]:
         return [n for n in self.sprite_list if self.note_expired(n)]
 
     def update(self, song_time):
@@ -245,7 +245,9 @@ class FNFHighway(Highway):
             n.alpha = 255
             n.top = self.note_y(n.time)
             n.left = self.lane_x(n.lane)
-            if n.note.hit:
+            if n.note.hit and n.note.type == "normal":
+                self.sprite_list.remove(n)
+            if n.note.hit and n.note.type == "sustain" and song_time >= n.time:
                 self.sprite_list.remove(n)
         for n in self.expired_notes:
             self.sprite_list.remove(n)
@@ -328,7 +330,7 @@ class FNFEngine(Engine):
         for note in [n for n in self.current_notes if n.type == "sustain" and n.time <= self.chart_time + self.hit_window]:
             if self.chart_time > note.time + self.hit_window:
                 note.missed = True
-                note.hit_time = math.inf  # how smart is this? :thinking:
+                note.hit_time = math.inf
                 self.score_note(note)
                 self.current_notes.remove(note)
             else:
