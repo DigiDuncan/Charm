@@ -112,7 +112,7 @@ class AdobeSprite(Sprite):
                 tx = arcade.load_texture(self._image_path, st.x, st.y, st.width, st.height)
                 im = PIL.Image.new("RGBA", (st.frame_width, st.frame_height))
                 im.paste(tx.image, (-st.frame_x, -st.frame_y))
-                tx = arcade.Texture(f"_as_{self._ata._image_path}_{n}", im, None)
+                tx = arcade.Texture(f"_as_{self._ata.image_path}_{n}", im, None)
             else:
                 tx = arcade.load_texture(self._image_path, st.x, st.y, st.width, st.height)
             textures.append(tx)
