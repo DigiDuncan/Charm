@@ -292,7 +292,7 @@ class FNFEngine(Engine):
     def process_keystate(self, key_states: KeyStates):
         last_state = self.key_state
         if self.last_p1_note in (0, 1, 2, 3) and key_states[self.last_p1_note] is False:
-            self.last_p1_note = None
+            self.last_p1_note = None  # should set BF to idle?
         # ignore spam during front/back porch
         if (self.chart_time < self.chart.notes[0].time - self.hit_window
            or self.chart_time > self.chart.notes[-1].time + self.hit_window):
@@ -308,7 +308,6 @@ class FNFEngine(Engine):
                 e = DigitalKeyEvent(n, "up", self.chart_time)
                 self.current_events.append(e)
         self.key_state = key_states.copy()
-        # self.calculate_score()
 
     def calculate_score(self):
         for note in [n for n in self.current_notes if n.type == "normal" and n.time <= self.chart_time + self.hit_window]:
