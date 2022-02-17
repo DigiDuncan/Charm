@@ -5,6 +5,8 @@ import importlib.resources as pkg_resources
 import re
 import xml.etree.ElementTree as ET
 
+import PIL.Image
+
 from arcade import Sprite
 import arcade
 
@@ -100,7 +102,19 @@ class AdobeSprite(Sprite):
         self.texture_map: dict[Subtexture, int] = {}
         textures = []
         for n, st in enumerate(self._ata.subtextures):
-            tx = arcade.load_texture(self._image_path, st.x, st.y, st.width, st.height)
+            if st.frame_width is not None and st.frame_height is not None:
+                # FIXME: I'm essentially abusing .load_texture() here.
+                # I should probably be doing the cropping and caching myself,
+                # but I trust Arcade to do it better than I can, so I end up making
+                # a texture here and basically throwing it away.
+                # This also noticably increases load time the first time you load
+                # a paticular AdobeSprite.
+                tx = arcade.load_texture(self._image_path, st.x, st.y, st.width, st.height)
+                im = PIL.Image.new("RGBA", (st.frame_width, st.frame_height))
+                im.paste(tx.image, (-st.frame_x, -st.frame_y))
+                tx = arcade.Texture(f"_as_{self._ata._image_path}_{n}", im, None)
+            else:
+                tx = arcade.load_texture(self._image_path, st.x, st.y, st.width, st.height)
             textures.append(tx)
             self.texture_map[st] = n
 
