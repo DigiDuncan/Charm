@@ -53,6 +53,10 @@ class FNFSongView(DigiView):
                                       anchor_x="center", anchor_y="center", color=arcade.color.BLACK,
                                       font_name="bananaslip plus plus")
 
+        self.pause_text = arcade.Text("PAUSED", (self.size[0] // 2), (self.size[1] // 2), font_size=92,
+                                      anchor_x="center", anchor_y="center", color=arcade.color.BLACK,
+                                      font_name="bananaslip plus plus")
+
         # Generate "gum wrapper" background
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
 
@@ -76,6 +80,8 @@ class FNFSongView(DigiView):
         self.boyfriend_anim = None
         self.boyfriend_anim_missed = False
 
+        self.paused = False
+
     def on_key_something(self, symbol: int, modifiers: int, press: bool):
         if symbol in self.engine.mapping:
             i = self.engine.mapping.index(symbol)
@@ -90,6 +96,9 @@ class FNFSongView(DigiView):
                 self.song.delete()
                 self.window.show_view(self.back)
                 arcade.play_sound(self.window.sounds["back"])
+            case arcade.key.SPACE:
+                self.song.pause() if not self.paused else self.song.play()
+                self.paused = not self.paused
         self.on_key_something(symbol, modifiers, True)
         return super().on_key_press(symbol, modifiers)
 
@@ -202,6 +211,8 @@ class FNFSongView(DigiView):
         self.score_text.draw()
         self.judge_text.draw()
         self.grade_text.draw()
+        if self.paused:
+            self.pause_text.draw()
 
         self.hp_draw()
 
