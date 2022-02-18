@@ -6,6 +6,7 @@ import re
 import xml.etree.ElementTree as ET
 
 import PIL.Image
+import PIL.ImageDraw
 
 from arcade import Sprite
 import arcade
@@ -92,7 +93,7 @@ class AdobeTextureAtlas:
 
 
 class AdobeSprite(Sprite):
-    def __init__(self, folder_path: PathLike, name: str):
+    def __init__(self, folder_path: PathLike, name: str, debug = False):
         self.folder = Path(folder_path)
         self._xml_path = self.folder / f"{name}.xml"
         self._image_path = self.folder / f"{name}.png"
@@ -115,6 +116,9 @@ class AdobeSprite(Sprite):
                 tx = arcade.Texture(f"_as_{self._ata.image_path}_{n}", im, None)
             else:
                 tx = arcade.load_texture(self._image_path, st.x, st.y, st.width, st.height)
+            if debug:
+                draw = PIL.ImageDraw.ImageDraw(tx.image)
+                draw.rectangle((0, 0, tx.image.width - 1, tx.image.height - 1), outline = arcade.color.RED)
             textures.append(tx)
             self.texture_map[st] = n
 
@@ -148,7 +152,7 @@ class AdobeSprite(Sprite):
         return super().update_animation(delta_time)
 
 
-def sprite_from_adobe(s: str) -> AdobeSprite:
+def sprite_from_adobe(s: str, debug = False) -> AdobeSprite:
     with pkg_resources.path(charm.data.images.spritesheets, f"{s}.xml") as p:
         parent = p.parent
-        return AdobeSprite(parent, s)
+        return AdobeSprite(parent, s, debug)
