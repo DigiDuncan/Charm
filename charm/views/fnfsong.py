@@ -138,8 +138,10 @@ class FNFSongView(DigiView):
                 self.grade_text._label.text = f"{self.engine.fc_type} | {round(self.engine.accuracy * 100, 2)}% ({self.engine.grade})"
 
         if (self.engine.last_p1_note, self.engine.last_note_missed) != (self.boyfriend_anim, self.boyfriend_anim_missed):
+            # logger.debug(f"animation changed from {(self.engine.last_p1_note, self.engine.last_note_missed)} to {(self.boyfriend_anim, self.boyfriend_anim_missed)}")
             if self.engine.last_p1_note is None:
                 self.boyfriend.set_animation("BF idle dance")
+                self.boyfriend_anim = None
             else:
                 a = ""
                 match self.engine.last_p1_note:
