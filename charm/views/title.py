@@ -47,14 +47,24 @@ class TitleView(DigiView):
 
         self.main_sprites.append(self.logo)
 
-        # Splash text
-        self.splash_text = random.choice(pkg_resources.read_text(charm.data, "splashes.txt").splitlines())
-        self.splash_label = arcade.pyglet.text.Label("",
-                          font_name='bananaslip plus plus',
-                          font_size=24,
-                          x=self.window.width // 2, y=self.window.height // 2,
-                          anchor_x='left', anchor_y='top',
-                          color=CharmColors.PURPLE + (0xFF,))
+        self.egg_roll = random.randint(1, 1000)
+
+        if self.egg_roll == 666:
+            # it's tricky
+            self.splash_label = arcade.Text("CLOWN KILLS YOU",
+                          font_name='Impact',
+                          font_size=48,
+                          start_x=self.window.width // 2 + 100, start_y=self.window.height // 2,
+                          anchor_x='center', anchor_y='top',
+                          color=arcade.color.RED + (0xFF,))
+        else:
+            self.splash_text = random.choice(pkg_resources.read_text(charm.data, "splashes.txt").splitlines())
+            self.splash_label = arcade.pyglet.text.Label("",
+                            font_name='bananaslip plus plus',
+                            font_size=24,
+                            x=self.window.width // 2, y=self.window.height // 2,
+                            anchor_x='left', anchor_y='top',
+                            color=CharmColors.PURPLE + (0xFF,))
 
         # Generate "gum wrapper" background
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
@@ -109,7 +119,10 @@ class TitleView(DigiView):
         self.logo.scale = bounce(n, m, bpm, self.window.time)
 
         # Splash text typewriter effect
-        self.splash_label.text = self.splash_text[:max(0, int((self.local_time - 3) * 20))]
+        if self.egg_roll == 666:
+            self.splash_label.rotation = (random.random() * 10) - 5
+        else:
+            self.splash_label.text = self.splash_text[:max(0, int((self.local_time - 3) * 20))]
 
         # Song name in and out
         if 3 <= self.local_time <= 5:  # constraining the time when we update the position should decrease lag,

@@ -34,7 +34,6 @@ no thoughts, head empty
 you have a gun!
 exclamation point!
 you do not kill clown!
-clown kills you!
 :digidu1Pog:!
 no!
 random.choice(splashtexts)!
