@@ -11,7 +11,7 @@ Milliseconds = float
 class Note:
     """Represents a note on a chart.
 
-    - `time`: float`: (in seconds, 0 is the beginning of the song)
+    - `time: float`: (in seconds, 0 is the beginning of the song)
     - `lane: int`: The key the user will have to hit to trigger this note
     (which usually corrosponds with it's X position on the highway)
     - `length: float`: the length of the note in seconds, 0 by default.
