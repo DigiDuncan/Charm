@@ -33,7 +33,7 @@ class DigitalKeyEvent(EngineEvent):
     time: float
 
     def __lt__(self, other):
-        (self.time, self.key) < (self.time, self.key)
+        (self.time, self.key) < (other.time, other.key)
 
 
 class Engine:
