@@ -23,14 +23,16 @@ class Judgement:
 
 @dataclass
 class EngineEvent:
-    pass
+    time: float
+
+    def __lt__(self, other):
+        self.time < other.time
 
 
 @dataclass
 class DigitalKeyEvent(EngineEvent):
     key: int
     new_state: Literal["up", "down"]
-    time: float
 
     def __lt__(self, other):
         (self.time, self.key) < (other.time, other.key)

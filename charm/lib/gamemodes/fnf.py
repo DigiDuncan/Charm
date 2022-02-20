@@ -302,10 +302,10 @@ class FNFEngine(Engine):
         #     return
         for n in range(len(key_states)):
             if key_states[n] is True and last_state[n] is False:
-                e = DigitalKeyEvent(n, "down", self.chart_time)
+                e = DigitalKeyEvent(self.chart_time, n, "down")
                 self.current_events.append(e)
             elif key_states[n] is False and last_state[n] is True:
-                e = DigitalKeyEvent(n, "up", self.chart_time)
+                e = DigitalKeyEvent(self.chart_time, n, "up")
                 self.current_events.append(e)
         self.key_state = key_states.copy()
 
