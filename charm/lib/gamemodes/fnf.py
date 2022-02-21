@@ -204,8 +204,11 @@ class FNFHighway(Highway):
         self.auto = auto
         for note in self.notes:
             sprite = FNFNote(note, self.note_size)
-            sprite.alpha = 0
+            sprite.top = self.note_y(note.time)
+            sprite.left = self.lane_x(sprite.lane)
             self.sprite_list.append(sprite)
+
+        print(self.sprite_list[0].center_y)
 
         self.strikeline = arcade.SpriteList()
         for i in [0, 1, 2, 3]:
@@ -242,24 +245,24 @@ class FNFHighway(Highway):
     def update(self, song_time):
         super().update(song_time)
         for n in self.visible_notes:
-            n.alpha = 255
-            n.top = self.note_y(n.time)
-            n.left = self.lane_x(n.lane)
             if n.note.hit and n.note.type == "normal":
-                self.sprite_list.remove(n)
+                n.alpha = 0
             if n.note.hit and n.note.type == "sustain" and song_time >= n.time:
-                self.sprite_list.remove(n)
+                n.alpha = 0
         for n in self.expired_notes:
-            self.sprite_list.remove(n)
+            n.alpha = 0
 
     def draw(self):
-        # prev_camera = arcade.get_window().current_camera
-        # self.camera.use()
-
         self.strikeline.draw()
+        scroll = (self.px_per_s * self.song_time)
+        arcade.set_viewport(
+            0,
+            Settings.width,
+            0 + scroll,
+            Settings.height + scroll
+        )
         self.sprite_list.draw()
-
-        # prev_camera.use()
+        arcade.get_window().current_camera.use()
 
 
 class FNFEngine(Engine):
