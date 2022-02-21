@@ -33,8 +33,8 @@ class FNFSongView(DigiView):
         self.highway_2 = FNFHighway(self.songdata.charts[1], (10, 0), auto=True)
         self.engine = FNFEngine(self.songdata.charts[0])
 
-        song = arcade.load_sound(self.path / f"{self.name}.mp3")
-        self.song = arcade.play_sound(song, self.volume, looping=False)
+        self._song = arcade.load_sound(self.path / f"{self.name}.mp3")
+
         self.window.theme_song.volume = 0
 
         self.song_time_text = arcade.Text("??:??", (self.size[0] // 2), 10, font_size=24,
@@ -81,6 +81,9 @@ class FNFSongView(DigiView):
         self.boyfriend_anim_missed = False
 
         self.paused = False
+
+    def on_show(self):
+        self.song = arcade.play_sound(self._song, self.volume, looping=False)
 
     def on_key_something(self, symbol: int, modifiers: int, press: bool):
         if symbol in self.engine.mapping:
