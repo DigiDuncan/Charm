@@ -42,7 +42,7 @@ class DigiView(View):
                 case arcade.key.B:  # camera outline
                     self.debug_options["box"] = not self.debug_options["box"]
                 case arcade.key.A:  # show atlas
-                    self.window.ctx.default_atlas.show()
+                    self.window.ctx.default_atlas.save("atlas.png")
                 case arcade.key.L:  # show log
                     self.window.show_log = not self.window.show_log
         return super().on_key_press(symbol, modifiers)
