@@ -36,7 +36,7 @@ class Subtexture:
         if name_re is None:
             raise ValueError(f"{name} is not a valid Subtexture name.")
         self.name = name_re.group(1)
-        self.index = name_re.group(2)
+        self.index = strint(name_re.group(2))
 
         self.x = strint(x)
         self.y = strint(y)
