@@ -18,7 +18,7 @@ logger = logging.getLogger("charm")
 subtexture_name = re.compile(r"(.+?)(\d+)$")
 
 
-def strint(i: int | str | None) -> int:
+def strint(i: int | str | None) -> int | None:
     """Convert a str to an int, or return an existing int or None."""
     if isinstance(i, int) or i is None:
         return i
