@@ -61,11 +61,11 @@ class AdobeTextureAtlas:
 
     @property
     def width(self):
-        return max([st.width for st in self.subtextures])
+        return max([st.frame_width for st in self.subtextures if st.frame_width is not None] + [st.width for st in self.subtextures if st.width is not None])
 
     @property
     def height(self):
-        return max([st.height for st in self.subtextures])
+        return max([st.frame_height for st in self.subtextures if st.frame_height is not None] + [st.height for st in self.subtextures if st.height is not None])
 
     @classmethod
     def parse(cls, s: str) -> "AdobeTextureAtlas":
@@ -113,7 +113,7 @@ class AdobeSprite(Sprite):
                 tx = arcade.load_texture(self._image_path, st.x, st.y, st.width, st.height)
                 im = PIL.Image.new("RGBA", (st.frame_width, st.frame_height))
                 im.paste(tx.image, (-st.frame_x, -st.frame_y))
-                tx = arcade.Texture(f"_as_{self._ata.image_path}_{n}", im, None)
+                tx = arcade.Texture(f"_as_{self._ata.image_path}_{st.x}-{st.y}-{st.width}-{st.height}", im, None)
             else:
                 tx = arcade.load_texture(self._image_path, st.x, st.y, st.width, st.height)
             if debug:
