@@ -3,6 +3,7 @@ import logging
 import statistics
 
 import arcade
+import pyglet
 from digiformatter import logger as digilogger
 
 import charm
@@ -38,6 +39,10 @@ arcadelogger.handlers = []
 arcadelogger.propagate = False
 arcadelogger.addHandler(dfhandlersource)
 arcadelogger.addHandler(phandlersource)
+
+
+pyglet.options["advanced_font_features"] = True
+arcade.pyglet.options["advanced_font_features"] = True
 
 
 class CharmGame(arcade.Window):
