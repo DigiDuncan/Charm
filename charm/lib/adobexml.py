@@ -93,7 +93,7 @@ class AdobeTextureAtlas:
 
 
 class AdobeSprite(Sprite):
-    def __init__(self, folder_path: PathLike, name: str, anchor = "bottom", debug = False):
+    def __init__(self, folder_path: PathLike, name: str, anchors = ["bottom"], debug = False):
         self.folder = Path(folder_path)
         self._xml_path = self.folder / f"{name}.xml"
         self._image_path = self.folder / f"{name}.png"
@@ -133,7 +133,7 @@ class AdobeSprite(Sprite):
         self.fps = 24
         self._animation_time = 0
 
-        self.anchor = anchor
+        self.anchors = anchors
 
     def set_animation(self, name: str):
         self._current_animation = []
@@ -149,17 +149,18 @@ class AdobeSprite(Sprite):
             if self._animation_time >= 1 / self.fps:
                 self._current_animation_index += 1
                 self._current_animation_index %= len(self._current_animation)
-                if self.anchor:
-                    a = getattr(self, self.anchor)
+                if self.anchors:
+                    anchorlist = (getattr(self, a) for a in self.anchors)
                 self.set_texture(self._current_animation[self._current_animation_index])
                 self.hit_box = self.texture.hit_box_points
-                if self.anchor:
-                    setattr(self, self.anchor, a)
+                if self.anchors:
+                    anchormap = zip(self.anchors, anchorlist)
+                    [setattr(self, a, v) for a, v in anchormap]  # woo side effects
                 self._animation_time = 0
         return super().update_animation(delta_time)
 
 
-def sprite_from_adobe(s: str, anchor = "bottom", debug = False) -> AdobeSprite:
+def sprite_from_adobe(s: str, anchors = ["bottom"], debug = False) -> AdobeSprite:
     with pkg_resources.path(charm.data.images.spritesheets, f"{s}.xml") as p:
         parent = p.parent
-        return AdobeSprite(parent, s, anchor, debug)
+        return AdobeSprite(parent, s, anchors, debug)

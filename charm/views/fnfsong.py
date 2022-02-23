@@ -72,7 +72,7 @@ class FNFSongView(DigiView):
 
         self.key_state = [False] * 4
 
-        self.boyfriend = sprite_from_adobe("BOYFRIEND", True)
+        self.boyfriend = sprite_from_adobe("BOYFRIEND", ["bottom", "right"])
         self.boyfriend.set_animation("BF idle dance")
         self.boyfriend.scale = 0.5
         self.boyfriend.right = Settings.width - 10
@@ -211,8 +211,6 @@ class FNFSongView(DigiView):
         self.small_logos_backward.draw()
 
         self.boyfriend.draw()
-        arcade.draw_line(0, self.boyfriend.bottom, Settings.width, self.boyfriend.bottom, arcade.color.BLUE)
-        arcade.draw_lrtb_rectangle_outline(self.boyfriend.left, self.boyfriend.right, self.boyfriend.top, self.boyfriend.bottom, arcade.color.GREEN)
 
         self.song_time_text.draw()
         self.score_text.draw()
