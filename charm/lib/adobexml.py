@@ -1,4 +1,5 @@
 import logging
+import math
 from os import PathLike
 from pathlib import Path
 import importlib.resources as pkg_resources
@@ -140,8 +141,8 @@ class AdobeSprite(Sprite):
         for st, n in self.texture_map.items():
             if st.name == name:
                 self._current_animation.append(n)
-        self._current_animation_index = 0
-        self._animation_time = 0
+        self._current_animation_index = -1
+        self._animation_time = math.inf
 
     def update_animation(self, delta_time):
         self._animation_time += delta_time
@@ -150,12 +151,12 @@ class AdobeSprite(Sprite):
                 self._current_animation_index += 1
                 self._current_animation_index %= len(self._current_animation)
                 if self.anchors:
-                    anchorlist = (getattr(self, a) for a in self.anchors)
+                    anchorlist = [getattr(self, a) for a in self.anchors]
                 self.set_texture(self._current_animation[self._current_animation_index])
                 self.hit_box = self.texture.hit_box_points
                 if self.anchors:
-                    anchormap = zip(self.anchors, anchorlist)
-                    [setattr(self, a, v) for a, v in anchormap]  # woo side effects
+                    for a, v in zip(self.anchors, anchorlist):
+                        setattr(self, a, v)
                 self._animation_time = 0
         return super().update_animation(delta_time)
 

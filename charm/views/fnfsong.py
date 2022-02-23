@@ -72,7 +72,7 @@ class FNFSongView(DigiView):
 
         self.key_state = [False] * 4
 
-        self.boyfriend = sprite_from_adobe("BOYFRIEND", ["bottom", "right"])
+        self.boyfriend = sprite_from_adobe("BOYFRIEND", ["bottom", "center_x"])
         self.boyfriend.set_animation("BF idle dance")
         self.boyfriend.scale = 0.5
         self.boyfriend.right = Settings.width - 10
@@ -102,6 +102,10 @@ class FNFSongView(DigiView):
             case arcade.key.SPACE:
                 self.song.pause() if not self.paused else self.song.play()
                 self.paused = not self.paused
+            case arcade.key.PLUS:
+                self.song.seek(self.song.time + 5)
+            case arcade.key.MINUS:
+                self.song.seek(self.song.time - 5)
         self.on_key_something(symbol, modifiers, True)
         return super().on_key_press(symbol, modifiers)
 
@@ -211,6 +215,7 @@ class FNFSongView(DigiView):
         self.small_logos_backward.draw()
 
         self.boyfriend.draw()
+        self.boyfriend.draw_hit_box()
 
         self.song_time_text.draw()
         self.score_text.draw()
