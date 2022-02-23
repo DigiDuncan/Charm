@@ -93,7 +93,7 @@ class AdobeTextureAtlas:
 
 
 class AdobeSprite(Sprite):
-    def __init__(self, folder_path: PathLike, name: str, debug = False):
+    def __init__(self, folder_path: PathLike, name: str, anchor = "bottom", debug = False):
         self.folder = Path(folder_path)
         self._xml_path = self.folder / f"{name}.xml"
         self._image_path = self.folder / f"{name}.png"
@@ -133,6 +133,8 @@ class AdobeSprite(Sprite):
         self.fps = 24
         self._animation_time = 0
 
+        self.anchor = anchor
+
     def set_animation(self, name: str):
         self._current_animation = []
         for st, n in self.texture_map.items():
@@ -147,12 +149,17 @@ class AdobeSprite(Sprite):
             if self._animation_time >= 1 / self.fps:
                 self._current_animation_index += 1
                 self._current_animation_index %= len(self._current_animation)
+                if self.anchor:
+                    a = getattr(self, self.anchor)
                 self.set_texture(self._current_animation[self._current_animation_index])
+                self.hit_box = self.texture.hit_box_points
+                if self.anchor:
+                    setattr(self, self.anchor, a)
                 self._animation_time = 0
         return super().update_animation(delta_time)
 
 
-def sprite_from_adobe(s: str, debug = False) -> AdobeSprite:
+def sprite_from_adobe(s: str, anchor = "bottom", debug = False) -> AdobeSprite:
     with pkg_resources.path(charm.data.images.spritesheets, f"{s}.xml") as p:
         parent = p.parent
-        return AdobeSprite(parent, s, debug)
+        return AdobeSprite(parent, s, anchor, debug)
