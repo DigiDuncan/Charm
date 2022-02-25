@@ -13,6 +13,8 @@ from charm.objects.lyric import LyricAnimator
 class SubtitleView(DigiView):
     def __init__(self, *args, **kwargs):
         super().__init__(fade_in=1, bg_color=CharmColors.FADED_GREEN, *args, **kwargs)
+        self.song = None
+        self.volume = 1
 
     def setup(self):
         super().setup()
@@ -27,6 +29,7 @@ class SubtitleView(DigiView):
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
 
     def on_show(self):
+        self.window.theme_song.volume = 0
         self.song = arcade.play_sound(self._song, self.volume, looping=False)
 
     def on_key_press(self, symbol: int, modifiers: int):
@@ -40,7 +43,9 @@ class SubtitleView(DigiView):
 
     def on_update(self, delta_time):
         super().on_update(delta_time)
-        self.sprite.update_animation(delta_time)
+
+        if self.song:
+            self.lyric_animator.update(self.song.time)
 
         move_gum_wrapper(self.logo_width, self.small_logos_forward, self.small_logos_backward, delta_time)
 
@@ -51,5 +56,12 @@ class SubtitleView(DigiView):
         # Charm BG
         self.small_logos_forward.draw()
         self.small_logos_backward.draw()
+
+        arcade.draw_lrtb_rectangle_filled(
+            0, Settings.width, Settings.height, 0,
+            (0, 0, 0, 127)
+        )
+
+        self.lyric_animator.draw()
 
         super().on_draw()
