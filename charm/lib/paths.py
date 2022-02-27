@@ -4,7 +4,7 @@ import appdirs
 
 
 def getDataDir():
-    appname = "SizeBot"
+    appname = "Charm"
     appauthor = "DigiDuncan"
     datadir = Path(appdirs.user_data_dir(appname, appauthor))
     return datadir
@@ -12,11 +12,5 @@ def getDataDir():
 
 # File paths
 datadir = getDataDir()
-winkpath = datadir / "winkcount.txt"
-guilddbpath = datadir / "guilds"
-telemetrypath = datadir / "telemetry"
-thispath = datadir / "thistracker.json"
-changespath = datadir / "changes.json"
-naptimepath = datadir / "naptime.json"
-confpath = datadir / "sizebot.conf"
-whitelistpath = datadir / "whitelist.txt"
+confpath = datadir / "charm.conf"
+songspath = datadir / "songs"
