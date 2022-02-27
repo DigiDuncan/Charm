@@ -99,7 +99,7 @@ class FNFSongView(DigiView):
             case arcade.key.SPACE:
                 self.song.pause() if not self.paused else self.song.play()
                 self.paused = not self.paused
-            case arcade.key.PLUS:
+            case arcade.key.EQUAL:
                 self.song.seek(self.song.time + 5)
             case arcade.key.MINUS:
                 self.song.seek(self.song.time - 5)
@@ -212,7 +212,6 @@ class FNFSongView(DigiView):
         self.small_logos_backward.draw()
 
         self.boyfriend.draw()
-        self.boyfriend.draw_hit_box()
 
         self.song_time_text.draw()
         self.score_text.draw()
