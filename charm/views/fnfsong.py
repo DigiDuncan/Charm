@@ -1,4 +1,3 @@
-import importlib.resources as pkg_resources
 import logging
 
 import arcade
@@ -9,7 +8,7 @@ from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView
 from charm.lib.gamemodes.fnf import CameraFocusEvent, FNFEngine, FNFHighway, FNFSong
 from charm.lib.settings import Settings
-import charm.data.charts.fnf
+from charm.lib.paths import songspath
 
 logger = logging.getLogger("charm")
 
@@ -23,9 +22,7 @@ class FNFSongView(DigiView):
     def setup(self):
         super().setup()
 
-        with pkg_resources.path(charm.data.charts.fnf, "__init__.py") as p:
-            path = p.parent
-            self.path = path / self.name
+        self.path = songspath / "fnf" / self.name
         with open(self.path / f"{self.name}.json", encoding="utf-8") as chart:
             c = chart.read()
             self.songdata = FNFSong.parse(c)
