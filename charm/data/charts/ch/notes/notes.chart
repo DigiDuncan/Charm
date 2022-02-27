@@ -1,0 +1,174 @@
+﻿[Song]
+{
+  Offset = 0
+  Resolution = 480
+  Player2 = bass
+  Difficulty = 0
+  PreviewStart = 0
+  PreviewEnd = 0
+  Genre = "rock"
+  MediaType = "cd"
+  GuitarStream = "guitar.ogg"
+}
+[SyncTrack]
+{
+  0 = TS 4
+  0 = B 120000
+  20640 = B 180000
+  23040 = B 120000
+}
+[Events]
+{
+  480 = E "section Normal Notes"
+  960 = E "phrase_start"
+  965 = E "lyric Doo#"
+  1080 = E "lyric doo#"
+  1320 = E "lyric doo#"
+  1680 = E "lyric doo=-#"
+  1800 = E "lyric duh#"
+  2040 = E "lyric doo!#"
+  2640 = E "lyric Doot.#"
+  2760 = E "phrase_end"
+  3360 = E "phrase_start"
+  3360 = E "section Forced HOPO"
+  3365 = E "lyric Boop#"
+  3840 = E "lyric boop#"
+  4320 = E "lyric boop...#"
+  4440 = E "phrase_end"
+  6240 = E "section Tap Notes"
+  9120 = E "section Star Power"
+  12000 = E "section Long Notes"
+  14880 = E "section Disjointed"
+  17760 = E "section Fast Auto HOPO"
+  18720 = E "section Crazy"
+  19680 = E "section Solo!"
+  20640 = E "section 180 BPM"
+  23520 = E "section Chords"
+  24960 = E "section Forced Off HOPO"
+  27840 = E "section Forced Off HOPO That Would Have Been A HOPO Otherwise"
+}
+[ExpertSingle]
+{
+  480 = N 0 0
+  960 = N 1 0
+  1440 = N 2 0
+  1920 = N 3 0
+  2400 = N 4 0
+  2880 = N 7 0
+  3360 = N 0 0
+  3360 = N 5 0
+  3840 = N 1 0
+  3840 = N 5 0
+  4320 = N 2 0
+  4320 = N 5 0
+  4800 = N 3 0
+  4800 = N 5 0
+  5280 = N 4 0
+  5280 = N 5 0
+  5760 = N 7 0
+  5760 = N 5 0
+  6240 = N 0 0
+  6240 = N 6 0
+  6720 = N 1 0
+  6720 = N 6 0
+  7200 = N 2 0
+  7200 = N 6 0
+  7680 = N 3 0
+  7680 = N 6 0
+  8160 = N 4 0
+  8160 = N 6 0
+  8640 = N 7 0
+  9120 = N 0 0
+  9120 = S 2 2401
+  9600 = N 1 0
+  10080 = N 2 0
+  10560 = N 3 0
+  11040 = N 4 0
+  11520 = N 7 0
+  12000 = N 0 360
+  12480 = N 1 360
+  12960 = N 2 360
+  13440 = N 3 360
+  13920 = N 4 360
+  14400 = N 7 360
+  14880 = N 0 2400
+  15360 = N 1 1920
+  15840 = N 2 1440
+  16320 = N 3 960
+  16800 = N 4 480
+  17280 = N 7 0
+  17760 = N 0 0
+  17880 = N 1 0
+  18000 = N 2 0
+  18120 = N 3 0
+  18240 = N 4 0
+  18360 = N 7 0
+  18720 = N 0 480
+  18720 = N 4 480
+  18960 = N 2 240
+  19680 = N 0 0
+  19680 = E solo
+  19800 = N 1 0
+  19920 = N 2 0
+  20040 = N 3 0
+  20160 = N 4 0
+  20161 = E soloend
+  20640 = N 0 0
+  21120 = N 1 0
+  21600 = N 2 0
+  22080 = N 3 0
+  22560 = N 4 0
+  23040 = N 7 0
+  23520 = N 0 0
+  23520 = N 1 0
+  23520 = N 2 0
+  24000 = N 1 0
+  24000 = N 2 0
+  24000 = N 3 0
+  24480 = N 2 0
+  24480 = N 3 0
+  24480 = N 4 0
+  24960 = N 0 0
+  25440 = N 1 0
+  25920 = N 2 0
+  26400 = N 3 0
+  26880 = N 4 0
+  27360 = N 7 0
+  27840 = N 0 0
+  27960 = N 1 0
+  27960 = N 5 0
+  28080 = N 2 0
+  28080 = N 5 0
+  28200 = N 3 0
+  28200 = N 5 0
+  28320 = N 4 0
+  28320 = N 5 0
+  28440 = N 7 0
+  28440 = N 5 0
+}
+[HardSingle]
+{
+  9120 = S 2 2401
+  19680 = E solo
+  20161 = E soloend
+}
+[MediumSingle]
+{
+  9120 = S 2 2401
+  19680 = E solo
+  20161 = E soloend
+}
+[EasySingle]
+{
+  9120 = S 2 2401
+  19680 = E solo
+  20161 = E soloend
+}
+[ExpertDoubleBass]
+{
+  960 = N 4 0
+  1080 = N 3 0
+  1200 = N 2 0
+  1320 = N 1 0
+  1440 = N 0 0
+}
