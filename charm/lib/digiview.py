@@ -36,7 +36,7 @@ class DigiView(View):
                 self.camera.scale = 1
         if self.window.debug and modifiers & arcade.key.MOD_SHIFT:
             match symbol:
-                case arcade.key.Z:  # camera zoon
+                case arcade.key.Z:  # camera zoom
                     self.debug_options["camera_scale"] = 2 if self.debug_options["camera_scale"] == 1 else 1
                     self.camera.scale = self.debug_options["camera_scale"]
                 case arcade.key.B:  # camera outline

@@ -99,8 +99,12 @@ class FNFChart(Chart):
 
 
 class FNFSong(Song):
+    def __init__(self, name: str, bpm: float) -> None:
+        self.key = None
+        super().__init__(name, bpm)
+
     @classmethod
-    def parse(cls, s: str):
+    def parse(cls, k: str, s: str):
         j: SongFileJson = json.loads(s)
         song = j["song"]
 
@@ -109,6 +113,7 @@ class FNFSong(Song):
         bpm = song["bpm"]
         speed = song["speed"]
         returnsong = FNFSong(name, bpm)
+        returnsong.key = k
         returnsong.charts = [
             FNFChart("hard", "player1", speed),
             FNFChart("hard", "player2", speed)]

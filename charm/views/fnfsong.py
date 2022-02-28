@@ -25,7 +25,7 @@ class FNFSongView(DigiView):
         self.path = songspath / "fnf" / self.name
         with open(self.path / f"{self.name}.json", encoding="utf-8") as chart:
             c = chart.read()
-            self.songdata = FNFSong.parse(c)
+            self.songdata = FNFSong.parse(self.name, c)
         self.highway_1 = FNFHighway(self.songdata.charts[0], (((Settings.width // 3) * 2), 0))
         self.highway_2 = FNFHighway(self.songdata.charts[1], (10, 0), auto=True)
         self.engine = FNFEngine(self.songdata.charts[0])
