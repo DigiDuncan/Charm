@@ -5,9 +5,7 @@ from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView
 from charm.objects.menu import MainMenu, MainMenuItem
 from charm.views.fnfsongmenu import FNFSongMenuView
-from charm.views.songmenu import SongMenuView
 from charm.views.spritetest import SpriteTestView
-from charm.views.fnfsong import FNFSongView
 from charm.views.subtitletest import SubtitleView
 
 
@@ -24,10 +22,8 @@ class MainMenuView(DigiView):
         self.menu = MainMenu(
             [
                 MainMenuItem("Playlists", "playlist", None),
-                MainMenuItem("Songs", "songs", SongMenuView(back=self)),
-                MainMenuItem("FNF", "fnf", FNFSongMenuView(back=self)),
+                MainMenuItem("Songs", "songs", FNFSongMenuView(back=self)),
                 MainMenuItem("Options", "option", None),
-                MainMenuItem("Test", "test", FNFSongView("helloworld", back=self)),
                 MainMenuItem("Sprite Test", "test", SpriteTestView(back=self)),
                 MainMenuItem("Lyric Test", "test", SubtitleView(back=self))
             ]

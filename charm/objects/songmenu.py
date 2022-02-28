@@ -11,7 +11,7 @@ from charm.lib.anim import ease_circout
 from charm.lib.charm import CharmColors
 from charm.lib.settings import Settings
 from charm.lib.utils import clamp
-from charm.objects.song import Song
+from charm.lib.generic.song import Song
 
 logger = logging.getLogger("charm")
 
@@ -20,13 +20,9 @@ class SongMenuItem(Sprite):
     def __init__(self, song: Song, w: int = None, h: int = None, *args, **kwargs):
         self.song = song
 
-        self.title = song.title
-        self.artist = song.artist
-        self.album = song.album
-        self.grade = song.grade
-        self.length = song.length
-        self.difficulty = song.difficulty
-        self.best_score = song.best_score
+        self.title = song.metadata["title"]
+        self.artist = song.metadata["artist"]
+        self.album = song.metadata["album"]
 
         # Make a real hash, probably on Song.
         self.key = generate_uuid_from_kwargs(title=self.title, artist=self.artist, album=self.album)
@@ -74,6 +70,7 @@ class SongMenu:
         if songs:
             for song in self._songs:
                 self.items.append(SongMenuItem(song))
+        # atlas = arcade.TextureAtlas((16384, 16384))
         self.sprite_list = arcade.SpriteList()
         for item in self.items:
             self.sprite_list.append(item)

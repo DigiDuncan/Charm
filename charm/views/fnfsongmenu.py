@@ -12,7 +12,7 @@ from charm.lib.digiview import DigiView
 from charm.lib.gamemodes.fnf import FNFSong
 from charm.lib.paths import songspath
 from charm.lib.settings import Settings
-from charm.objects.newsongmenu import SongMenu
+from charm.objects.songmenu import SongMenu
 from charm.lib.generic.song import Song
 from charm.views.fnfsong import FNFSongView
 
