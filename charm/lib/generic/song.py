@@ -27,6 +27,8 @@ class Note:
     missed: bool = False
     hit_time: Optional[Seconds] = None
 
+    extra_data = None
+
     def __lt__(self, other) -> bool:
         if isinstance(other, Note):
             return (self.time, self.lane) < (other.time, other.lane)

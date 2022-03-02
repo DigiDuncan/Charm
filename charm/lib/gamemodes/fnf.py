@@ -158,6 +158,10 @@ class FNFSong(Song):
             # Actually make two charts
             sectionNotes = section["sectionNotes"]
             for note in sectionNotes:
+                extra = None
+                if len(note) > 3:
+                    extra = note[3:]
+                    note = note[:3]
                 posms, lane, lengthms = note  # hope this never breaks lol
                 pos = posms / 1000
                 length = lengthms / 1000
@@ -171,6 +175,7 @@ class FNFSong(Song):
                     logger.warn(f"Lane {lane} out of range.")
 
                 thisnote = Note(str(uuid4()), pos, chart_lane, length)
+                thisnote.extra_data = extra
                 returnsong.charts[note_player - 1].notes.append(thisnote)
                 returnsong.charts[note_player - 1].note_by_uuid[thisnote.uuid] = thisnote
 

@@ -1,6 +1,7 @@
 import logging
 
 import arcade
+from pyglet.media import Player
 
 from charm.lib import anim
 from charm.lib.adobexml import sprite_from_adobe
@@ -30,7 +31,11 @@ class FNFSongView(DigiView):
         self.highway_2 = FNFHighway(self.songdata.charts[1], (10, 0), auto=True)
         self.engine = FNFEngine(self.songdata.charts[0])
 
-        self._song = arcade.load_sound(self.path / f"{self.name}.mp3")
+        self._songs: list[arcade.Sound] = []
+        for f in self.path.glob("*.*"):
+            if f.is_file() and f.suffix in [".ogg", ".mp3", ".wav"]:
+                s = arcade.load_sound(f)
+                self._songs.append(s)
 
         self.window.theme_song.volume = 0
 
@@ -79,8 +84,17 @@ class FNFSongView(DigiView):
 
         self.paused = False
 
+    @property
+    def song(self):
+        return self.songs[0]
+
     def on_show(self):
-        self.song = arcade.play_sound(self._song, self.volume, looping=False)
+        self.songs: list[Player] = []
+        for s in self._songs:
+            p = arcade.play_sound(s, self.volume, looping=False)
+            self.songs.append(p)
+        for p in self.songs:
+            p.seek(0)
 
     def on_key_something(self, symbol: int, modifiers: int, press: bool):
         if symbol in self.engine.mapping:
@@ -93,7 +107,8 @@ class FNFSongView(DigiView):
         match symbol:
             case arcade.key.BACKSPACE:
                 self.back.setup()
-                self.song.delete()
+                for s in self.songs:
+                    s.delete()
                 self.window.show_view(self.back)
                 arcade.play_sound(self.window.sounds["back"])
             case arcade.key.SPACE:
@@ -112,6 +127,9 @@ class FNFSongView(DigiView):
 
     def on_update(self, delta_time):
         super().on_update(delta_time)
+
+        if not self.songs:
+            return
 
         self.engine.update(self.song.time)
 
