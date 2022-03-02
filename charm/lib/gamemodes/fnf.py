@@ -205,7 +205,7 @@ class FNFSong(Song):
 
 class FNFHighway(Highway):
     def __init__(self, chart: FNFChart, pos: tuple[int, int], size: tuple[int, int] = None, gap=5, auto=False):
-        viewport = 1 / chart.notespeed
+        viewport = 1 / (chart.notespeed * 0.75)
         if size is None:
             size = int(Settings.width / (1280 / 400)), Settings.height
 
