@@ -40,7 +40,7 @@ arcadelogger.propagate = False
 arcadelogger.addHandler(dfhandlersource)
 arcadelogger.addHandler(phandlersource)
 
-
+# Fix font lag
 pyglet.options["advanced_font_features"] = True
 arcade.pyglet.options["advanced_font_features"] = True
 

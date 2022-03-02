@@ -108,7 +108,7 @@ class FNFSong(Song):
         j: SongFileJson = json.loads(s)
         song = j["song"]
 
-        name = song["song"]
+        name = song["song"].replace("-", " ")
         logger.debug(f"Parsing {name}...")
         bpm = song["bpm"]
         speed = song["speed"]
