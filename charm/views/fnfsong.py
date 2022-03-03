@@ -24,9 +24,17 @@ class FNFSongView(DigiView):
         super().setup()
 
         self.path = songspath / "fnf" / self.name
-        with open(self.path / f"{self.name}.json", encoding="utf-8") as chart:
-            c = chart.read()
-            self.songdata = FNFSong.parse(self.name, c)
+        self.songdata: FNFSong = None
+        diffs = ["-ex", "-hard", "", "-easy"]
+        for diff in diffs:
+            p = self.path / f"{self.name}{diff}.json"
+            if p.exists():
+                with open(self.path / f"{self.name}.json", encoding="utf-8") as chart:
+                    c = chart.read()
+                    self.songdata = FNFSong.parse(self.name, c)
+                    break
+        if not self.songdata:
+            raise ValueError("No valid chart found!")
         self.highway_1 = FNFHighway(self.songdata.charts[0], (((Settings.width // 3) * 2), 0))
         self.highway_2 = FNFHighway(self.songdata.charts[1], (10, 0), auto=True)
         self.engine = FNFEngine(self.songdata.charts[0])
@@ -64,7 +72,7 @@ class FNFSongView(DigiView):
 
         self.last_player1_note = None
         self.last_player2_note = None
-        self.last_camera_event = CameraFocusEvent(0, 1)
+        self.last_camera_event = CameraFocusEvent(0, 2)
         self.last_spotlight_position = 0
         self.last_spotlight_change = 0
         self.go_to_spotlight_position = 0
