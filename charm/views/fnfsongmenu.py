@@ -94,6 +94,10 @@ class FNFSongMenuView(DigiView):
 
         return super().on_key_press(symbol, modifiers)
 
+    def on_mouse_scroll(self, x: int, y: int, scroll_x: int, scroll_y: int):
+        self.menu.selected_id += int(scroll_y)
+        arcade.play_sound(self.window.sounds["select"])
+
     def on_draw(self):
         self.clear()
         self.camera.use()
