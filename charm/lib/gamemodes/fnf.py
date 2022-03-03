@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from hashlib import sha1
 import json
 import logging
 import math
@@ -18,6 +19,7 @@ from charm.lib.utils import clamp, img_from_resource
 import charm.data.images.skins.fnf as fnfskin
 
 logger = logging.getLogger("charm")
+hashes = {}
 
 PlayerNum = Literal[1, 2]
 JsonLaneNum = Literal[0, 1, 2, 3, 4, 5, 6, 7]
@@ -100,20 +102,28 @@ class FNFChart(Chart):
 
 class FNFSong(Song):
     def __init__(self, name: str, bpm: float) -> None:
-        self.key = None
+        self.key: str = None
+        self.player2: str = None
+        self.mod_guess: str = None
         super().__init__(name, bpm)
 
     @classmethod
     def parse(cls, k: str, s: str):
         j: SongFileJson = json.loads(s)
+        hash = sha1(bytes(json.dumps(j), encoding='utf-8'))
         song = j["song"]
 
         name = song["song"].replace("-", " ")
         logger.debug(f"Parsing {name}...")
         bpm = song["bpm"]
         speed = song["speed"]
+        player2 = song["player2"]
         returnsong = FNFSong(name, bpm)
         returnsong.key = k
+        returnsong.player2 = player2
+        returnsong.mod_guess = guess_mod(returnsong)
+        returnsong.hash = hash.hexdigest()
+        hashes[name] = returnsong.hash
         returnsong.charts = [
             FNFChart("hard", "player1", speed),
             FNFChart("hard", "player2", speed)]
@@ -373,3 +383,21 @@ class FNFEngine(Engine):
         elif note.missed:
             self.misses += 1
             self.last_note_missed = True
+
+
+# BULLS--- HARDCODING.
+# Here's what I'm dealing with.
+# There's no way to scan what mod a chart is from,
+# and it's going to be important later for a few reasons.
+# So we guess. Fun!
+def guess_mod(song: FNFSong) -> str:
+    if "impostor" in song.player2:
+        return "impostor"
+    match song.player2:
+        case "whitty" | "whittyCrazy":
+            return "whitty"
+        case "tricky" | "trickyH" | "exTricky":
+            return "tricky"
+        case "hex":
+            return "hex"
+    return None

@@ -76,6 +76,7 @@ class Song:
         self.bpm = bpm
         self.charts: list[Chart] = []
         self.events: list[Event] = []
+        self.hash: str = None
 
     @classmethod
     def parse(cls, s: str):

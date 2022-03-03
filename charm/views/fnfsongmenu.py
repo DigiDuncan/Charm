@@ -15,6 +15,7 @@ from charm.lib.settings import Settings
 from charm.objects.songmenu import SongMenu
 from charm.lib.generic.song import Song
 from charm.views.fnfsong import FNFSongView
+from charm.lib.gamemodes.fnf import hashes
 
 
 class FNFSongMenuView(DigiView):
@@ -56,6 +57,7 @@ class FNFSongMenuView(DigiView):
         self.static.original_bottom = self.album_art.bottom = self.size[1] // 2
 
     def on_show(self):
+        print(hashes)
         return super().on_show()
 
     def on_update(self, delta_time):
