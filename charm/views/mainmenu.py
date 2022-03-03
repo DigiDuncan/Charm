@@ -49,6 +49,18 @@ class MainMenuView(DigiView):
 
         return super().on_key_press(symbol, modifiers)
 
+    def on_mouse_scroll(self, x: int, y: int, scroll_x: int, scroll_y: int):
+        self.menu.selected_id += int(scroll_y)
+        arcade.play_sound(self.window.sounds["select"])
+
+    def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
+        if self.menu.selected.goto is not None:
+            self.menu.selected.goto.setup()
+            self.window.show_view(self.menu.selected.goto)
+            arcade.play_sound(self.window.sounds["valid"])
+        else:
+            self.menu.selected.jiggle_start = self.local_time
+
     def on_update(self, delta_time):
         super().on_update(delta_time)
 

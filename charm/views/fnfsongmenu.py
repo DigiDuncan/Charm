@@ -98,6 +98,12 @@ class FNFSongMenuView(DigiView):
         self.menu.selected_id += int(scroll_y)
         arcade.play_sound(self.window.sounds["select"])
 
+    def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
+        arcade.play_sound(self.window.sounds["valid"])
+        songview = FNFSongView(self.menu.selected.song.key, back=self)
+        songview.setup()
+        self.window.show_view(songview)
+
     def on_draw(self):
         self.clear()
         self.camera.use()
