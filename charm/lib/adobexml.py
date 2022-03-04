@@ -148,9 +148,14 @@ class AdobeSprite(Sprite):
 
     def update_animation(self, delta_time):
         self._animation_time += delta_time
+        if self.fps == 0:
+            return
         if self._current_animation:
-            if self._animation_time >= 1 / self.fps:
-                self._current_animation_index += 1
+            if self._animation_time >= 1 / abs(self.fps):
+                if self.fps > 0:
+                    self._current_animation_index += 1
+                else:
+                    self._current_animation_index -= 1
                 self._current_animation_index %= len(self._current_animation)
                 if self.anchors:
                     anchorlist = [getattr(self, a) for a in self.anchors]
@@ -160,7 +165,6 @@ class AdobeSprite(Sprite):
                     for a, v in zip(self.anchors, anchorlist):
                         setattr(self, a, v)
                 self._animation_time = 0
-        return super().update_animation(delta_time)
 
 
 def sprite_from_adobe(s: str, anchors = ["bottom"], debug = False) -> AdobeSprite:

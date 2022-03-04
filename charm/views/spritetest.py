@@ -17,7 +17,7 @@ class SpriteTestView(DigiView):
         SPRITE_NAME = "BOYFRIEND"
         SPRITE_ANIM = "boyfriend attack"
 
-        self.sprite = sprite_from_adobe(SPRITE_NAME)
+        self.sprite = sprite_from_adobe(SPRITE_NAME, ["bottom", "left"])
         self.sprite.fps = 24
         self.sprite.bottom = 0
         self.sprite.left = 0
@@ -43,7 +43,7 @@ class SpriteTestView(DigiView):
                 self.sprite.set_animation(a)
                 self.anim_label.value = a
             case arcade.key.MINUS:
-                self.sprite.fps = max(1, self.sprite.fps - 1)
+                self.sprite.fps -= 1
                 self.fps = self.sprite.fps
             case arcade.key.EQUAL:
                 self.sprite.fps += 1
@@ -51,7 +51,7 @@ class SpriteTestView(DigiView):
             case arcade.key.SPACE:
                 self.paused = not self.paused
                 if self.paused:
-                    self.sprite.fps = 0.000000001
+                    self.sprite.fps = 0
                 else:
                     self.sprite.fps = self.fps
             case arcade.key.LEFT:
@@ -68,7 +68,7 @@ class SpriteTestView(DigiView):
         self.sprite.update_animation(delta_time)
         st = self.sprite._current_animation_sts[self.sprite._current_animation_index]
         self.data_label.value = f"""
-        Sprite FPS: {self.sprite.fps}
+        Sprite FPS: {self.fps}
         Sprite F#: {self.sprite._current_animation_index}
         X,Y,W,H: {st.x}, {st.y}, {st.width}, {st.height}
         FX,FY,FW,FH: {st.frame_x}, {st.frame_y}, {st.frame_width}, {st.frame_height}"""
