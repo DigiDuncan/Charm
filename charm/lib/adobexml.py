@@ -130,6 +130,7 @@ class AdobeSprite(Sprite):
         self.animations = set([st.name for st in self.texture_map])
 
         self._current_animation = []
+        self._current_animation_sts = []
         self._current_animation_index = 0
         self.fps = 24
         self._animation_time = 0
@@ -141,6 +142,7 @@ class AdobeSprite(Sprite):
         for st, n in self.texture_map.items():
             if st.name == name:
                 self._current_animation.append(n)
+                self._current_animation_sts.append(st)
         self._current_animation_index = -1
         self._animation_time = math.inf
 

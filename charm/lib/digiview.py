@@ -24,6 +24,9 @@ class DigiView(View):
 
         arcade.set_background_color(self.bg_color)
 
+    def on_show(self):
+        self.local_time = 0
+
     def on_resize(self, width: int, height: int):
         self.size = self.window.get_size()
 
