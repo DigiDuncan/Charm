@@ -104,7 +104,6 @@ class FNFSong(Song):
     def __init__(self, name: str, bpm: float) -> None:
         self.key: str = None
         self.player2: str = None
-        self.mod_guess: str = None
         super().__init__(name, bpm)
 
     @classmethod
@@ -121,7 +120,6 @@ class FNFSong(Song):
         returnsong = FNFSong(name, bpm)
         returnsong.key = k
         returnsong.player2 = player2
-        returnsong.mod_guess = guess_mod(returnsong)
         returnsong.hash = hash.hexdigest()
         hashes[name] = returnsong.hash
         returnsong.charts = [
@@ -383,21 +381,3 @@ class FNFEngine(Engine):
         elif note.missed:
             self.misses += 1
             self.last_note_missed = True
-
-
-# BULLS--- HARDCODING.
-# Here's what I'm dealing with.
-# There's no way to scan what mod a chart is from,
-# and it's going to be important later for a few reasons.
-# So we guess. Fun!
-def guess_mod(song: FNFSong) -> str:
-    if "impostor" in song.player2:
-        return "impostor"
-    match song.player2:
-        case "whitty" | "whittyCrazy":
-            return "whitty"
-        case "tricky" | "trickyH" | "exTricky":
-            return "tricky"
-        case "hex":
-            return "hex"
-    return None
