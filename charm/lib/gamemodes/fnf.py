@@ -82,8 +82,8 @@ class FNFNoteSprite(arcade.Sprite):
         self.hit = note.hit
         self.hit_time = note.hit_time
         self.missed = note.missed
+        icon = f"{self.note.type}-{wordmap[self.note.lane]}"
         try:
-            icon = f"{self.note.type}-{wordmap[self.note.lane]}"
             self.icon = img_from_resource(fnfskin, f"{icon}.png")
             whratio = self.icon.width / self.icon.height
             self.icon = self.icon.resize((int(height * whratio), height), PIL.Image.LANCZOS)
