@@ -139,6 +139,7 @@ class AdobeSprite(Sprite):
 
     def set_animation(self, name: str):
         self._current_animation = []
+        self._current_animation_sts = []
         for st, n in self.texture_map.items():
             if st.name == name:
                 self._current_animation.append(n)
