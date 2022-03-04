@@ -73,7 +73,7 @@ class CameraFocusEvent(Event):
         return f"cam_p{self.focused_player}"
 
 
-class FNFNote(arcade.Sprite):
+class FNFNoteSprite(arcade.Sprite):
     def __init__(self, note: Note, height: 128, *args, **kwargs):
         self.note = note
         self.time = note.time
@@ -221,7 +221,7 @@ class FNFHighway(Highway):
 
         self.auto = auto
         for note in self.notes:
-            sprite = FNFNote(note, self.note_size)
+            sprite = FNFNoteSprite(note, self.note_size)
             sprite.top = self.note_y(note.time)
             sprite.left = self.lane_x(sprite.lane)
             self.sprite_list.append(sprite)
@@ -230,7 +230,7 @@ class FNFHighway(Highway):
 
         self.strikeline = arcade.SpriteList()
         for i in [0, 1, 2, 3]:
-            sprite = FNFNote(Note(i, 0, i, 0), self.note_size)
+            sprite = FNFNoteSprite(Note(i, 0, i, 0), self.note_size)
             sprite.top = self.strikeline_y
             sprite.left = self.lane_x(sprite.lane)
             sprite.alpha = 64
@@ -242,22 +242,22 @@ class FNFHighway(Highway):
     def px_per_s(self) -> float:
         return self.note_y(1) - self.note_y(0)
 
-    def note_visible(self, n: FNFNote):
+    def note_visible(self, n: FNFNoteSprite):
         if self.auto:
             return self.song_time < n.time <= self.song_time + self.viewport
         return self.song_time - (self.viewport / 2) < n.time <= self.song_time + self.viewport
 
-    def note_expired(self, n: FNFNote):
+    def note_expired(self, n: FNFNoteSprite):
         if self.auto:
             return self.song_time > n.time
         return self.song_time - self.viewport > n.time
 
     @property
-    def visible_notes(self) -> list[FNFNote]:
+    def visible_notes(self) -> list[FNFNoteSprite]:
         return [n for n in self.sprite_list if self.note_visible(n)]
 
     @property
-    def expired_notes(self) -> list[FNFNote]:
+    def expired_notes(self) -> list[FNFNoteSprite]:
         return [n for n in self.sprite_list if self.note_expired(n)]
 
     def update(self, song_time):
@@ -304,7 +304,7 @@ class FNFEngine(Engine):
         self.latest_judgement = ""
         self.latest_judgement_time = 0
 
-        self.current_notes: list[FNFNote] = self.chart.notes.copy()
+        self.current_notes: list[FNFNoteSprite] = self.chart.notes.copy()
         self.current_events: list[DigitalKeyEvent] = []
 
         self.last_p1_note = None
@@ -361,7 +361,7 @@ class FNFEngine(Engine):
                     self.current_notes.remove(note)
         self.hp = clamp(self.min_hp, self.hp, self.max_hp)
 
-    def score_note(self, note: FNFNote):
+    def score_note(self, note: FNFNoteSprite):
         if note.type == "sustain":
             if note.hit:
                 self.hp += 0.01
