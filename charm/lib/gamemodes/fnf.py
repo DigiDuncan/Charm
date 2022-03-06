@@ -73,6 +73,29 @@ class CameraFocusEvent(Event):
         return f"cam_p{self.focused_player}"
 
 
+class FNFHardcode:
+    def __init__(self, hash: str, mod_name: str, author: str, lanemap: list[tuple[int, int, str]] = None):
+        self.hash = hash
+        self.mod_name = mod_name
+        self.author = author
+        self.lanemap = lanemap if lanemap is not None else [(0, 0, "normal"), (0, 1, "normal"), (0, 2, "normal"), (0, 3, "normal"),
+                                                            (1, 0, "normal"), (1, 1, "normal"), (1, 2, "normal"), (1, 3, "normal")]
+
+
+hardcodes = [
+    FNFHardcode("3a1f66a3d87637dfeaa2c8a44e6b4946b5013c94", "Vs. Tricky", "Banbuds",
+    [(0, 0, "normal"), (0, 1, "normal"), (0, 2, "normal"), (0, 3, "normal"),
+     (1, 0, "normal"), (1, 1, "normal"), (1, 2, "normal"), (1, 3, "normal"),
+     (0, 0, "bomb"), (0, 1, "bomb"), (0, 2, "bomb"), (0, 3, "bomb"),
+     (1, 0, "bomb"), (1, 1, "bomb"), (1, 2, "bomb"), (1, 3, "bomb")]),
+    FNFHardcode("7113289f3f65068d67db58c11756271f5792ae28", "Vs. Tricky", "Banbuds",
+    [(0, 0, "normal"), (0, 1, "normal"), (0, 2, "normal"), (0, 3, "normal"),
+     (1, 0, "normal"), (1, 1, "normal"), (1, 2, "normal"), (1, 3, "normal"),
+     (0, 0, "death"), (0, 1, "death"), (0, 2, "death"), (0, 3, "death"),
+     (1, 0, "death"), (1, 1, "death"), (1, 2, "death"), (1, 3, "death")])
+]
+
+
 class FNFNoteSprite(arcade.Sprite):
     def __init__(self, note: Note, height: 128, *args, **kwargs):
         self.note = note
@@ -112,7 +135,7 @@ class FNFSong(Song):
         hash = sha1(bytes(json.dumps(j), encoding='utf-8'))
         song = j["song"]
 
-        name = song["song"].replace("-", " ")
+        name = song["song"].replace("-", " ").title()
         logger.debug(f"Parsing {name}...")
         bpm = song["bpm"]
         speed = song["speed"]
@@ -134,6 +157,11 @@ class FNFSong(Song):
         songevents: list[Event] = []
         sections = song["notes"]
         section_starts = []
+        unknown_lanes = []
+
+        hardcode_search = (h for h in hardcodes if h.hash == returnsong.hash)
+        hardcode = next(hardcode_search, None)
+
         for section in sections:
             # There's a changeBPM event but like, it always has to be paired
             # with a bpm, so it's pointless anyway
@@ -163,6 +191,14 @@ class FNFSong(Song):
                 songevents.append(CameraFocusEvent(section_start, focused))
                 last_focus = focused
 
+            if hardcode:
+                lanemap = hardcode.lanemap
+                returnsong.metadata["artist"] = hardcode.author
+                returnsong.metadata["album"] = hardcode.mod_name
+            else:
+                lanemap = [(0, 0, "normal"), (0, 1, "normal"), (0, 2, "normal"), (0, 3, "normal"),
+                           (1, 0, "normal"), (1, 1, "normal"), (1, 2, "normal"), (1, 3, "normal")]
+
             # Actually make two charts
             sectionNotes = section["sectionNotes"]
             for note in sectionNotes:
@@ -174,15 +210,16 @@ class FNFSong(Song):
                 pos = posms / 1000
                 length = lengthms / 1000
 
-                note_in_focused_lane = lane < 4
-                note_player = focused if note_in_focused_lane else unfocused
-                lanemap = [0, 1, 2, 3, 0, 1, 2, 3]
                 try:
-                    chart_lane = lanemap[lane]
+                    note_data = lanemap[lane]
                 except IndexError:
-                    logger.warn(f"Lane {lane} out of range.")
+                    unknown_lanes.append(lane)
 
-                thisnote = Note(str(uuid4()), pos, chart_lane, length)
+                note_player = focused if note_data[0] == 0 else unfocused
+                chart_lane = note_data[1]
+                note_type = note_data[2]
+
+                thisnote = Note(str(uuid4()), pos, chart_lane, length, type = note_type)
                 thisnote.extra_data = extra
                 returnsong.charts[note_player - 1].notes.append(thisnote)
                 returnsong.charts[note_player - 1].note_by_uuid[thisnote.uuid] = thisnote
@@ -207,6 +244,10 @@ class FNFSong(Song):
 
         returnsong.events = songevents
         returnsong.events.sort()
+
+        unknown_lanes = sorted(set(unknown_lanes))
+        if unknown_lanes:
+            logger.warn(f"Unknown lanes {unknown_lanes}")
 
         return returnsong
 
@@ -300,6 +341,9 @@ class FNFEngine(Engine):
         self.min_hp = 0
         self.hp = 1
         self.max_hp = 2
+        self.bomb_hp = 0.25
+
+        self.has_died = False
 
         self.latest_judgement = ""
         self.latest_judgement_time = 0
@@ -331,7 +375,7 @@ class FNFEngine(Engine):
         self.key_state = key_states.copy()
 
     def calculate_score(self):
-        for note in [n for n in self.current_notes if n.type == "normal" and n.time <= self.chart_time + self.hit_window]:
+        for note in [n for n in self.current_notes if n.type != "sustain" and n.time <= self.chart_time + self.hit_window]:
             if self.chart_time > note.time + self.hit_window:
                 note.missed = True
                 note.hit_time = math.inf  # how smart is this? :thinking:
@@ -360,6 +404,8 @@ class FNFEngine(Engine):
                     self.score_note(note)
                     self.current_notes.remove(note)
         self.hp = clamp(self.min_hp, self.hp, self.max_hp)
+        if self.hp == self.min_hp:
+            self.has_died = True
 
     def score_note(self, note: FNFNoteSprite):
         if note.type == "sustain":
@@ -367,6 +413,14 @@ class FNFEngine(Engine):
                 self.hp += 0.01
             elif note.missed:
                 self.hp -= 0.025
+            return
+        if note.type == "death":
+            if note.hit:
+                self.hp = self.min_hp
+            return
+        if note.type == "bomb":
+            if note.hit:
+                self.hp -= 0.5
             return
         j = self.get_note_judgement(note)
         self.score += j.score

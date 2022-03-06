@@ -67,6 +67,10 @@ class FNFSongView(DigiView):
                                       anchor_x="center", anchor_y="center", color=arcade.color.BLACK,
                                       font_name="bananaslip plus plus")
 
+        self.dead_text = arcade.Text("DEAD.", (self.size[0] // 2), (self.size[1] // 3) * 2, font_size=64,
+                                     anchor_x="center", anchor_y="center", color=arcade.color.BLACK,
+                                     font_name="bananaslip plus plus")
+
         # Generate "gum wrapper" background
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
 
@@ -245,6 +249,8 @@ class FNFSongView(DigiView):
         self.grade_text.draw()
         if self.paused:
             self.pause_text.draw()
+        if self.engine.has_died:
+            self.dead_text.draw()
 
         self.hp_draw()
 

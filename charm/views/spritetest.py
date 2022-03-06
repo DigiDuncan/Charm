@@ -56,10 +56,10 @@ class SpriteTestView(DigiView):
                     self.sprite.fps = self.fps
             case arcade.key.LEFT:
                 self.sprite._current_animation_index -= 1
-                self.sprite._current_animation_index %= len(self._current_animation)
+                self.sprite._current_animation_index %= len(self.sprite._current_animation)
             case arcade.key.RIGHT:
                 self.sprite._current_animation_index += 1
-                self.sprite._current_animation_index %= len(self._current_animation)
+                self.sprite._current_animation_index %= len(self.sprite._current_animation)
 
         return super().on_key_press(symbol, modifiers)
 
