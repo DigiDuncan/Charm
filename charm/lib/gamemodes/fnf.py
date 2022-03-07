@@ -83,12 +83,17 @@ class FNFHardcode:
 
 
 hardcodes = [
-    FNFHardcode("3a1f66a3d87637dfeaa2c8a44e6b4946b5013c94", "Vs. Tricky", "Banbuds",
+    FNFHardcode("09959de9dca4800df18e74108c1d8a36940be6eb", "Vs. Tricky", "Banbuds",  # madness
     [(0, 0, "normal"), (0, 1, "normal"), (0, 2, "normal"), (0, 3, "normal"),
      (1, 0, "normal"), (1, 1, "normal"), (1, 2, "normal"), (1, 3, "normal"),
      (0, 0, "bomb"), (0, 1, "bomb"), (0, 2, "bomb"), (0, 3, "bomb"),
      (1, 0, "bomb"), (1, 1, "bomb"), (1, 2, "bomb"), (1, 3, "bomb")]),
-    FNFHardcode("7113289f3f65068d67db58c11756271f5792ae28", "Vs. Tricky", "Banbuds",
+    FNFHardcode("3a1f66a3d87637dfeaa2c8a44e6b4946b5013c94", "Vs. Tricky", "Banbuds",  # hellclown
+    [(0, 0, "normal"), (0, 1, "normal"), (0, 2, "normal"), (0, 3, "normal"),
+     (1, 0, "normal"), (1, 1, "normal"), (1, 2, "normal"), (1, 3, "normal"),
+     (0, 0, "bomb"), (0, 1, "bomb"), (0, 2, "bomb"), (0, 3, "bomb"),
+     (1, 0, "bomb"), (1, 1, "bomb"), (1, 2, "bomb"), (1, 3, "bomb")]),
+    FNFHardcode("7113289f3f65068d67db58c11756271f5792ae28", "Vs. Tricky", "Banbuds",  # expurgation
     [(0, 0, "normal"), (0, 1, "normal"), (0, 2, "normal"), (0, 3, "normal"),
      (1, 0, "normal"), (1, 1, "normal"), (1, 2, "normal"), (1, 3, "normal"),
      (0, 0, "death"), (0, 1, "death"), (0, 2, "death"), (0, 3, "death"),
@@ -128,6 +133,28 @@ class FNFSong(Song):
         self.key: str = None
         self.player2: str = None
         super().__init__(name, bpm)
+
+    @classmethod
+    def simple_parse(cls, k: str, s: str):
+        j: SongFileJson = json.loads(s)
+        hash = sha1(bytes(json.dumps(j), encoding='utf-8'))
+        song = j["song"]
+        title = song["song"].replace("-", " ").title()
+        hardcode_search = (h for h in hardcodes if h.hash == hash.hexdigest())
+        hardcode = next(hardcode_search, None)
+        artist = "Unknown Artist"
+        album = "Unknown Album"
+        if hardcode:
+            artist = hardcode.author
+            album = hardcode.mod_name
+
+        return {
+            "title": title,
+            "artist": artist,
+            "album": album,
+            "hash": hash.hexdigest(),
+            "key": k
+        }
 
     @classmethod
     def parse(cls, k: str, s: str):
@@ -341,7 +368,8 @@ class FNFEngine(Engine):
         self.min_hp = 0
         self.hp = 1
         self.max_hp = 2
-        self.bomb_hp = 0.25
+        self.bomb_hp = 0.5
+        self.heal_hp = 0.5
 
         self.has_died = False
 
@@ -420,12 +448,15 @@ class FNFEngine(Engine):
             return
         if note.type == "bomb":
             if note.hit:
-                self.hp -= 0.5
+                self.hp -= self.bomb_hp
             return
         j = self.get_note_judgement(note)
         self.score += j.score
         self.weighted_hit_notes += j.accuracy_weight
-        self.hp += j.hp_change
+        if note.type == "heal":
+            self.hp += self.heal_hp
+        else:
+            self.hp += j.hp_change
         self.latest_judgement = j.name
         self.latest_judgement_time = self.chart_time
         if note.hit:

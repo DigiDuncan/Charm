@@ -40,11 +40,11 @@ class FNFSongMenuView(DigiView):
             k = d.name
             with open(d / f"{k}.json", encoding="utf-8") as chart:
                 c = chart.read()
-                songdata = FNFSong.parse(k, c)
+                songdata = FNFSong.simple_parse(k, c)
                 self.songs.append(songdata)
 
         self.menu = SongMenu(self.songs)
-        self.menu.sort("key")
+        self.menu.sort("title")
         self.menu.selected_id = 0
         self.selection_changed = 0
 
@@ -81,7 +81,7 @@ class FNFSongMenuView(DigiView):
                 arcade.play_sound(self.window.sounds["select"])
             case arcade.key.ENTER:
                 arcade.play_sound(self.window.sounds["valid"])
-                songview = FNFSongView(self.menu.selected.song.key, back=self)
+                songview = FNFSongView(self.menu.selected.song["key"], back=self)
                 songview.setup()
                 self.window.show_view(songview)
             case arcade.key.BACKSPACE:
@@ -100,7 +100,7 @@ class FNFSongMenuView(DigiView):
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
         arcade.play_sound(self.window.sounds["valid"])
-        songview = FNFSongView(self.menu.selected.song.key, back=self)
+        songview = FNFSongView(self.menu.selected.song["key"], back=self)
         songview.setup()
         self.window.show_view(songview)
 

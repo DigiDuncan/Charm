@@ -17,16 +17,15 @@ logger = logging.getLogger("charm")
 
 
 class SongMenuItem(Sprite):
-    def __init__(self, song: Song, w: int = None, h: int = None, *args, **kwargs):
+    def __init__(self, song: dict, w: int = None, h: int = None, *args, **kwargs):
         self.song = song
 
-        self.title = song.metadata["title"]
-        self.artist = song.metadata["artist"]
-        self.album = song.metadata["album"]
+        self.title = song["title"]
+        self.artist = song["artist"]
+        self.album = song["album"]
 
         # Make a real hash, probably on Song.
-        self.key = generate_uuid_from_kwargs(title=self.title, artist=self.artist, album=self.album)
-        self.key = "".join([c for c in self.key if c in string.ascii_letters + string.digits])
+        self.key = song["hash"]
 
         try:
             album_art_img = PIL.Image.open(f"./albums/album_{self.key}.png")
@@ -64,7 +63,7 @@ class SongMenuItem(Sprite):
 
 
 class SongMenu:
-    def __init__(self, songs: list[Song] = None, radius = 4, buffer = 5, move_speed = 0.2) -> None:
+    def __init__(self, songs: list[dict] = None, radius = 4, buffer = 5, move_speed = 0.2) -> None:
         self._songs = songs
         self.items: list[SongMenuItem] = []
         if songs:
@@ -108,7 +107,7 @@ class SongMenu:
 
     def sort(self, key: str, rev: bool = False):
         selected = self.items[self.selected_id]
-        self.items.sort(key=lambda item: getattr(item.song, key), reverse=rev)
+        self.items.sort(key=lambda item: item.song.get(key, ""), reverse=rev)
         self.selected_id = self.items.index(selected)
 
     def update(self, local_time: float):
@@ -121,7 +120,7 @@ class SongMenu:
         x_delta = current.width / (self.radius + 1) / 1.5
         x_offset = 0
         y_offset = 0
-        for i in range(self.radius + 1):
+        for i in range(self.radius * 2 + 1):
             up_id -= 1
             down_id += 1
             x_offset += x_delta

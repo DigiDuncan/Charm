@@ -124,8 +124,11 @@ class FNFSongView(DigiView):
                 self.window.show_view(self.back)
                 arcade.play_sound(self.window.sounds["back"])
             case arcade.key.SPACE:
-                self.song.pause() if not self.paused else self.song.play()
                 self.paused = not self.paused
+                for s in self.songs:
+                    s.pause() if self.paused else s.play()
+                for s in self.songs:
+                    s.seek(self.song.time)
             case arcade.key.EQUAL:
                 self.song.seek(self.song.time + 5)
             case arcade.key.MINUS:
