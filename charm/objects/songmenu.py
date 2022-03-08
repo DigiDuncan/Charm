@@ -1,17 +1,15 @@
 import io
 import logging
-import string
 import requests
 
 import arcade
-from arcade import Sprite, generate_uuid_from_kwargs
+from arcade import Sprite
 import PIL.Image
 
 from charm.lib.anim import ease_circout
 from charm.lib.charm import CharmColors
 from charm.lib.settings import Settings
 from charm.lib.utils import clamp
-from charm.lib.generic.song import Song
 
 logger = logging.getLogger("charm")
 
