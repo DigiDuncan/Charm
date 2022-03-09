@@ -136,6 +136,14 @@ class FNFSongView(DigiView):
                 self.song.seek(self.song.time - 5)
             case arcade.key.T:
                 self.show_text = not self.show_text
+            case arcade.key.S:
+                for s in self.songs:
+                    s.pause()
+                for s in self.songs:
+                    s.play()
+                for s in self.songs:
+                    s.seek(self.song.time)
+
         self.on_key_something(symbol, modifiers, True)
         return super().on_key_press(symbol, modifiers)
 
