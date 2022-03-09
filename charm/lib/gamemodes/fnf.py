@@ -145,11 +145,8 @@ class FNFSong(Song):
         title = song["song"].replace("-", " ").title()
         hardcode_search = (h for h in hardcodes if h.hash == hash)
         hardcode = next(hardcode_search, None)
-        artist = "Unknown Artist"
-        album = "Unknown Album"
-        if hardcode:
-            artist = hardcode.author
-            album = hardcode.mod_name
+        artist = "Unknown Artist" if not hardcode else hardcode.author
+        album = "Unknown Album" if not hardcode else hardcode.mod_name
 
         hashes[k] = hash
 
