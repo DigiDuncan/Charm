@@ -38,10 +38,11 @@ class FNFSongMenuView(DigiView):
         dir_list = [d for d in rootdir.glob('**/*') if d.is_dir()]
         for d in dir_list:
             k = d.name
-            with open(d / f"{k}.json", encoding="utf-8") as chart:
-                c = chart.read()
-                songdata = FNFSong.simple_parse(k, c)
-                self.songs.append(songdata)
+            for diff, suffix in [("expert", "-ex"), ("hard", "-hard"), ("normal", ""), ("easy", "-easy")]:
+                with open(d / f"{k}.json", encoding="utf-8") as chart:
+                    c = chart.read()
+                    songdata = FNFSong.simple_parse(k, c)
+                    self.songs.append(songdata)
 
         self.menu = SongMenu(self.songs)
         self.menu.sort("title")

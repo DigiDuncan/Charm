@@ -99,6 +99,9 @@ class CharmGame(arcade.Window):
             with pkg_resources.path(charm.data.audio, f"sfx-{soundname}.wav") as p:
                 self.sounds[soundname] = arcade.load_sound(p)
 
+        cheats = []
+        self.cheats = {c: False for c in cheats}
+
         self.title_view = TitleView()
 
     def setup(self):

@@ -4,6 +4,7 @@ from charm.lib.anim import ease_quartout
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView
 from charm.objects.menu import MainMenu, MainMenuItem
+from charm.views.cheat import CheatView
 from charm.views.fnfsongmenu import FNFSongMenuView
 from charm.views.spritetest import SpriteTestView
 from charm.views.subtitletest import SubtitleView
@@ -25,7 +26,8 @@ class MainMenuView(DigiView):
                 MainMenuItem("Songs", "songs", FNFSongMenuView(back=self)),
                 MainMenuItem("Options", "option", None),
                 MainMenuItem("Sprite Test", "test", SpriteTestView(back=self)),
-                MainMenuItem("Lyric Test", "test", SubtitleView(back=self))
+                MainMenuItem("Lyric Test", "test", SubtitleView(back=self)),
+                MainMenuItem("Cheats", "cheats", CheatView(back=self))
             ]
         )
 

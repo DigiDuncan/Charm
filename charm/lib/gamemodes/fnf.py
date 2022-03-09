@@ -140,10 +140,10 @@ class FNFSong(Song):
     @classmethod
     def simple_parse(cls, k: str, s: str):
         j: SongFileJson = json.loads(s)
-        hash = sha1(bytes(json.dumps(j), encoding='utf-8'))
+        hash = sha1(bytes(json.dumps(j), encoding='utf-8')).hexdigest()
         song = j["song"]
         title = song["song"].replace("-", " ").title()
-        hardcode_search = (h for h in hardcodes if h.hash == hash.hexdigest())
+        hardcode_search = (h for h in hardcodes if h.hash == hash)
         hardcode = next(hardcode_search, None)
         artist = "Unknown Artist"
         album = "Unknown Album"
@@ -151,18 +151,20 @@ class FNFSong(Song):
             artist = hardcode.author
             album = hardcode.mod_name
 
+        hashes[k] = hash
+
         return {
             "title": title,
             "artist": artist,
             "album": album,
-            "hash": hash.hexdigest(),
+            "hash": hash,
             "key": k
         }
 
     @classmethod
     def parse(cls, k: str, s: str):
         j: SongFileJson = json.loads(s)
-        hash = sha1(bytes(json.dumps(j), encoding='utf-8'))
+        hash = sha1(bytes(json.dumps(j), encoding='utf-8')).hexdigest()
         song = j["song"]
 
         name = song["song"].replace("-", " ").title()
@@ -173,8 +175,7 @@ class FNFSong(Song):
         returnsong = FNFSong(name, bpm)
         returnsong.key = k
         returnsong.player2 = player2
-        returnsong.hash = hash.hexdigest()
-        hashes[name] = returnsong.hash
+        returnsong.hash = hash
         returnsong.charts = [
             FNFChart("hard", "player1", speed),
             FNFChart("hard", "player2", speed)]
@@ -191,6 +192,10 @@ class FNFSong(Song):
 
         hardcode_search = (h for h in hardcodes if h.hash == returnsong.hash)
         hardcode = next(hardcode_search, None)
+
+        if hardcode:
+            returnsong.metadata["artist"] = hardcode.author
+            returnsong.metadata["album"] = hardcode.mod_name
 
         for section in sections:
             # There's a changeBPM event but like, it always has to be paired
@@ -223,8 +228,6 @@ class FNFSong(Song):
 
             if hardcode:
                 lanemap = hardcode.lanemap
-                returnsong.metadata["artist"] = hardcode.author
-                returnsong.metadata["album"] = hardcode.mod_name
             else:
                 lanemap = [(0, 0, "normal"), (0, 1, "normal"), (0, 2, "normal"), (0, 3, "normal"),
                            (1, 0, "normal"), (1, 1, "normal"), (1, 2, "normal"), (1, 3, "normal")]
