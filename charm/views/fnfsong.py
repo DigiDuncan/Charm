@@ -29,7 +29,7 @@ class FNFSongView(DigiView):
         for diff in diffs:
             p = self.path / f"{self.name}{diff}.json"
             if p.exists():
-                with open(self.path / f"{self.name}.json", encoding="utf-8") as chart:
+                with open(self.path / f"{self.name}{diff}.json", encoding="utf-8") as chart:
                     c = chart.read()
                     self.songdata = FNFSong.parse(self.name, c)
                     break
@@ -257,9 +257,8 @@ class FNFSongView(DigiView):
 
         self.hp_draw()
 
-        self.highway_1.draw()
         self.highway_2.draw()
-
         self.spotlight_draw()
+        self.highway_1.draw()
 
         super().on_draw()
