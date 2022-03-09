@@ -95,6 +95,7 @@ class FNFSongView(DigiView):
         self.boyfriend_anim_missed = False
 
         self.paused = False
+        self.show_text = True
 
     @property
     def song(self):
@@ -133,6 +134,8 @@ class FNFSongView(DigiView):
                 self.song.seek(self.song.time + 5)
             case arcade.key.MINUS:
                 self.song.seek(self.song.time - 5)
+            case arcade.key.T:
+                self.show_text = not self.show_text
         self.on_key_something(symbol, modifiers, True)
         return super().on_key_press(symbol, modifiers)
 
@@ -246,14 +249,16 @@ class FNFSongView(DigiView):
 
         self.boyfriend.draw()
 
-        self.song_time_text.draw()
-        self.score_text.draw()
-        self.judge_text.draw()
-        self.grade_text.draw()
+        if self.show_text:
+            self.song_time_text.draw()
+            self.score_text.draw()
+            self.judge_text.draw()
+            self.grade_text.draw()
+            if self.engine.has_died:
+                self.dead_text.draw()
+
         if self.paused:
             self.pause_text.draw()
-        if self.engine.has_died:
-            self.dead_text.draw()
 
         self.hp_draw()
 
