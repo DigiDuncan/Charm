@@ -7,6 +7,7 @@ import pyglet
 from digiformatter import logger as digilogger
 
 import charm
+import charm.data.fonts
 import charm.data.images
 from charm.lib.settings import Settings
 from charm.lib.utils import pyglet_img_from_resource
@@ -43,6 +44,9 @@ arcadelogger.addHandler(phandlersource)
 # Fix font lag
 pyglet.options["advanced_font_features"] = True
 arcade.pyglet.options["advanced_font_features"] = True
+
+with pkg_resources.path(charm.data.fonts, "bananaslipplus.otf") as p:
+    arcade.text_pyglet.load_font(str(p))
 
 
 class CharmGame(arcade.Window):
