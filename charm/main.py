@@ -62,32 +62,32 @@ class CharmGame(arcade.Window):
         self.show_fps = True
         self.show_log = False
         self.sounds: dict[str, arcade.Sound] = {}
-        self.theme_song: arcade.pyglet.media.Player = None
+        self.theme_song: pyglet.media.Player = None
 
         self.fps_averages = []
 
         arcade.draw_text("abc", 0, 0)  # force font init
 
         self.debug_camera = arcade.Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
-        self.fps_label = arcade.pyglet.text.Label("???.? FPS",
+        self.fps_label = pyglet.text.Label("???.? FPS",
                           font_name='bananaslip plus plus',
                           font_size=12,
                           x=0, y=self.height,
                           anchor_x='left', anchor_y='top',
                           color=(0, 0, 0) + (0xFF,))
-        self.fps_shadow_label = arcade.pyglet.text.Label("???.? FPS",
+        self.fps_shadow_label = pyglet.text.Label("???.? FPS",
                           font_name='bananaslip plus plus',
                           font_size=12,
                           x=1, y=self.height - 1,
                           anchor_x='left', anchor_y='top',
                           color=(0xAA, 0xAA, 0xAA) + (0xFF,))
-        self.more_info_label = arcade.pyglet.text.Label("DEBUG",
+        self.more_info_label = pyglet.text.Label("DEBUG",
                           font_name='bananaslip plus plus',
                           font_size=12,
                           x=0, y=self.height - self.fps_label.content_height - 5, multiline=True, width=Settings.width,
                           anchor_x='left', anchor_y='top',
                           color=(0, 0, 0) + (0xFF,))
-        self.alpha_label = arcade.pyglet.text.Label("ALPHA",
+        self.alpha_label = pyglet.text.Label("ALPHA",
                           font_name='bananaslip plus plus',
                           font_size=16,
                           x=self.width - 5, y=5,
