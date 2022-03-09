@@ -14,6 +14,7 @@ class Highway:
         self.size = size if size is not None else (Settings.width // 3, Settings.height)
         self.gap = gap
         self.viewport = viewport
+        self.px_per_s = self.h / self.viewport
         self.sprite_list = arcade.SpriteList()
 
         self.camera = Camera(Settings.width, Settings.height)
@@ -55,7 +56,7 @@ class Highway:
 
     def note_y(self, at: float):
         rt = at - self.song_time
-        return ((self.strikeline_y / self.viewport) * -rt + self.strikeline_y) + self.y
+        return (-self.px_per_s * rt) + self.strikeline_y + self.y
 
     def update(self, song_time):
         self.song_time = song_time

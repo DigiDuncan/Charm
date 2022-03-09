@@ -121,6 +121,9 @@ class FNFNoteSprite(arcade.Sprite):
         tex = arcade.Texture(f"_fnf_note_{icon}", image=self.icon, hit_box_algorithm=None)
         super().__init__(texture=tex, *args, **kwargs)
 
+    def __lt__(self, other):
+        return (self.time, self.lane, self.type) < (other.time, other.lane, other.type)
+
 
 class FNFChart(Chart):
     def __init__(self, difficulty: str, instrument: str, notespeed: float = 1) -> None:
@@ -288,13 +291,16 @@ class FNFHighway(Highway):
         super().__init__(chart, pos, size, gap, viewport)
 
         self.auto = auto
+
+        sprites = []
         for note in self.notes:
             sprite = FNFNoteSprite(note, self.note_size)
             sprite.top = self.note_y(note.time)
             sprite.left = self.lane_x(sprite.lane)
-            self.sprite_list.append(sprite)
-
-        print(self.sprite_list[0].center_y)
+            sprites.append(sprite)
+        sprites = [s for s in sprites if s.type == "sustain"] + [s for s in sprites if s.type != "sustain"][::-1]
+        for s in sprites:
+            self.sprite_list.append(s)
 
         self.strikeline = arcade.SpriteList()
         for i in [0, 1, 2, 3]:
@@ -305,10 +311,6 @@ class FNFHighway(Highway):
             self.strikeline.append(sprite)
 
         logger.debug(f"Generated highway for chart {chart.instrument}.")
-
-    @property
-    def px_per_s(self) -> float:
-        return self.note_y(1) - self.note_y(0)
 
     def note_visible(self, n: FNFNoteSprite):
         if self.auto:
@@ -331,7 +333,7 @@ class FNFHighway(Highway):
     def update(self, song_time):
         super().update(song_time)
         for n in self.visible_notes:
-            if n.note.hit and n.note.type == "normal":
+            if n.note.hit and n.note.type != "sustain":
                 n.alpha = 0
             if n.note.hit and n.note.type == "sustain" and song_time >= n.time:
                 n.alpha = 0
@@ -344,8 +346,8 @@ class FNFHighway(Highway):
         arcade.set_viewport(
             0,
             Settings.width,
-            0 + scroll,
-            Settings.height + scroll
+            0 - scroll,
+            Settings.height - scroll
         )
         self.sprite_list.draw()
         arcade.get_window().current_camera.use()
