@@ -392,9 +392,6 @@ class FNFEngine(Engine):
         if (self.chart_time < self.chart.notes[0].time - self.hit_window
            or self.chart_time > self.chart.notes[-1].time + self.hit_window):
             return
-        # FIXME: Causes bugs with sustains.
-        # if self.current_notes[0].time > self.chart_time + self.hit_window:
-        #     return
         for n in range(len(key_states)):
             if key_states[n] is True and last_state[n] is False:
                 e = DigitalKeyEvent(self.chart_time, n, "down")
