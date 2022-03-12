@@ -114,12 +114,20 @@ class FNFNoteSprite(arcade.Sprite):
         try:
             self.icon = img_from_resource(fnfskin, f"{icon}.png")
             whratio = self.icon.width / self.icon.height
-            self.icon = self.icon.resize((int(height * whratio), height), PIL.Image.LANCZOS)
+            if self.icon.height != height:
+                self.icon = self.icon.resize((int(height * whratio), height), PIL.Image.LANCZOS)
         except Exception:
             self.icon = generate_missing_texture_image(height, height)
 
+        if self.type == "sustain":
+            full_height = self.icon.height
+            self.icon = self.icon.crop((0, 0, self.icon.width, 1))
+
         tex = arcade.Texture(f"_fnf_note_{icon}", image=self.icon, hit_box_algorithm=None)
         super().__init__(texture=tex, *args, **kwargs)
+
+        if self.type == "sustain":
+            self.height = full_height
 
     def __lt__(self, other):
         return (self.time, self.lane, self.type) < (other.time, other.lane, other.type)
