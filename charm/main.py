@@ -102,6 +102,9 @@ class CharmGame(arcade.Window):
         for soundname in ["back", "select", "valid"]:
             with pkg_resources.path(charm.data.audio, f"sfx-{soundname}.wav") as p:
                 self.sounds[soundname] = arcade.load_sound(p)
+        for soundname in ["error", "warning", "info"]:
+            with pkg_resources.path(charm.data.audio, f"error-{soundname}.wav") as p:
+                self.sounds["error-" + soundname] = arcade.load_sound(p)
 
         cheats = []
         self.cheats = {c: False for c in cheats}

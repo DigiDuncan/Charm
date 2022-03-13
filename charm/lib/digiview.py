@@ -51,6 +51,7 @@ class DigiView(View):
 
     def on_error(self, error: CharmException):
         self._errors.append([error, 3])
+        arcade.play_sound(self.window.sounds[f"error-{error._icon}"])
 
     def setup(self):
         self.local_time = 0
@@ -102,5 +103,11 @@ class DigiView(View):
 
         self.window.debug_draw()
 
-        for error, _ in self._errors:
+        for i, (error, _) in enumerate(self._errors):
+            _x = error.sprite.center_x
+            _y = error.sprite.center_y
+            error.sprite.center_x += (i * 4)
+            error.sprite.center_y += (i * 4)
             error.sprite.draw()
+            error.sprite.center_x = _x
+            error.sprite.center_y = _y

@@ -25,7 +25,6 @@ class FNFSongMenuView(DigiView):
         self.album_art_buffer = Settings.width // 20
         self.static_time = 0.25
 
-    @shows_errors
     def setup(self):
         super().setup()
 
