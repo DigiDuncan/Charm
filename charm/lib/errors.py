@@ -30,8 +30,8 @@ class CharmException(Exception):
             fbo.clear()
             arcade.draw_lrtb_rectangle_filled(0, 500, 200, 0, arcade.color.BLANCHED_ALMOND)
             arcade.draw_lrtb_rectangle_filled(0, 500, 200, 150, arcade.color.BRANDEIS_BLUE)
-            arcade.draw_text(self.title, 50, 154, font_size=24, bold=True, anchor_y="bottom")
-            arcade.draw_text(self.show_message, 5, 146, font_size=16, anchor_y="top", multiline=True, width=192, color=arcade.color.BLACK)
+            arcade.draw_text(self.title, 50, 165, font_size=24, bold=True)
+            arcade.draw_text(self.show_message, 5, 146, font_size=16, anchor_y="top", multiline=True, width=492, color=arcade.color.BLACK)
             arcade.draw_texture_rectangle(25, 175, 32, 32, _icon_tex)
 
         return sprite

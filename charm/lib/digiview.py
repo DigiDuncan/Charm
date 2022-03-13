@@ -1,4 +1,5 @@
 import functools
+import logging
 
 import arcade
 from arcade import View, Window
@@ -6,6 +7,8 @@ from arcade import View, Window
 from charm.lib.anim import ease_linear
 from charm.lib.errors import CharmException, GenericError
 from charm.lib.settings import Settings
+
+logger = logging.getLogger("charm")
 
 
 def shows_errors(fn):
@@ -15,10 +18,18 @@ def shows_errors(fn):
             result = fn(*args, **kwargs)
             return result
         except Exception as e:
-            self: DigiView = args[0]
+            self: DigiView = args[0] if args[0].shown else args[0].back
             if not isinstance(e, CharmException):
                 e = GenericError(e)
             self.on_error(e)
+            if e._icon == "error":
+                logger.error(e.title, e.show_message)
+            elif e._icon == "warning":
+                logger.warn(e.title, e.show_message)
+            elif e._icon == "info":
+                logger.info(e.title, e.show_message)
+            else:
+                logger.info(e.title, e.show_message)  # /shrug
     return wrapper
 
 
@@ -27,6 +38,7 @@ class DigiView(View):
                  fade_in: float = 0, bg_color = (0, 0, 0)):
         super().__init__(window)
         self.back = back
+        self.shown = False
         self.size = self.window.get_size()
         self.local_time = 0
         self.fade_in = fade_in
@@ -47,6 +59,7 @@ class DigiView(View):
 
     def on_show(self):
         self.local_time = 0
+        self.shown = True
 
     def on_resize(self, width: int, height: int):
         self.size = self.window.get_size()

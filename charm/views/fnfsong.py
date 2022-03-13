@@ -20,6 +20,7 @@ class FNFSongView(DigiView):
         self.volume = 0.5
         self.name = name
 
+    @shows_errors
     def setup(self):
         super().setup()
 

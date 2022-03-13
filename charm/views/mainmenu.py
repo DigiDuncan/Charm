@@ -15,6 +15,7 @@ class MainMenuView(DigiView):
     def __init__(self, *args, **kwargs):
         super().__init__(fade_in=1, bg_color=CharmColors.FADED_GREEN, *args, **kwargs)
 
+    @shows_errors
     def setup(self):
         super().setup()
 
