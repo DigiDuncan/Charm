@@ -1,8 +1,24 @@
+from ctypes import resize
+import functools
+
 import arcade
 from arcade import View, Window
 
 from charm.lib.anim import ease_linear
+from charm.lib.errors import CharmException
 from charm.lib.settings import Settings
+
+
+def shows_errors(fn):
+    @functools.wraps(fn)
+    def wrapper(*args, **kwargs):
+        try:
+            result = fn(*args, **kwargs)
+            return result
+        except CharmException as e:
+            self: DigiView = args[0]
+            self.on_error(e)
+    return wrapper
 
 
 class DigiView(View):
@@ -18,6 +34,10 @@ class DigiView(View):
         self.debug_options = {
             "camera_scale": 1,
             "box": False}
+        self._errors: list[list[CharmException, float]] = []
+
+    def on_error(self, error: CharmException):
+        self._errors.append([error, 3])
 
     def setup(self):
         self.local_time = 0
@@ -52,6 +72,10 @@ class DigiView(View):
 
     def on_update(self, delta_time: float):
         self.local_time += delta_time
+        for li in self._errors:
+            li[1] -= delta_time
+            if li[1] <= 0:
+                self._errors.remove(li)
 
     def on_draw(self):
         if self.local_time <= self.fade_in:
@@ -63,3 +87,6 @@ class DigiView(View):
             arcade.draw_lrtb_rectangle_outline(0, Settings.width, Settings.height, 0, arcade.color.RED, 3)
 
         self.window.debug_draw()
+
+        for error, _ in self._errors:
+            error.sprite.draw()
