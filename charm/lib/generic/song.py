@@ -67,7 +67,7 @@ class BPMChangeEvent(Event):
 
 
 class Chart:
-    def __init__(self, gamemode: str, difficulty: str, instrument: str, lanes: int) -> None:
+    def __init__(self, song: 'Song', gamemode: str, difficulty: str, instrument: str, lanes: int, hash: str) -> None:
         self.gamemode = gamemode
         self.difficulty = difficulty
         self.instrument = instrument
@@ -75,6 +75,9 @@ class Chart:
         self.notes: list[Note] = []
         self.events: list[Event] = []
         self.bpm: float = None
+
+        self.song: Song = song
+        self.hash = hash
 
 
 class Song:

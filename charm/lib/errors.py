@@ -1,7 +1,7 @@
-from arcade import Sprite
 import arcade
 import arcade.color
 import PIL, PIL.Image, PIL.ImageDraw  # noqa: E401
+from arcade import Sprite
 
 import charm.data.images.errors
 from charm.lib.utils import img_from_resource
@@ -50,3 +50,8 @@ class TestError(CharmException):
 class NoChartsError(CharmException):
     def __init__(self, song_name: str, *args: object):
         super().__init__("No charts found!", f"No charts found for song '{song_name}'", "error", *args)
+
+
+class UnknownLanesError(CharmException):
+    def __init__(self, show_message: str, *args: object):
+        super().__init__("Unknown lanes found", show_message, "warning", *args)
