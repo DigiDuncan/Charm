@@ -1,7 +1,7 @@
 from arcade import Sprite
 import arcade
 import arcade.color
-import PIL, PIL.Image, PIL.ImageDraw
+import PIL, PIL.Image, PIL.ImageDraw  # noqa: E401
 
 import charm.data.images.errors
 from charm.lib.utils import img_from_resource
@@ -37,6 +37,16 @@ class CharmException(Exception):
         return sprite
 
 
+class GenericError(CharmException):
+    def __init__(self, error: Exception, *args: object):
+        super().__init__(error.__class__.__name__, str(error), "error", *args)
+
+
 class TestError(CharmException):
     def __init__(self, show_message: str, *args: object):
         super().__init__("Test", show_message, "error", *args)
+
+
+class NoChartsError(CharmException):
+    def __init__(self, song_name: str, *args: object):
+        super().__init__("No charts found!", f"No charts found for song '{song_name}'", "error", *args)

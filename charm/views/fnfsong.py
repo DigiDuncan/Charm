@@ -6,7 +6,7 @@ from pyglet.media import Player
 from charm.lib import anim
 from charm.lib.adobexml import sprite_from_adobe
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
-from charm.lib.digiview import DigiView
+from charm.lib.digiview import DigiView, shows_errors
 from charm.lib.gamemodes.fnf import CameraFocusEvent, FNFEngine, FNFHighway, FNFSong
 from charm.lib.settings import Settings
 from charm.lib.paths import songspath
@@ -101,6 +101,7 @@ class FNFSongView(DigiView):
     def song(self):
         return self.songs[0]
 
+    @shows_errors
     def on_show(self):
         self.songs: list[Player] = []
         for s in self._songs:
@@ -109,6 +110,7 @@ class FNFSongView(DigiView):
         for p in self.songs:
             p.seek(0)
 
+    @shows_errors
     def on_key_something(self, symbol: int, modifiers: int, press: bool):
         if symbol in self.engine.mapping:
             i = self.engine.mapping.index(symbol)
@@ -116,6 +118,7 @@ class FNFSongView(DigiView):
             self.highway_1.strikeline[i].alpha = 255 if press else 64
         self.engine.process_keystate(self.key_state)
 
+    @shows_errors
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:
             case arcade.key.BACKSPACE:
@@ -147,10 +150,12 @@ class FNFSongView(DigiView):
         self.on_key_something(symbol, modifiers, True)
         return super().on_key_press(symbol, modifiers)
 
+    @shows_errors
     def on_key_release(self, symbol: int, modifiers: int):
         self.on_key_something(symbol, modifiers, False)
         return super().on_key_release(symbol, modifiers)
 
+    @shows_errors
     def on_update(self, delta_time):
         super().on_update(delta_time)
 
@@ -247,6 +252,7 @@ class FNFSongView(DigiView):
             arcade.color.BLACK + (127,)
         )
 
+    @shows_errors
     def on_draw(self):
         self.clear()
         self.camera.use()

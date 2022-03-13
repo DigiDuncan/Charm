@@ -1,11 +1,10 @@
-from ctypes import resize
 import functools
 
 import arcade
 from arcade import View, Window
 
 from charm.lib.anim import ease_linear
-from charm.lib.errors import CharmException
+from charm.lib.errors import CharmException, GenericError
 from charm.lib.settings import Settings
 
 
@@ -15,8 +14,10 @@ def shows_errors(fn):
         try:
             result = fn(*args, **kwargs)
             return result
-        except CharmException as e:
+        except Exception as e:
             self: DigiView = args[0]
+            if not isinstance(e, CharmException):
+                e = GenericError(e)
             self.on_error(e)
     return wrapper
 

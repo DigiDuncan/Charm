@@ -2,7 +2,8 @@ import arcade
 from charm.lib.anim import ease_quartout
 
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
-from charm.lib.digiview import DigiView
+from charm.lib.digiview import DigiView, shows_errors
+from charm.lib.errors import TestError
 from charm.objects.menu import MainMenu, MainMenuItem
 from charm.views.cheat import CheatView
 from charm.views.fnfsongmenu import FNFSongMenuView
@@ -31,6 +32,7 @@ class MainMenuView(DigiView):
             ]
         )
 
+    @shows_errors
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:
             case arcade.key.RIGHT:
@@ -48,6 +50,8 @@ class MainMenuView(DigiView):
                     arcade.play_sound(self.window.sounds["valid"])
                 else:
                     self.menu.selected.jiggle_start = self.local_time
+            case arcade.key.E:
+                raise TestError("You hit the E button! Don't do that.")
 
         return super().on_key_press(symbol, modifiers)
 
@@ -55,6 +59,7 @@ class MainMenuView(DigiView):
         self.menu.selected_id += int(scroll_y)
         arcade.play_sound(self.window.sounds["select"])
 
+    @shows_errors
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
         if self.menu.selected.goto is not None:
             self.menu.selected.goto.setup()
@@ -63,12 +68,14 @@ class MainMenuView(DigiView):
         else:
             self.menu.selected.jiggle_start = self.local_time
 
+    @shows_errors
     def on_update(self, delta_time):
         super().on_update(delta_time)
 
         move_gum_wrapper(self.logo_width, self.small_logos_forward, self.small_logos_backward, delta_time)
         self.menu.update(self.local_time)
 
+    @shows_errors
     def on_draw(self):
         self.clear()
         self.camera.use()

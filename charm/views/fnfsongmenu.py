@@ -8,7 +8,7 @@ import charm.data.audio
 import charm.data.images
 from charm.lib.anim import ease_quartout
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
-from charm.lib.digiview import DigiView
+from charm.lib.digiview import DigiView, shows_errors
 from charm.lib.gamemodes.fnf import FNFSong
 from charm.lib.paths import songspath
 from charm.lib.settings import Settings
@@ -59,10 +59,12 @@ class FNFSongMenuView(DigiView):
         self.static.right = self.size[0] - self.album_art_buffer
         self.static.original_bottom = self.album_art.bottom = self.size[1] // 2
 
+    @shows_errors
     def on_show(self):
         print(hashes)
         return super().on_show()
 
+    @shows_errors
     def on_update(self, delta_time):
         super().on_update(delta_time)
 
@@ -73,6 +75,7 @@ class FNFSongMenuView(DigiView):
         self.menu.update(self.local_time)
         self.static.update_animation(delta_time)
 
+    @shows_errors
     def on_key_press(self, symbol: int, modifiers: int):
         old_id = self.menu.selected_id
         match symbol:
@@ -101,12 +104,14 @@ class FNFSongMenuView(DigiView):
         self.menu.selected_id += int(scroll_y)
         arcade.play_sound(self.window.sounds["select"])
 
+    @shows_errors
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
         arcade.play_sound(self.window.sounds["valid"])
         songview = FNFSongView(self.menu.selected.song["key"], back=self)
         songview.setup()
         self.window.show_view(songview)
 
+    @shows_errors
     def on_draw(self):
         self.clear()
         self.camera.use()
