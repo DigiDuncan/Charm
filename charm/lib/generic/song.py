@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from functools import total_ordering
+from pathlib import Path
 from typing import Optional
 
 Seconds = float
@@ -15,8 +16,13 @@ class Note:
     - `lane: int`: The key the user will have to hit to trigger this note
     (which usually corrosponds with it's X position on the highway)
     - `length: float`: the length of the note in seconds, 0 by default.
-    - `type: str`: the note's type, 'normal' be default."""
-    uuid: str
+    - `type: str`: the note's type, 'normal' be default.
+
+    - `hit: bool`: has this note been hit?
+    - `missed: bool`: has this note been missed?
+    - `hit_time: float`: when was this note hit?
+
+    - `extra_data: tuple`: ¯\_(ツ)_/¯"""  # noqa
     time: Seconds
     lane: int
     length: Seconds = 0
@@ -27,7 +33,15 @@ class Note:
     missed: bool = False
     hit_time: Optional[Seconds] = None
 
-    extra_data = None
+    extra_data: tuple = None
+
+    @property
+    def icon(self) -> str:
+        return NotImplemented
+
+    @property
+    def is_sustain(self) -> bool:
+        return self.length > 0
 
     def __lt__(self, other) -> bool:
         if isinstance(other, Note):
@@ -50,7 +64,6 @@ class Event:
 @dataclass
 class BPMChangeEvent(Event):
     new_bpm: int
-    icon = "bpm"
 
 
 class Chart:
@@ -61,23 +74,21 @@ class Chart:
         self.lanes = lanes
         self.notes: list[Note] = []
         self.events: list[Event] = []
-
-        self.note_by_uuid: dict[str, Note] = {}
+        self.bpm: float = None
 
 
 class Song:
-    def __init__(self, name: str, bpm: float) -> None:
+    def __init__(self, name: str):
         self.name = name
+        self.path: Path = None
         self.metadata = {
             "title": name,
             "artist": "Unknown Artist",
             "album": "Unknown Album"
         }
-        self.bpm = bpm
         self.charts: list[Chart] = []
         self.events: list[Event] = []
-        self.hash: str = None
 
     @classmethod
-    def parse(cls, s: str):
+    def parse(cls, folder: str):
         raise NotImplementedError
