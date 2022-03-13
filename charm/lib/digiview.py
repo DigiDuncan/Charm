@@ -23,13 +23,13 @@ def shows_errors(fn):
                 e = GenericError(e)
             self.on_error(e)
             if e._icon == "error":
-                logger.error(e.title, e.show_message)
+                logger.error(f"{e.title}: {e.show_message}")
             elif e._icon == "warning":
-                logger.warn(e.title, e.show_message)
+                logger.warn(f"{e.title}: {e.show_message}")
             elif e._icon == "info":
-                logger.info(e.title, e.show_message)
+                logger.info(f"{e.title}: {e.show_message}")
             else:
-                logger.info(e.title, e.show_message)  # /shrug
+                logger.info(f"{e.title}: {e.show_message}")  # /shrug
     return wrapper
 
 
