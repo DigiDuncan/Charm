@@ -27,7 +27,6 @@ class Note:
     lane: int
     length: Seconds = 0
     type: str = "normal"
-    parent: "Note" = None
 
     hit: bool = False
     missed: bool = False

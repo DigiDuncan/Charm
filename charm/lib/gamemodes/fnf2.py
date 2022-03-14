@@ -1,13 +1,18 @@
 import json
 import logging
+import math
 from dataclasses import dataclass
 from hashlib import sha1
 from pathlib import Path
 from typing import Optional, TypedDict
 
+import arcade
+
 from charm.lib.errors import NoChartsError, UnknownLanesError
-from charm.lib.generic.song import BPMChangeEvent, Chart, Event, Milliseconds, Note, Song
+from charm.lib.generic.engine import DigitalKeyEvent, Engine, Judgement, KeyStates
+from charm.lib.generic.song import BPMChangeEvent, Chart, Event, Milliseconds, Note, Seconds, Song
 from charm.lib.paths import modsfolder, songspath
+from charm.lib.utils import clamp
 
 logger = logging.getLogger("charm")
 
@@ -191,20 +196,10 @@ class FNFSong(Song):
                 chart_lane = note_data[1]
                 note_type = note_data[2]
 
-                thisnote = Note(pos, chart_lane, length, type = note_type)
+                thisnote = FNFNote(pos, chart_lane, length, type = note_type)
                 thisnote.extra_data = extra
                 charts[note_player - 1].notes.append(thisnote)
                 charts[note_player - 1].note_by_uuid[thisnote.uuid] = thisnote
-
-                # TODO: Fake sustains (change this.)
-                seconds_per_thirtysecond = seconds_per_sixteenth / 2
-                if thisnote.length != 0:
-                    sustainbeats = round(thisnote.length / seconds_per_thirtysecond)
-                    for i in range(sustainbeats):
-                        j = i + 1
-                        thatnote = Note(pos + (seconds_per_thirtysecond * (i + 1)), chart_lane, 0, "sustain", thisnote)
-                        charts[note_player - 1].notes.append(thatnote)
-                        charts[note_player - 1].note_by_uuid[thatnote.uuid] = thatnote
 
             section_start += section_length
 
@@ -220,3 +215,104 @@ class FNFSong(Song):
             raise UnknownLanesError(f"Unknown lanes found in chart {name}: {unknown_lanes}")
 
         return charts
+
+
+class FNFEngine(Engine):
+    def __init__(self, chart: Chart, offset: Seconds = -0.075):  # FNF defaults to a 75ms input offset.
+        hit_window = 0.166
+        mapping = [arcade.key.D, arcade.key.F, arcade.key.J, arcade.key.K]
+        judgements = [
+            #        ("name",  ms,       score, acc,  hp = 0)
+            Judgement("sick",  45,       350,   1,    0.04),
+            Judgement("good",  90,       200,   0.75),
+            Judgement("bad",   135,      100,   0.5,  -0.03),
+            Judgement("awful", 166,      50,    -1,   -0.06),  # I'm not calling this "s***", it's not funny.
+            Judgement("miss",  math.inf, 0,     -1,   -0.1)
+        ]
+        super().__init__(chart, mapping, hit_window, judgements, offset)
+
+        self.min_hp = 0
+        self.hp = 1
+        self.max_hp = 2
+        self.bomb_hp = 0.5
+        self.heal_hp = 0.5
+
+        self.has_died = False
+
+        self.latest_judgement = ""
+        self.latest_judgement_time = 0
+
+        self.current_notes: list[FNFNote] = self.chart.notes.copy()
+        self.current_events: list[DigitalKeyEvent] = []
+
+        self.last_p1_note = None
+        self.last_note_missed = False
+
+    def process_keystate(self, key_states: KeyStates):
+        last_state = self.key_state
+        if self.last_p1_note in (0, 1, 2, 3) and key_states[self.last_p1_note] is False:
+            self.last_p1_note = None  # should set BF to idle?
+        # ignore spam during front/back porch
+        if (self.chart_time < self.chart.notes[0].time - self.hit_window
+           or self.chart_time > self.chart.notes[-1].time + self.hit_window):
+            return
+        for n in range(len(key_states)):
+            if key_states[n] is True and last_state[n] is False:
+                e = DigitalKeyEvent(self.chart_time, n, "down")
+                self.current_events.append(e)
+            elif key_states[n] is False and last_state[n] is True:
+                e = DigitalKeyEvent(self.chart_time, n, "up")
+                self.current_events.append(e)
+        self.key_state = key_states.copy()
+
+    def calculate_score(self):
+        for note in [n for n in self.current_notes if n.time <= self.chart_time + self.hit_window]:
+            if self.chart_time > note.time + self.hit_window:
+                note.missed = True
+                note.hit_time = math.inf  # how smart is this? :thinking:
+                self.score_note(note)
+                self.current_notes.remove(note)
+            else:
+                for event in [e for e in self.current_events if e.new_state == "down"]:
+                    if event.key == note.lane and abs(event.time - note.time) <= self.hit_window:
+                        note.hit = True
+                        note.hit_time = event.time
+                        self.score_note(note)
+                        self.current_notes.remove(note)
+                        self.current_events.remove(event)
+                        break
+        self.hp = clamp(self.min_hp, self.hp, self.max_hp)
+        if self.hp == self.min_hp:
+            self.has_died = True
+
+    def score_note(self, note: FNFNote):
+        if note.type == "sustain":
+            if note.hit:
+                self.hp += 0.01
+            elif note.missed:
+                self.hp -= 0.025
+            return
+        if note.type == "death":
+            if note.hit:
+                self.hp = self.min_hp
+            return
+        if note.type == "bomb":
+            if note.hit:
+                self.hp -= self.bomb_hp
+            return
+        j = self.get_note_judgement(note)
+        self.score += j.score
+        self.weighted_hit_notes += j.accuracy_weight
+        if note.type == "heal":
+            self.hp += self.heal_hp
+        else:
+            self.hp += j.hp_change
+        self.latest_judgement = j.name
+        self.latest_judgement_time = self.chart_time
+        if note.hit:
+            self.hits += 1
+            self.last_p1_note = note.lane
+            self.last_note_missed = False
+        elif note.missed:
+            self.misses += 1
+            self.last_note_missed = True
