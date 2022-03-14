@@ -201,6 +201,15 @@ class FNFSong(Song):
                 charts[note_player - 1].notes.append(thisnote)
                 charts[note_player - 1].note_by_uuid[thisnote.uuid] = thisnote
 
+                # TODO: Fake sustains (change this.)
+                if thisnote.length != 0:
+                    sustainbeats = round(thisnote.length / seconds_per_sixteenth)
+                    for i in range(sustainbeats):
+                        j = i + 1
+                        thatnote = FNFNote(pos + (seconds_per_sixteenth * (i + 1)), chart_lane, 0, "sustain", thisnote)
+                        charts[note_player - 1].notes.append(thatnote)
+                        charts[note_player - 1].note_by_uuid[thatnote.uuid] = thatnote
+
             section_start += section_length
 
         for c in charts:
@@ -288,9 +297,9 @@ class FNFEngine(Engine):
     def score_note(self, note: FNFNote):
         if note.type == "sustain":
             if note.hit:
-                self.hp += 0.01
+                self.hp += 0.02
             elif note.missed:
-                self.hp -= 0.025
+                self.hp -= 0.05
             return
         if note.type == "death":
             if note.hit:
