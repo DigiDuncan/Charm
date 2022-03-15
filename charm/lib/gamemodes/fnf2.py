@@ -51,12 +51,13 @@ class CameraFocusEvent(Event):
 class FNFNote(Note):
     @property
     def icon(self):
-        if self.is_sustain and self.type == NoteType.NORMAL:
-            return f"sustain-{self.lane}"
-        elif self.is_sustain:
-            return f"{self.type}-sustain"
-        else:
-            return f"{self.type}-{self.lane}"
+        return f"{self.type}-{self.lane}"
+
+
+class FNFJudgement(Judgement):
+    @property
+    def icon(self):
+        return f"judge-{self.name}"
 
 
 class FNFChart(Chart):
@@ -173,6 +174,8 @@ class FNFSong(Song):
                 events.append(CameraFocusEvent(section_start, focused))
                 last_focus = focused
 
+            # Lanemap: (player, lane, type)
+            # TODO: overrides for this
             lanemap = [(0, 0, "normal"), (0, 1, "normal"), (0, 2, "normal"), (0, 3, "normal"),
                        (1, 0, "normal"), (1, 1, "normal"), (1, 2, "normal"), (1, 3, "normal")]
 
@@ -232,11 +235,11 @@ class FNFEngine(Engine):
         mapping = [arcade.key.D, arcade.key.F, arcade.key.J, arcade.key.K]
         judgements = [
             #        ("name",  ms,       score, acc,  hp = 0)
-            Judgement("sick",  45,       350,   1,    0.04),
-            Judgement("good",  90,       200,   0.75),
-            Judgement("bad",   135,      100,   0.5,  -0.03),
-            Judgement("awful", 166,      50,    -1,   -0.06),  # I'm not calling this "s***", it's not funny.
-            Judgement("miss",  math.inf, 0,     -1,   -0.1)
+            FNFJudgement("sick",  45,       350,   1,    0.04),
+            FNFJudgement("good",  90,       200,   0.75),
+            FNFJudgement("bad",   135,      100,   0.5,  -0.03),
+            FNFJudgement("awful", 166,      50,    -1,   -0.06),  # I'm not calling this "s***", it's not funny.
+            FNFJudgement("miss",  math.inf, 0,     -1,   -0.1)
         ]
         super().__init__(chart, mapping, hit_window, judgements, offset)
 
@@ -250,6 +253,7 @@ class FNFEngine(Engine):
 
         self.latest_judgement = ""
         self.latest_judgement_time = 0
+        self.all_judgements = list[tuple[Judgement, Seconds]]
 
         self.current_notes: list[FNFNote] = self.chart.notes.copy()
         self.current_events: list[DigitalKeyEvent] = []
@@ -275,14 +279,18 @@ class FNFEngine(Engine):
         self.key_state = key_states.copy()
 
     def calculate_score(self):
+        # Get all non-scored notes within the current window
         for note in [n for n in self.current_notes if n.time <= self.chart_time + self.hit_window]:
+            # Missed notes (current time is higher than max allowed time for note)
             if self.chart_time > note.time + self.hit_window:
                 note.missed = True
                 note.hit_time = math.inf  # how smart is this? :thinking:
                 self.score_note(note)
                 self.current_notes.remove(note)
             else:
+                # Check non-used events to see if one matches our note
                 for event in [e for e in self.current_events if e.new_state == "down"]:
+                    # We've determined the note was hit
                     if event.key == note.lane and abs(event.time - note.time) <= self.hit_window:
                         note.hit = True
                         note.hit_time = event.time
@@ -290,37 +298,57 @@ class FNFEngine(Engine):
                         self.current_notes.remove(note)
                         self.current_events.remove(event)
                         break
+
+        # Make sure we can't go below min_hp or above max_hp
         self.hp = clamp(self.min_hp, self.hp, self.max_hp)
         if self.hp == self.min_hp:
             self.has_died = True
 
     def score_note(self, note: FNFNote):
+        # Ignore notes we haven't done anything with yet
+        if not note.hit or note.missed:
+            return
+
+        # Sustains use different scoring
         if note.type == "sustain":
             if note.hit:
                 self.hp += 0.02
             elif note.missed:
                 self.hp -= 0.05
             return
+
+        # Death notes set HP to minimum when hit
         if note.type == "death":
             if note.hit:
                 self.hp = self.min_hp
             return
+
+        # Bomb notes penalize HP when hit
         if note.type == "bomb":
             if note.hit:
                 self.hp -= self.bomb_hp
             return
+
+        # Score the note
         j = self.get_note_judgement(note)
         self.score += j.score
         self.weighted_hit_notes += j.accuracy_weight
+
+        # Give HP for hit note (heal notes give more)
         if note.type == "heal":
             self.hp += self.heal_hp
         else:
             self.hp += j.hp_change
+
+        # Judge the player
         self.latest_judgement = j.name
         self.latest_judgement_time = self.chart_time
+        self.all_judgements.append(self.latest_judgement, self.latest_judgement_time)
+
+        # Animation and hit/miss tracking
+        self.last_p1_note = note.lane
         if note.hit:
             self.hits += 1
-            self.last_p1_note = note.lane
             self.last_note_missed = False
         elif note.missed:
             self.misses += 1

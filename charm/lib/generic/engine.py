@@ -3,6 +3,7 @@ from typing import Literal
 from charm.lib.generic.song import Chart, Note, Seconds
 
 KeyStates = list[bool]
+Key = int
 
 
 @dataclass
@@ -39,36 +40,36 @@ class DigitalKeyEvent(EngineEvent):
 
 
 class Engine:
-    def __init__(self, chart: Chart, mapping: list[int], hit_window: Seconds, judgements: list[Judgement] = [], offset: Seconds = 0) -> None:
+    def __init__(self, chart: Chart, mapping: list[Key], hit_window: Seconds, judgements: list[Judgement] = [], offset: Seconds = 0):
         self.chart = chart
         self.mapping = mapping
         self.hit_window = hit_window
         self.offset = offset
         self.judgements = judgements
 
-        self.chart_time = 0
+        self.chart_time: Seconds = 0
         self.active_notes = self.chart.notes.copy()
 
         self.key_state = [False] * len(mapping)
         self.current_events: list[EngineEvent] = []
 
         # Scoring
-        self.score = 0
-        self.hits = 0
-        self.misses = 0
+        self.score: int = 0
+        self.hits: int = 0
+        self.misses: int = 0
 
         # Accuracy
         self.max_notes = len(self.chart.notes)
-        self.weighted_hit_notes = 0
+        self.weighted_hit_notes: int = 0
 
     @property
-    def accuracy(self):
+    def accuracy(self) -> float | None:
         if self.hits or self.misses:
             return self.weighted_hit_notes / (self.hits + self.misses)
         return None
 
     @property
-    def grade(self):
+    def grade(self) -> str:
         accuracy = self.accuracy * 100
         if accuracy is not None:
             if accuracy >= 97.5:
@@ -88,7 +89,7 @@ class Engine:
         return "C"
 
     @property
-    def fc_type(self):
+    def fc_type(self) -> str:
         if self.accuracy is not None:
             if self.misses == 0:
                 if self.grade in ["SS", "S", "A"]:
@@ -105,7 +106,7 @@ class Engine:
     def process_keystate(self, key_states: KeyStates):
         raise NotImplementedError
 
-    def get_note_judgement(self, note: Note):
+    def get_note_judgement(self, note: Note) -> Judgement:
         rt = abs(note.hit_time - note.time)
         # FIXME: Lag?
         for j in self.judgements:
