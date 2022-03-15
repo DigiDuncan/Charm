@@ -7,12 +7,17 @@ from pathlib import Path
 from typing import Optional, TypedDict
 
 import arcade
+import PIL
 
+import charm.data.images.skins.fnf as fnfskin
+from charm.lib.charm import generate_missing_texture_image
 from charm.lib.errors import NoChartsError, UnknownLanesError
 from charm.lib.generic.engine import DigitalKeyEvent, Engine, Judgement, KeyStates
+from charm.lib.generic.highway import Highway
 from charm.lib.generic.song import BPMChangeEvent, Chart, Event, Milliseconds, Note, Seconds, Song
 from charm.lib.paths import modsfolder, songspath
-from charm.lib.utils import clamp
+from charm.lib.settings import Settings
+from charm.lib.utils import clamp, img_from_resource
 
 logger = logging.getLogger("charm")
 
@@ -35,7 +40,7 @@ class NoteJson(TypedDict):
     lengthInSteps: int
 
 
-class NoteType:
+class NoteType(str):
     NORMAL = "normal"
     BOMB = "bomb"
     DEATH = "death"
@@ -50,13 +55,16 @@ class CameraFocusEvent(Event):
 
 class FNFNote(Note):
     @property
-    def icon(self):
+    def image_name(self) -> str:
         return f"{self.type}-{self.lane}"
+
+    def __lt__(self, other):
+        return (self.time, self.lane, self.type) < (other.time, other.lane, other.type)
 
 
 class FNFJudgement(Judgement):
     @property
-    def icon(self):
+    def image_name(self) -> str:
         return f"judge-{self.name}"
 
 
@@ -166,9 +174,9 @@ class FNFSong(Song):
 
             # Create a camera focus event like they should have in the first place
             if section["mustHitSection"]:
-                focused, unfocused = 1, 2
+                focused, unfocused = 0, 1
             else:
-                focused, unfocused = 2, 1
+                focused, unfocused = 1, 0
 
             if focused != last_focus:
                 events.append(CameraFocusEvent(section_start, focused))
@@ -176,8 +184,8 @@ class FNFSong(Song):
 
             # Lanemap: (player, lane, type)
             # TODO: overrides for this
-            lanemap = [(0, 0, "normal"), (0, 1, "normal"), (0, 2, "normal"), (0, 3, "normal"),
-                       (1, 0, "normal"), (1, 1, "normal"), (1, 2, "normal"), (1, 3, "normal")]
+            lanemap: list[tuple[int, int, NoteType]] = [(0, 0, NoteType.NORMAL), (0, 1, NoteType.NORMAL), (0, 2, NoteType.NORMAL), (0, 3, NoteType.NORMAL),
+                                                        (1, 0, NoteType.NORMAL), (1, 1, NoteType.NORMAL), (1, 2, NoteType.NORMAL), (1, 3, NoteType.NORMAL)]
 
             # Actually make two charts
             sectionNotes = section["sectionNotes"]
@@ -194,24 +202,25 @@ class FNFSong(Song):
                     note_data = lanemap[lane]
                 except IndexError:
                     unknown_lanes.append(lane)
+                    continue
 
                 note_player = focused if note_data[0] == 0 else unfocused
                 chart_lane = note_data[1]
                 note_type = note_data[2]
 
-                thisnote = FNFNote(pos, chart_lane, length, type = note_type)
+                thisnote = FNFNote(charts[note_player], pos, chart_lane, length, type = note_type)
                 thisnote.extra_data = extra
-                charts[note_player - 1].notes.append(thisnote)
-                charts[note_player - 1].note_by_uuid[thisnote.uuid] = thisnote
+                charts[note_player].notes.append(thisnote)
+                charts[note_player].note_by_uuid[thisnote.uuid] = thisnote
 
-                # TODO: Fake sustains (change this.)
+                # TODO: Fake sustains (change this?)
                 if thisnote.length != 0:
                     sustainbeats = round(thisnote.length / seconds_per_sixteenth)
                     for i in range(sustainbeats):
                         j = i + 1
-                        thatnote = FNFNote(pos + (seconds_per_sixteenth * (i + 1)), chart_lane, 0, "sustain", thisnote)
-                        charts[note_player - 1].notes.append(thatnote)
-                        charts[note_player - 1].note_by_uuid[thatnote.uuid] = thatnote
+                        thatnote = FNFNote(charts[note_player], pos + (seconds_per_sixteenth * (i + 1)), chart_lane, 0, "sustain", thisnote)
+                        charts[note_player].notes.append(thatnote)
+                        charts[note_player].note_by_uuid[thatnote.uuid] = thatnote
 
             section_start += section_length
 
@@ -253,7 +262,7 @@ class FNFEngine(Engine):
 
         self.latest_judgement = ""
         self.latest_judgement_time = 0
-        self.all_judgements = list[tuple[Judgement, Seconds]]
+        self.all_judgements = list[tuple[Seconds, Seconds, Judgement]]
 
         self.current_notes: list[FNFNote] = self.chart.notes.copy()
         self.current_events: list[DigitalKeyEvent] = []
@@ -313,6 +322,8 @@ class FNFEngine(Engine):
         if note.type == "sustain":
             if note.hit:
                 self.hp += 0.02
+                self.last_p1_note = note.lane
+                self.last_note_missed = False
             elif note.missed:
                 self.hp -= 0.05
             return
@@ -341,9 +352,10 @@ class FNFEngine(Engine):
             self.hp += j.hp_change
 
         # Judge the player
+        rt = abs(note.hit_time - note.time)
         self.latest_judgement = j.name
         self.latest_judgement_time = self.chart_time
-        self.all_judgements.append(self.latest_judgement, self.latest_judgement_time)
+        self.all_judgements.append(self.latest_judgement_time, rt, self.latest_judgement)
 
         # Animation and hit/miss tracking
         self.last_p1_note = note.lane
@@ -353,3 +365,32 @@ class FNFEngine(Engine):
         elif note.missed:
             self.misses += 1
             self.last_note_missed = True
+
+
+class FNFNoteSprite(arcade.Sprite):
+    def __init__(self, note: FNFNote, height = 128, *args, **kwargs):
+        self.note = note
+        try:
+            self.image = img_from_resource(fnfskin, note.image_name + ".png")
+            whratio = self.image.width / self.image.height
+            if self.image.height != height:
+                self.image = self.image.resize((int(height * whratio), height), PIL.Image.LANCZOS)
+        except Exception:
+            self.image = generate_missing_texture_image(height, height)
+        tex = arcade.Texture(f"_fnfnote_{note.image_name}", image=self.image, hit_box_algorithm=None)
+        super().__init__(texture=tex, *args, **kwargs)
+
+
+class FNFLongNoteSprite(FNFNoteSprite):
+    pass
+
+
+class FNFHighway(Highway):
+    def __init__(self, chart: FNFChart, pos: tuple[int, int], size: tuple[int, int] = None, gap: int = 5, auto = False):
+        viewport = 1 / (chart.notespeed * 0.75)
+        if size is None:
+            size = int(Settings.width / (1280 / 400)), Settings.height
+
+        super().__init__(chart, pos, size, gap, viewport)
+
+        self.auto = auto

@@ -12,17 +12,19 @@ Milliseconds = float
 class Note:
     """Represents a note on a chart.
 
+    - `chart: Chart`: the chart this Note belongs to
     - `time: float`: (in seconds, 0 is the beginning of the song)
     - `lane: int`: The key the user will have to hit to trigger this note
     (which usually corrosponds with it's X position on the highway)
-    - `length: float`: the length of the note in seconds, 0 by default.
-    - `type: str`: the note's type, 'normal' be default.
+    - `length: float`: the length of the note in seconds, 0 by default
+    - `type: str`: the note's type, 'normal' be default
 
     - `hit: bool`: has this note been hit?
     - `missed: bool`: has this note been missed?
     - `hit_time: float`: when was this note hit?
 
     - `extra_data: tuple`: ¯\_(ツ)_/¯"""  # noqa
+    chart: "Chart"
     time: Seconds
     lane: int
     length: Seconds = 0
@@ -67,16 +69,16 @@ class BPMChangeEvent(Event):
 
 class Chart:
     def __init__(self, song: 'Song', gamemode: str, difficulty: str, instrument: str, lanes: int, hash: str) -> None:
+        self.song: Song = song
         self.gamemode = gamemode
         self.difficulty = difficulty
         self.instrument = instrument
         self.lanes = lanes
+        self.hash = hash
+
         self.notes: list[Note] = []
         self.events: list[Event] = []
         self.bpm: float = None
-
-        self.song: Song = song
-        self.hash = hash
 
 
 class Song:
