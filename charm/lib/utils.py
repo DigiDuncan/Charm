@@ -1,3 +1,4 @@
+from functools import cache
 import importlib.resources as pkg_resources
 import PIL.Image
 import arcade
@@ -8,6 +9,7 @@ def clamp(minVal, val, maxVal):
     return max(minVal, min(maxVal, val))
 
 
+@cache
 def img_from_resource(package: pkg_resources.Package, resource: pkg_resources.Resource) -> PIL.Image.Image:
     with pkg_resources.open_binary(package, resource) as f:
         image = PIL.Image.open(f)
@@ -15,6 +17,7 @@ def img_from_resource(package: pkg_resources.Package, resource: pkg_resources.Re
     return image
 
 
+@cache
 def pyglet_img_from_resource(package: pkg_resources.Package, resource: pkg_resources.Resource):
     with pkg_resources.open_binary(package, resource) as f:
         image = arcade.pyglet.image.load("icon.png", file=f)

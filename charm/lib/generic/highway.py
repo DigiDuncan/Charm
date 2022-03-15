@@ -15,7 +15,7 @@ class Highway:
         self.gap = gap
         self.viewport = viewport
         self.px_per_s = self.h / self.viewport
-        self.sprite_list = arcade.SpriteList()
+        self.sprite_list = arcade.SpriteList(capacity=len(chart.notes))
 
         self.camera = Camera(Settings.width, Settings.height)
         self.song_time: float = 0

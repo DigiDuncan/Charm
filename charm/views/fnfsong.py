@@ -7,7 +7,7 @@ from charm.lib import anim
 from charm.lib.adobexml import sprite_from_adobe
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView, shows_errors
-from charm.lib.gamemodes.fnf import CameraFocusEvent, FNFEngine, FNFHighway, FNFSong
+from charm.lib.gamemodes.fnf2 import CameraFocusEvent, FNFEngine, FNFHighway, FNFSong
 from charm.lib.settings import Settings
 from charm.lib.paths import songspath
 
@@ -24,15 +24,7 @@ class FNFSongView(DigiView):
         super().setup()
 
         self.path = songspath / "fnf" / self.name
-        self.songdata: FNFSong = None
-        diffs = ["-ex", "-hard", "", "-easy"]
-        for diff in diffs:
-            p = self.path / f"{self.name}{diff}.json"
-            if p.exists():
-                with open(self.path / f"{self.name}{diff}.json", encoding="utf-8") as chart:
-                    c = chart.read()
-                    self.songdata = FNFSong.parse(self.name, c)
-                    break
+        self.songdata = FNFSong.parse(self.path)
         if not self.songdata:
             raise ValueError("No valid chart found!")
         self.highway_1 = FNFHighway(self.songdata.charts[0], (((Settings.width // 3) * 2), 0))

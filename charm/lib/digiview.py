@@ -1,5 +1,6 @@
 import functools
 import logging
+import traceback
 
 import arcade
 from arcade import View, Window
@@ -30,6 +31,7 @@ def shows_errors(fn):
                 logger.info(f"{e.title}: {e.show_message}")
             else:
                 logger.info(f"{e.title}: {e.show_message}")  # /shrug
+            print(traceback.format_exc())
     return wrapper
 
 
