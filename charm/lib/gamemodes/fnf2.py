@@ -10,6 +10,7 @@ import arcade
 import PIL, PIL.ImageFilter  # noqa
 
 import charm.data.images.skins.fnf as fnfskin
+from charm.lib.anim import bounce
 from charm.lib.charm import generate_missing_texture_image
 from charm.lib.errors import NoChartsError, UnknownLanesError
 from charm.lib.generic.engine import DigitalKeyEvent, Engine, Judgement, KeyStates
@@ -136,6 +137,7 @@ class FNFSong(Song):
 
         for chart in charts:
             chart.name = songdata["song"]
+            chart.bpm = bpm
             chart.player1 = songdata.get("player1", "bf")
             chart.player2 = songdata.get("player2", "dad")
             chart.spectator = songdata.get("player3", "gf")
@@ -245,7 +247,7 @@ class FNFEngine(Engine):
         hit_window = 0.166
         mapping = [arcade.key.D, arcade.key.F, arcade.key.J, arcade.key.K]
         judgements = [
-            #        ("name",  ms,       score, acc,  hp = 0)
+            #           ("name",  ms,       score, acc,  hp = 0)
             FNFJudgement("sick",  45,       350,   1,    0.04),
             FNFJudgement("good",  90,       200,   0.75),
             FNFJudgement("bad",   135,      100,   0.5,  -0.03),
@@ -425,16 +427,18 @@ class FNFHighway(Highway):
         logger.debug(f"Generated highway for chart {chart.instrument}.")
 
     def update(self, song_time: float):
-        self.delta_song_time = song_time - self.song_time
         super().update(song_time)
         for n in self.sprite_list:
             if n.note.hit:
                 n.alpha = 0
+        self.camera.scale = bounce(1, 1.05, self.chart.bpm / 2, self.song_time)
 
     def draw(self):
+        _cam = arcade.get_window().current_camera
+        self.camera.use()
         self.strikeline.draw()
         delta_draw_time = self.song_time - self.last_draw_time
-        scroll = (self.px_per_s * delta_draw_time)
+        scroll = (self.px_per_s * delta_draw_time / 2)
         vp = arcade.get_viewport()
         arcade.set_viewport(
             0,
@@ -444,4 +448,4 @@ class FNFHighway(Highway):
         )
         self.sprite_list.draw()
         self.last_draw_time = self.song_time
-        arcade.get_window().current_camera.use()
+        _cam.use()
