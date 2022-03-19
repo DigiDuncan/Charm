@@ -20,7 +20,7 @@ class TrackCollection:
         self.volume = 0.5
 
     def load(self, sounds):
-        self.tracks = []
+        self.tracks: list[Player] = []
         for s in sounds:
             t = arcade.play_sound(s, self.volume, looping=False)
             self.tracks.append(t)

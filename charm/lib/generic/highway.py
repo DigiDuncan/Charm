@@ -1,5 +1,4 @@
 from arcade import Camera
-import arcade
 from .song import Chart
 from charm.lib.settings import Settings
 
