@@ -17,6 +17,7 @@ logger = logging.getLogger("charm")
 class TrackCollection:
     def __init__(self):
         self.tracks = list[Player]
+        self.volume = 0.5
 
     def load(self, sounds):
         self.tracks = []
@@ -64,7 +65,6 @@ class TrackCollection:
 class FNFSongView(DigiView):
     def __init__(self, name: str, *args, **kwargs):
         super().__init__(fade_in=1, bg_color=CharmColors.FADED_GREEN, *args, **kwargs)
-        self.volume = 0.5
         self.name = name
         self.tracks = TrackCollection()
 
