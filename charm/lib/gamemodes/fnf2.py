@@ -1,3 +1,4 @@
+from __future__ import annotations
 import json
 import logging
 import math
@@ -96,7 +97,7 @@ class FNFSong(Song):
         self.mod: FNFMod = mod
 
     @classmethod
-    def parse(cls, folder: str, mod: FNFMod = None):
+    def parse(cls, folder: str, mod: FNFMod = None) -> FNFSong:
         song = FNFSong(folder)
         song.path = songspath / "fnf" / folder
         if mod:
@@ -423,9 +424,11 @@ class FNFHighway(Highway):
             sprite.alpha = 64
             self.strikeline.append(sprite)
 
-        self.last_draw_time = 0
         logger.debug(f"Generated highway for chart {chart.instrument}.")
 
+        # TODO: Replace with better pixel_offset calculation
+        self.last_update_time = 0
+        self._pixel_offset = 0
     def update(self, song_time: float):
         super().update(song_time)
         for n in self.sprite_list:
@@ -433,19 +436,27 @@ class FNFHighway(Highway):
                 n.alpha = 0
         self.camera.scale = bounce(1, 1.05, self.chart.bpm / 2, self.song_time)
 
+        # TODO: Replace with better pixel_offset calculation
+        delta_draw_time = self.song_time - self.last_update_time
+        self._pixel_offset += (self.px_per_s * delta_draw_time)
+        self.last_update_time = self.song_time
+
+    @property
+    def pixel_offset(self):
+        # TODO: Replace with better pixel_offset calculation
+        return self._pixel_offset
+
     def draw(self):
         _cam = arcade.get_window().current_camera
         self.camera.use()
         self.strikeline.draw()
-        delta_draw_time = self.song_time - self.last_draw_time
-        scroll = (self.px_per_s * delta_draw_time / 2)
         vp = arcade.get_viewport()
+        height = vp[3] - vp[2]
         arcade.set_viewport(
             0,
             Settings.width,
-            vp[2] - scroll,
-            vp[3] - scroll
+            -self.pixel_offset,
+            -self.pixel_offset + height
         )
         self.sprite_list.draw()
-        self.last_draw_time = self.song_time
         _cam.use()
