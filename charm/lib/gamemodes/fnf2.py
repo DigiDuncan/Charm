@@ -1,5 +1,3 @@
-from __future__ import annotations
-from collections import defaultdict
 import json
 import logging
 import math
@@ -98,7 +96,7 @@ class FNFSong(Song):
         self.mod: FNFMod = mod
 
     @classmethod
-    def parse(cls, folder: str, mod: FNFMod = None) -> FNFSong:
+    def parse(cls, folder: str, mod: FNFMod = None) -> 'FNFSong':
         song = FNFSong(folder)
         song.path = songspath / "fnf" / folder
         if mod:
@@ -397,11 +395,10 @@ class FNFNoteSprite(arcade.Sprite):
     @property
     def alpha(self):
         return 0 if self.note.hit else self._alpha
-    
+
     @alpha.setter
     def alpha(self, value):
         self._alpha = value
-
 
     def __lt__(self, other: "FNFNoteSprite"):
         return self.note.time < other.note.time

@@ -37,7 +37,7 @@ class TrackCollection:
     def play(self):
         for t in self.tracks:
             t.play()
-    
+
     def pause(self):
         for t in self.tracks:
             t.pause()
@@ -48,7 +48,7 @@ class TrackCollection:
 
     def sync(self):
         if self.out_of_sync:
-            raise Exception(f"Tracks are out of sync by more than 10ms!")
+            raise Exception("Tracks are out of sync by more than 10ms!")
         for t in self.tracks[1:]:
             t.seek(self.time)
 
