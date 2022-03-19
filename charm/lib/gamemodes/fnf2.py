@@ -225,7 +225,7 @@ class FNFSong(Song):
                     sustainbeats = round(thisnote.length / seconds_per_sixteenth)
                     for i in range(sustainbeats):
                         j = i + 1
-                        thatnote = FNFNote(charts[note_player], pos + (seconds_per_sixteenth * (i + 1)), chart_lane, 0, "sustain", thisnote)
+                        thatnote = FNFNote(charts[note_player], pos + (seconds_per_sixteenth * (i + 1)), chart_lane, 0, "sustain")
                         charts[note_player].notes.append(thatnote)
 
             section_start += section_length
@@ -429,6 +429,7 @@ class FNFHighway(Highway):
         # TODO: Replace with better pixel_offset calculation
         self.last_update_time = 0
         self._pixel_offset = 0
+
     def update(self, song_time: float):
         super().update(song_time)
         for n in self.sprite_list:
