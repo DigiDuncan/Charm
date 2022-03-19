@@ -307,6 +307,7 @@ class FNFHighway(Highway):
             sprite.left = self.lane_x(sprite.lane)
             sprites.append(sprite)
         sprites = [s for s in sprites if s.type == "sustain"] + [s for s in sprites if s.type != "sustain"][::-1]
+        self.sprite_list = arcade.SpriteList(capacity=len(chart.notes))
         for s in sprites:
             self.sprite_list.append(s)
 

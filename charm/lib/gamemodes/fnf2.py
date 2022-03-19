@@ -1,4 +1,5 @@
 from __future__ import annotations
+from collections import defaultdict
 import json
 import logging
 import math
@@ -381,6 +382,7 @@ class FNFEngine(Engine):
 
 class FNFNoteSprite(arcade.Sprite):
     def __init__(self, note: FNFNote, height = 128, *args, **kwargs):
+        self._alpha = 255
         self.note = note
         try:
             self.image = img_from_resource(fnfskin, note.image_name + ".png")
@@ -392,12 +394,46 @@ class FNFNoteSprite(arcade.Sprite):
         tex = arcade.Texture(f"_fnfnote_{note.image_name}", image=self.image, hit_box_algorithm=None)
         super().__init__(texture=tex, *args, **kwargs)
 
+    @property
+    def alpha(self):
+        return 0 if self.note.hit else self._alpha
+    
+    @alpha.setter
+    def alpha(self, value):
+        self._alpha = value
+
+
     def __lt__(self, other: "FNFNoteSprite"):
         return self.note.time < other.note.time
 
 
 class FNFLongNoteSprite(FNFNoteSprite):
     pass
+
+
+class SpriteBucketCollection:
+    def __init__(self):
+        self.width = 5
+        self.buckets: list[arcade.SpriteList] = []
+
+    def append(self, sprite, time, length):
+        first_bucket = self.calc_bucket(time)
+        last_bucket = self.calc_bucket(time + length)
+        self.expand_buckets(last_bucket)
+        for b in range(first_bucket, last_bucket + 1):
+            self.buckets[b].append(sprite)
+
+    def draw(self, time):
+        b = self.calc_bucket(time)
+        self.buckets[b].draw()
+        self.buckets[b + 1].draw()
+
+    def calc_bucket(self, time):
+        return math.floor(time / self.width)
+
+    def expand_buckets(self, b):
+        while len(self.buckets) <= b:
+            self.buckets.append(arcade.SpriteList())
 
 
 class FNFHighway(Highway):
@@ -410,11 +446,13 @@ class FNFHighway(Highway):
 
         self.auto = auto
 
+        self.sprite_buckets = SpriteBucketCollection()
         for note in self.notes:
             sprite = FNFNoteSprite(note, self.note_size) if note.length == 0 else FNFLongNoteSprite(note, self.note_size)
             sprite.top = self.note_y(note.time)
             sprite.left = self.lane_x(note.lane)
-            self.sprite_list.append(sprite)
+            note.sprite = sprite
+            self.sprite_buckets.append(sprite, note.time, note.length)
 
         self.strikeline = arcade.SpriteList()
         for i in [0, 1, 2, 3]:
@@ -432,9 +470,6 @@ class FNFHighway(Highway):
 
     def update(self, song_time: float):
         super().update(song_time)
-        for n in self.sprite_list:
-            if n.note.hit:
-                n.alpha = 0
         self.camera.scale = bounce(1, 1.05, self.chart.bpm / 2, self.song_time)
 
         # TODO: Replace with better pixel_offset calculation
@@ -459,5 +494,5 @@ class FNFHighway(Highway):
             -self.pixel_offset,
             -self.pixel_offset + height
         )
-        self.sprite_list.draw()
+        self.sprite_buckets.draw(self.song_time)
         _cam.use()
