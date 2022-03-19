@@ -14,11 +14,59 @@ from charm.lib.paths import songspath
 logger = logging.getLogger("charm")
 
 
+class TrackCollection:
+    def __init__(self):
+        self.tracks = list[Player]
+
+    def load(self, sounds):
+        self.tracks = []
+        for s in sounds:
+            t = arcade.play_sound(s, self.volume, looping=False)
+            self.tracks.append(t)
+        self.sync()
+
+    @property
+    def time(self):
+        return self.tracks[0].time
+
+    def seek(self, time):
+        for t in self.tracks:
+            t.seek(time)
+
+    def play(self):
+        for t in self.tracks:
+            t.play()
+    
+    def pause(self):
+        for t in self.tracks:
+            t.pause()
+
+    @property
+    def out_of_sync(self):
+        return any(abs(t.time - self.time) > 0.01 for t in self.tracks[1:])
+
+    def sync(self):
+        if self.out_of_sync:
+            raise Exception(f"Tracks are out of sync by more than 10ms!")
+        for t in self.tracks[1:]:
+            t.seek(self.time)
+
+    def close(self):
+        for t in self.tracks:
+            t.delete()
+        self.tracks = []
+
+    @property
+    def loaded(self):
+        return bool(self.tracks)
+
+
 class FNFSongView(DigiView):
     def __init__(self, name: str, *args, **kwargs):
         super().__init__(fade_in=1, bg_color=CharmColors.FADED_GREEN, *args, **kwargs)
         self.volume = 0.5
         self.name = name
+        self.tracks = TrackCollection()
 
     def setup(self):
         super().setup()
@@ -31,11 +79,11 @@ class FNFSongView(DigiView):
         self.highway_2 = FNFHighway(self.songdata.charts[1], (10, 0), auto=True)
         self.engine = FNFEngine(self.songdata.charts[0])
 
-        self._songs: list[arcade.Sound] = []
+        self.trackfiles: list[arcade.Sound] = []
         for f in self.path.glob("*.*"):
             if f.is_file() and f.suffix in [".ogg", ".mp3", ".wav"]:
                 s = arcade.load_sound(f)
-                self._songs.append(s)
+                self.trackfiles.append(s)
 
         self.window.theme_song.volume = 0
 
@@ -89,18 +137,9 @@ class FNFSongView(DigiView):
         self.paused = False
         self.show_text = True
 
-    @property
-    def song(self):
-        return self.songs[0]
-
     @shows_errors
     def on_show(self):
-        self.songs: list[Player] = []
-        for s in self._songs:
-            p = arcade.play_sound(s, self.volume, looping=False)
-            self.songs.append(p)
-        for p in self.songs:
-            p.seek(0)
+        self.tracks.load(self.trackfiles)
 
     @shows_errors
     def on_key_something(self, symbol: int, modifiers: int, press: bool):
@@ -115,29 +154,23 @@ class FNFSongView(DigiView):
         match symbol:
             case arcade.key.BACKSPACE:
                 self.back.setup()
-                for s in self.songs:
-                    s.delete()
+                self.tracks.close()
                 self.window.show_view(self.back)
                 arcade.play_sound(self.window.sounds["back"])
             case arcade.key.SPACE:
                 self.paused = not self.paused
-                for s in self.songs:
-                    s.pause() if self.paused else s.play()
-                for s in self.songs:
-                    s.seek(self.song.time)
+                self.tracks.pause() if self.paused else self.tracks.play()
+                self.tracks.sync()
             case arcade.key.EQUAL:
-                self.song.seek(self.song.time + 5)
+                self.tracks.seek(self.tracks.time + 5)
             case arcade.key.MINUS:
-                self.song.seek(self.song.time - 5)
+                self.tracks.seek(self.tracks.time - 5)
             case arcade.key.T:
                 self.show_text = not self.show_text
             case arcade.key.S:
-                for s in self.songs:
-                    s.pause()
-                for s in self.songs:
-                    s.play()
-                for s in self.songs:
-                    s.seek(self.song.time)
+                self.tracks.pause()
+                self.tracks.sync()
+                self.tracks.play()
 
         self.on_key_something(symbol, modifiers, True)
         return super().on_key_press(symbol, modifiers)
@@ -151,10 +184,10 @@ class FNFSongView(DigiView):
     def on_update(self, delta_time):
         super().on_update(delta_time)
 
-        if not self.songs:
+        if not self.tracks.loaded:
             return
 
-        self.engine.update(self.song.time)
+        self.engine.update(self.tracks.time)
 
         # TODO: Lag? Maybe not calculate this every tick?
         # The only way to solve this I think is to create something like an
@@ -164,7 +197,7 @@ class FNFSongView(DigiView):
 
         move_gum_wrapper(self.logo_width, self.small_logos_forward, self.small_logos_backward, delta_time)
 
-        time = f"{int(self.song.time // 60)}:{int(self.song.time % 60):02}"
+        time = f"{int(self.tracks.time // 60)}:{int(self.tracks.time % 60):02}"
         if self.song_time_text._label.text != time:
             self.song_time_text._label.text = time
         if self.score_text._label.text != str(self.engine.score):
@@ -172,10 +205,10 @@ class FNFSongView(DigiView):
         if self.judge_text._label.text != self.engine.latest_judgement:
             self.judge_text._label.text = self.engine.latest_judgement
 
-        self.get_spotlight_position(self.song.time)
+        self.get_spotlight_position(self.tracks.time)
 
-        self.highway_1.update(self.song.time)
-        self.highway_2.update(self.song.time)
+        self.highway_1.update(self.tracks.time)
+        self.highway_2.update(self.tracks.time)
 
         self.judge_text.y = anim.ease_circout((self.size[1] // 2) + 20, self.size[1] // 2, self.engine.latest_judgement_time, self.engine.latest_judgement_time + 0.25, self.engine.chart_time)
         if self.engine.accuracy:
@@ -216,7 +249,7 @@ class FNFSongView(DigiView):
             2: Settings.width // 2,
             1: 0
         }
-        cameraevents = [e for e in self.songdata.events if isinstance(e, CameraFocusEvent) and e.time < self.song.time + 0.25]
+        cameraevents = [e for e in self.songdata.events if isinstance(e, CameraFocusEvent) and e.time < self.tracks.time + 0.25]
         if cameraevents:
             current_camera_event = cameraevents[-1]
             if self.last_camera_event != current_camera_event:
