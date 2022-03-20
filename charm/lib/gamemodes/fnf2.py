@@ -412,25 +412,29 @@ class SpriteBucketCollection:
     def __init__(self):
         self.width = 5
         self.buckets: list[arcade.SpriteList] = []
+        self.overbucket = arcade.SpriteList()
 
     def append(self, sprite, time, length):
-        first_bucket = self.calc_bucket(time)
-        last_bucket = self.calc_bucket(time + length)
-        self.expand_buckets(last_bucket)
-        for b in range(first_bucket, last_bucket + 1):
-            self.buckets[b].append(sprite)
+        b = self.calc_bucket(time)
+        b2 = self.calc_bucket(time + length)
+        if b == b2:
+            self.append_bucket(sprite, b)
+        else:
+            self.overbucket.append(sprite)
+
+    def append_bucket(self, sprite, b):
+        while len(self.buckets) <= b:
+            self.buckets.append(arcade.SpriteList())
+        self.buckets[b].append(sprite)
 
     def draw(self, time):
         b = self.calc_bucket(time)
-        self.buckets[b].draw()
-        self.buckets[b + 1].draw()
+        for bucket in self.buckets[b:b+2]:
+            bucket.draw()
+        self.overbucket.draw()
 
     def calc_bucket(self, time):
         return math.floor(time / self.width)
-
-    def expand_buckets(self, b):
-        while len(self.buckets) <= b:
-            self.buckets.append(arcade.SpriteList())
 
 
 class FNFHighway(Highway):
