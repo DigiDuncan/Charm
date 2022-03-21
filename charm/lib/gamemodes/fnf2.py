@@ -293,7 +293,7 @@ class FNFEngine(Engine):
 
     def calculate_score(self):
         # Get all non-scored notes within the current window
-        for note in [n for n in self.current_notes if n.type != "sustain" and n.time <= self.chart_time + self.hit_window]:
+        for note in [n for n in self.current_notes if n.time <= self.chart_time + self.hit_window]:
             # Missed notes (current time is higher than max allowed time for note)
             if self.chart_time > note.time + self.hit_window:
                 note.missed = True
@@ -400,8 +400,9 @@ def load_missing_texture(height, width):
 
 
 class FNFNoteSprite(arcade.Sprite):
-    def __init__(self, note: FNFNote, height = 128, *args, **kwargs):
+    def __init__(self, note: FNFNote, highway: FNFHighway, height = 128, *args, **kwargs):
         self.note = note
+        self.highway = highway
         tex = load_note_texture(note.type, note.lane, height)
         super().__init__(texture=tex, *args, **kwargs)
 
@@ -409,7 +410,10 @@ class FNFNoteSprite(arcade.Sprite):
         return self.note.time < other.note.time
 
     def update_animation(self, delta_time: float):
-        if self.note.hit:
+        if self.note.type == "sustain":
+            if self.note.hit and self.highway.song_time >= self.note.time:
+                self.alpha = 0
+        elif self.note.hit:
             self.alpha = 0
 
 
@@ -471,7 +475,7 @@ class FNFHighway(Highway):
 
         self.sprite_buckets = SpriteBucketCollection()
         for note in self.notes:
-            sprite = FNFNoteSprite(note, self.note_size) if note.length == 0 else FNFLongNoteSprite(note, self.note_size)
+            sprite = FNFNoteSprite(note, self, self.note_size) if note.length == 0 else FNFLongNoteSprite(note, self, self.note_size)
             sprite.top = self.note_y(note.time)
             sprite.left = self.lane_x(note.lane)
             note.sprite = sprite
@@ -479,7 +483,7 @@ class FNFHighway(Highway):
 
         self.strikeline = arcade.SpriteList()
         for i in [0, 1, 2, 3]:
-            sprite = FNFNoteSprite(FNFNote(self.chart, 0, i, 0), self.note_size)
+            sprite = FNFNoteSprite(FNFNote(self.chart, 0, i, 0), self, self.note_size)
             sprite.top = self.strikeline_y
             sprite.left = self.lane_x(sprite.note.lane)
             sprite.alpha = 64
