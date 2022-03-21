@@ -1,6 +1,7 @@
 import logging
 
 import arcade
+from charm.lib.logsection import LogSection
 from pyglet.media import Player
 
 from charm.lib import anim
@@ -75,10 +76,17 @@ class FNFSongView(DigiView):
         self.songdata = FNFSong.parse(self.path)
         if not self.songdata:
             raise ValueError("No valid chart found!")
+        sec = LogSection(logger, "loading highway 1")
         self.highway_1 = FNFHighway(self.songdata.charts[0], (((Settings.width // 3) * 2), 0))
+        sec.done()
+        sec = LogSection(logger, "loading highway 2")
         self.highway_2 = FNFHighway(self.songdata.charts[1], (10, 0), auto=True)
+        sec.done()
+        sec = LogSection(logger, "loading engine")
         self.engine = FNFEngine(self.songdata.charts[0])
+        sec.done()
 
+        sec = LogSection(logger, "loading sound")
         self.trackfiles: list[arcade.Sound] = []
         for f in self.path.glob("*.*"):
             if f.is_file() and f.suffix in [".ogg", ".mp3", ".wav"]:
@@ -86,7 +94,9 @@ class FNFSongView(DigiView):
                 self.trackfiles.append(s)
 
         self.window.theme_song.volume = 0
+        sec.done()
 
+        sec = LogSection(logger, "loading text")
         self.song_time_text = arcade.Text("??:??", (self.size[0] // 2), 10, font_size=24,
                                           anchor_x="center", color=arcade.color.BLACK,
                                           font_name="bananaslip plus plus")
@@ -110,10 +120,14 @@ class FNFSongView(DigiView):
         self.dead_text = arcade.Text("DEAD.", (self.size[0] // 2), (self.size[1] // 3) * 2, font_size=64,
                                      anchor_x="center", anchor_y="center", color=arcade.color.BLACK,
                                      font_name="bananaslip plus plus")
+        sec.done()
 
+        sec = LogSection(logger, "loading gum wrapper")
         # Generate "gum wrapper" background
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
+        sec.done()
 
+        sec = LogSection(logger, "finalizing")
         self.last_player1_note = None
         self.last_player2_note = None
         self.last_camera_event = CameraFocusEvent(0, 2)
@@ -136,6 +150,7 @@ class FNFSongView(DigiView):
 
         self.paused = False
         self.show_text = True
+        sec.done()
 
     @shows_errors
     def on_show(self):
