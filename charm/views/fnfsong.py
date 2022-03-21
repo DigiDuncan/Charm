@@ -2,7 +2,7 @@ import logging
 
 import arcade
 from charm.lib.logsection import LogSection
-from pyglet.media import Player
+import pyglet.media as media
 
 from charm.lib import anim
 from charm.lib.adobexml import sprite_from_adobe
@@ -17,15 +17,14 @@ logger = logging.getLogger("charm")
 
 class TrackCollection:
     def __init__(self):
-        self.tracks = list[Player]
-        self.volume = 0.5
+        self.tracks: list[media.Player] = []
 
     def load(self, sounds):
-        self.tracks: list[Player] = []
-        for s in sounds:
-            t = arcade.play_sound(s, self.volume, looping=False)
-            self.tracks.append(t)
-        self.sync()
+        if self.tracks:
+            self.close()
+        self.tracks = [s.play(volume = 0.5) for s in sounds]
+        self.pause()
+        self.seek(0)
 
     @property
     def time(self):
@@ -36,21 +35,17 @@ class TrackCollection:
             t.seek(time)
 
     def play(self):
+        self.sync()
         for t in self.tracks:
             t.play()
+        
 
     def pause(self):
         for t in self.tracks:
             t.pause()
 
-    def sync(self):
-        out_of_sync = any(abs(t.time - self.time) > 0.01 for t in self.tracks[1:])
-        if out_of_sync:
-            logger.warning("Tracks are out of sync by more than 10ms!")
-        for t in self.tracks[1:]:
-            t.seek(self.time)
-
     def close(self):
+        self.pause()
         for t in self.tracks:
             t.delete()
         self.tracks = []
@@ -58,6 +53,19 @@ class TrackCollection:
     @property
     def loaded(self):
         return bool(self.tracks)
+
+    def sync(self):
+        self.log_sync()
+        maxtime = max(t.time for t in self.tracks)
+        self.seek(maxtime)
+
+    def log_sync(self):
+        mintime = min(t.time for t in self.tracks)
+        maxtime = max(t.time for t in self.tracks)
+        sync_diff = (maxtime - mintime) * 1000
+        logger.debug(f"Track sync: {sync_diff:.0f}ms")
+        if sync_diff > 10:
+            logger.warning("Tracks are out of sync by more than 10ms!")
 
 
 class FNFSongView(DigiView):
@@ -86,7 +94,7 @@ class FNFSongView(DigiView):
             self.trackfiles: list[arcade.Sound] = []
             soundfiles = [f for f in self.path.iterdir() if f.is_file() and f.suffix in [".ogg", ".mp3", ".wav"]]
             for f in soundfiles:
-                s = arcade.load_sound(f, streaming = True)
+                s = arcade.load_sound(f, streaming = False)
                 self.trackfiles.append(s)
 
             self.window.theme_song.volume = 0
@@ -147,6 +155,7 @@ class FNFSongView(DigiView):
     @shows_errors
     def on_show(self):
         self.tracks.load(self.trackfiles)
+        self.tracks.play()
 
     @shows_errors
     def on_key_something(self, symbol: int, modifiers: int, press: bool):
@@ -167,7 +176,6 @@ class FNFSongView(DigiView):
             case arcade.key.SPACE:
                 self.paused = not self.paused
                 self.tracks.pause() if self.paused else self.tracks.play()
-                self.tracks.sync()
             case arcade.key.EQUAL:
                 self.tracks.seek(self.tracks.time + 5)
             case arcade.key.MINUS:
@@ -175,9 +183,7 @@ class FNFSongView(DigiView):
             case arcade.key.T:
                 self.show_text = not self.show_text
             case arcade.key.S:
-                self.tracks.pause()
-                self.tracks.sync()
-                self.tracks.play()
+                self.tracks.log_sync()
 
         self.on_key_something(symbol, modifiers, True)
         return super().on_key_press(symbol, modifiers)
