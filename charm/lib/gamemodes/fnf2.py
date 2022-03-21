@@ -64,9 +64,9 @@ class FNFNote(Note):
 
 class FNFJudgement(Judgement):
     pass
-    #@property
-    #def image_name(self) -> str:
-    #    return f"judge-{self.name}"
+    # @property
+    # def image_name(self) -> str:
+    #     return f"judge-{self.name}"
 
 
 class FNFChart(Chart):
@@ -401,21 +401,16 @@ def load_missing_texture(height, width):
 
 class FNFNoteSprite(arcade.Sprite):
     def __init__(self, note: FNFNote, height = 128, *args, **kwargs):
-        self._alpha = 255
         self.note = note
         tex = load_note_texture(note.type, note.lane, height)
         super().__init__(texture=tex, *args, **kwargs)
 
-    @property
-    def alpha(self):
-        return 0 if self.note.hit else self._alpha
-
-    @alpha.setter
-    def alpha(self, value):
-        self._alpha = value
-
     def __lt__(self, other: FNFNoteSprite):
         return self.note.time < other.note.time
+
+    def update_animation(self, delta_time: float):
+        if self.note.hit:
+            self.alpha = 0
 
 
 class FNFLongNoteSprite(FNFNoteSprite):
@@ -428,7 +423,7 @@ class SpriteBucketCollection:
         self.buckets: list[arcade.SpriteList] = []
         self.overbucket = arcade.SpriteList()
 
-    def append(self, sprite, time, length):
+    def append(self, sprite: arcade.Sprite, time: float, length: float):
         b = self.calc_bucket(time)
         b2 = self.calc_bucket(time + length)
         if b == b2:
@@ -441,13 +436,25 @@ class SpriteBucketCollection:
             self.buckets.append(arcade.SpriteList())
         self.buckets[b].append(sprite)
 
-    def draw(self, time):
+    def update(self, time: float, delta_time: float = 1/60):
+        b = self.calc_bucket(time)
+        for bucket in self.buckets[b:b+2]:
+            bucket.update(delta_time)
+        self.overbucket.update(delta_time)
+
+    def update_animation(self, time: float, delta_time: float = 1/60):
+        b = self.calc_bucket(time)
+        for bucket in self.buckets[b:b+2]:
+            bucket.update_animation(delta_time)
+        self.overbucket.update_animation(delta_time)
+
+    def draw(self, time: float):
         b = self.calc_bucket(time)
         for bucket in self.buckets[b:b+2]:
             bucket.draw()
         self.overbucket.draw()
 
-    def calc_bucket(self, time):
+    def calc_bucket(self, time: float) -> int:
         return math.floor(time / self.width)
 
 
@@ -487,7 +494,7 @@ class FNFHighway(Highway):
     def update(self, song_time: float):
         super().update(song_time)
         self.camera.scale = bounce(1, 1.05, self.chart.bpm / 2, self.song_time)
-
+        self.sprite_buckets.update_animation(song_time)
         # TODO: Replace with better pixel_offset calculation
         delta_draw_time = self.song_time - self.last_update_time
         self._pixel_offset += (self.px_per_s * delta_draw_time)

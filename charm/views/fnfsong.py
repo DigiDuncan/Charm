@@ -38,7 +38,6 @@ class TrackCollection:
         self.sync()
         for t in self.tracks:
             t.play()
-        
 
     def pause(self):
         for t in self.tracks:
@@ -86,7 +85,7 @@ class FNFSongView(DigiView):
         with LogSection(logger, "loading highways"):
             self.highway_1 = FNFHighway(self.songdata.charts[0], (((Settings.width // 3) * 2), 0))
             self.highway_2 = FNFHighway(self.songdata.charts[1], (10, 0), auto=True)
-            
+
         with LogSection(logger, "loading engine"):
             self.engine = FNFEngine(self.songdata.charts[0])
 
