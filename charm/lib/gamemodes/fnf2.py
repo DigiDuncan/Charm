@@ -1,4 +1,6 @@
 from __future__ import annotations
+from functools import cache
+
 import json
 import logging
 import math
@@ -56,18 +58,15 @@ class CameraFocusEvent(Event):
 
 
 class FNFNote(Note):
-    @property
-    def image_name(self) -> str:
-        return f"{self.type}-{self.lane + 1}"
-
     def __lt__(self, other):
         return (self.time, self.lane, self.type) < (other.time, other.lane, other.type)
 
 
 class FNFJudgement(Judgement):
-    @property
-    def image_name(self) -> str:
-        return f"judge-{self.name}"
+    pass
+    #@property
+    #def image_name(self) -> str:
+    #    return f"judge-{self.name}"
 
 
 class FNFChart(Chart):
@@ -379,18 +378,32 @@ class FNFEngine(Engine):
             self.last_note_missed = True
 
 
+@cache
+def load_note_texture(note_type, note_lane, height):
+    image_name = f"{note_type}-{note_lane + 1}"
+    try:
+        image = img_from_resource(fnfskin, image_name + ".png")
+        if image.height != height:
+            width = int((height / image.height) * image.width)
+            image = image.resize((width, height), PIL.Image.LANCZOS)
+    except Exception:
+        logger.error(f"Unable to load texture: {image_name}")
+        return load_missing_texture(height, height)
+    return arcade.Texture(f"_fnfnote_{image_name}", image=image, hit_box_algorithm=None)
+
+
+@cache
+def load_missing_texture(height, width):
+    image_name = f"{height}x{width}"
+    image = generate_missing_texture_image(height, width)
+    return arcade.Texture(f"_fnfmissing_{image_name}", image=image, hit_box_algorithm=None)
+
+
 class FNFNoteSprite(arcade.Sprite):
     def __init__(self, note: FNFNote, height = 128, *args, **kwargs):
         self._alpha = 255
         self.note = note
-        try:
-            self.image = img_from_resource(fnfskin, note.image_name + ".png")
-            whratio = self.image.width / self.image.height
-            if self.image.height != height:
-                self.image = self.image.resize((int(height * whratio), height), PIL.Image.LANCZOS)
-        except Exception:
-            self.image = generate_missing_texture_image(height, height)
-        tex = arcade.Texture(f"_fnfnote_{note.image_name}", image=self.image, hit_box_algorithm=None)
+        tex = load_note_texture(note.type, note.lane, height)
         super().__init__(texture=tex, *args, **kwargs)
 
     @property
