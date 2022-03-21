@@ -4,19 +4,21 @@ from charm.lib.settings import Settings
 
 
 class Highway:
-    def __init__(self, chart: Chart, pos: tuple[int, int], size: tuple[int, int] = None,
-                 gap: int = 5, viewport: float = 1):
+    def __init__(self, chart: Chart, pos: tuple[int, int], size: tuple[int, int] = None, gap: int = 5):
         self.chart = chart
         self.notes = self.chart.notes
 
         self.pos = pos
         self.size = size if size is not None else (Settings.width // 3, Settings.height)
         self.gap = gap
-        self.viewport = viewport
-        self.px_per_s = self.h / self.viewport
+        self.viewport: float = 1
 
         self.camera = Camera(Settings.width, Settings.height)
         self.song_time: float = 0
+
+    @property
+    def px_per_s(self):
+        return self.h / self.viewport
 
     @property
     def x(self) -> int:
