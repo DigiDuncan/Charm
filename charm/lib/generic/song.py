@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from functools import total_ordering
 from pathlib import Path
@@ -24,7 +26,7 @@ class Note:
     - `hit_time: float`: when was this note hit?
 
     - `extra_data: tuple`: ¯\_(ツ)_/¯"""  # noqa
-    chart: "Chart"
+    chart: Chart
     time: Seconds
     lane: int
     length: Seconds = 0

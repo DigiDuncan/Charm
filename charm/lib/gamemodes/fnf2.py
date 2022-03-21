@@ -1,3 +1,4 @@
+from __future__ import annotations
 import json
 import logging
 import math
@@ -24,14 +25,14 @@ logger = logging.getLogger("charm")
 
 
 class SongFileJson(TypedDict):
-    song: "SongJson"
+    song: SongJson
 
 
 class SongJson(TypedDict):
     song: str
     bpm: float
     speed: float
-    notes: list["NoteJson"]
+    notes: list[NoteJson]
 
 
 class NoteJson(TypedDict):
@@ -70,7 +71,7 @@ class FNFJudgement(Judgement):
 
 
 class FNFChart(Chart):
-    def __init__(self, song: 'FNFSong', difficulty: str, player: int, speed: float, hash: str):
+    def __init__(self, song: FNFSong, difficulty: str, player: int, speed: float, hash: str):
         super().__init__(song, "fnf", difficulty, f"player{player}", 4, hash)
         self.player1 = "bf"
         self.player2 = "dad"
@@ -96,7 +97,7 @@ class FNFSong(Song):
         self.mod: FNFMod = mod
 
     @classmethod
-    def parse(cls, folder: str, mod: FNFMod = None) -> 'FNFSong':
+    def parse(cls, folder: str, mod: FNFMod = None) -> FNFSong:
         song = FNFSong(folder)
         song.path = songspath / "fnf" / folder
         if mod:
@@ -120,10 +121,10 @@ class FNFSong(Song):
         return song
 
     @classmethod
-    def parse_chart(cls, file_path: Path, song: 'FNFSong') -> list[FNFChart]:
+    def parse_chart(cls, file_path: Path, song: FNFSong) -> list[FNFChart]:
         with open(file_path) as p:
             j: SongFileJson = json.load(p)
-        hash = sha1(bytes(json.dumps(j), encoding='utf-8')).hexdigest()
+        hash = sha1(bytes(json.dumps(j), encoding="utf-8")).hexdigest()
         difficulty = file_path.stem.rsplit("-", 1)[1] if "-" in file_path.stem else "normal"
         songdata = j["song"]
 
@@ -400,7 +401,7 @@ class FNFNoteSprite(arcade.Sprite):
     def alpha(self, value):
         self._alpha = value
 
-    def __lt__(self, other: "FNFNoteSprite"):
+    def __lt__(self, other: FNFNoteSprite):
         return self.note.time < other.note.time
 
 
