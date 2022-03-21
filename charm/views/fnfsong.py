@@ -155,6 +155,7 @@ class FNFSongView(DigiView):
     def on_show(self):
         self.tracks.load(self.trackfiles)
         self.tracks.play()
+        super().on_show()
 
     @shows_errors
     def on_key_something(self, symbol: int, modifiers: int, press: bool):
