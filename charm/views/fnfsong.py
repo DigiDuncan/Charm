@@ -43,13 +43,10 @@ class TrackCollection:
         for t in self.tracks:
             t.pause()
 
-    @property
-    def out_of_sync(self):
-        return any(abs(t.time - self.time) > 0.01 for t in self.tracks[1:])
-
     def sync(self):
-        if self.out_of_sync:
-            raise Exception("Tracks are out of sync by more than 10ms!")
+        out_of_sync = any(abs(t.time - self.time) > 0.01 for t in self.tracks[1:])
+        if out_of_sync:
+            logger.warning("Tracks are out of sync by more than 10ms!")
         for t in self.tracks[1:]:
             t.seek(self.time)
 
@@ -87,10 +84,10 @@ class FNFSongView(DigiView):
 
         with LogSection(logger, "loading sound"):
             self.trackfiles: list[arcade.Sound] = []
-            for f in self.path.glob("*.*"):
-                if f.is_file() and f.suffix in [".ogg", ".mp3", ".wav"]:
-                    s = arcade.load_sound(f)
-                    self.trackfiles.append(s)
+            soundfiles = [f for f in self.path.iterdir() if f.is_file() and f.suffix in [".ogg", ".mp3", ".wav"]]
+            for f in soundfiles:
+                s = arcade.load_sound(f, streaming = True)
+                self.trackfiles.append(s)
 
             self.window.theme_song.volume = 0
 
