@@ -72,85 +72,80 @@ class FNFSongView(DigiView):
     def setup(self):
         super().setup()
 
-        self.path = songspath / "fnf" / self.name
-        self.songdata = FNFSong.parse(self.path)
-        if not self.songdata:
-            raise ValueError("No valid chart found!")
-        sec = LogSection(logger, "loading highway 1")
-        self.highway_1 = FNFHighway(self.songdata.charts[0], (((Settings.width // 3) * 2), 0))
-        sec.done()
-        sec = LogSection(logger, "loading highway 2")
-        self.highway_2 = FNFHighway(self.songdata.charts[1], (10, 0), auto=True)
-        sec.done()
-        sec = LogSection(logger, "loading engine")
-        self.engine = FNFEngine(self.songdata.charts[0])
-        sec.done()
+        with LogSection(logger, "loading song data"):
+            self.path = songspath / "fnf" / self.name
+            self.songdata = FNFSong.parse(self.path)
+            if not self.songdata:
+                raise ValueError("No valid chart found!")
 
-        sec = LogSection(logger, "loading sound")
-        self.trackfiles: list[arcade.Sound] = []
-        for f in self.path.glob("*.*"):
-            if f.is_file() and f.suffix in [".ogg", ".mp3", ".wav"]:
-                s = arcade.load_sound(f)
-                self.trackfiles.append(s)
+        with LogSection(logger, "loading highways"):
+            self.highway_1 = FNFHighway(self.songdata.charts[0], (((Settings.width // 3) * 2), 0))
+            self.highway_2 = FNFHighway(self.songdata.charts[1], (10, 0), auto=True)
+            
+        with LogSection(logger, "loading engine"):
+            self.engine = FNFEngine(self.songdata.charts[0])
 
-        self.window.theme_song.volume = 0
-        sec.done()
+        with LogSection(logger, "loading sound"):
+            self.trackfiles: list[arcade.Sound] = []
+            for f in self.path.glob("*.*"):
+                if f.is_file() and f.suffix in [".ogg", ".mp3", ".wav"]:
+                    s = arcade.load_sound(f)
+                    self.trackfiles.append(s)
 
-        sec = LogSection(logger, "loading text")
-        self.song_time_text = arcade.Text("??:??", (self.size[0] // 2), 10, font_size=24,
-                                          anchor_x="center", color=arcade.color.BLACK,
-                                          font_name="bananaslip plus plus")
+            self.window.theme_song.volume = 0
 
-        self.score_text = arcade.Text("0", (self.size[0] // 2), self.size[1] - 10, font_size=24,
-                                      anchor_x="center", anchor_y="top", color=arcade.color.BLACK,
-                                      font_name="bananaslip plus plus")
+        with LogSection(logger, "loading text"):
+            self.song_time_text = arcade.Text("??:??", (self.size[0] // 2), 10, font_size=24,
+                                            anchor_x="center", color=arcade.color.BLACK,
+                                            font_name="bananaslip plus plus")
 
-        self.judge_text = arcade.Text("", (self.size[0] // 2), self.size[1] // 2, font_size=48,
-                                      anchor_x="center", anchor_y="center", color=arcade.color.BLACK,
-                                      font_name="bananaslip plus plus")
+            self.score_text = arcade.Text("0", (self.size[0] // 2), self.size[1] - 10, font_size=24,
+                                        anchor_x="center", anchor_y="top", color=arcade.color.BLACK,
+                                        font_name="bananaslip plus plus")
 
-        self.grade_text = arcade.Text("Clear", (self.size[0] // 2), self.size[1] - 135, font_size=16,
-                                      anchor_x="center", anchor_y="center", color=arcade.color.BLACK,
-                                      font_name="bananaslip plus plus")
+            self.judge_text = arcade.Text("", (self.size[0] // 2), self.size[1] // 2, font_size=48,
+                                        anchor_x="center", anchor_y="center", color=arcade.color.BLACK,
+                                        font_name="bananaslip plus plus")
 
-        self.pause_text = arcade.Text("PAUSED", (self.size[0] // 2), (self.size[1] // 2), font_size=92,
-                                      anchor_x="center", anchor_y="center", color=arcade.color.BLACK,
-                                      font_name="bananaslip plus plus")
+            self.grade_text = arcade.Text("Clear", (self.size[0] // 2), self.size[1] - 135, font_size=16,
+                                        anchor_x="center", anchor_y="center", color=arcade.color.BLACK,
+                                        font_name="bananaslip plus plus")
 
-        self.dead_text = arcade.Text("DEAD.", (self.size[0] // 2), (self.size[1] // 3) * 2, font_size=64,
-                                     anchor_x="center", anchor_y="center", color=arcade.color.BLACK,
-                                     font_name="bananaslip plus plus")
-        sec.done()
+            self.pause_text = arcade.Text("PAUSED", (self.size[0] // 2), (self.size[1] // 2), font_size=92,
+                                        anchor_x="center", anchor_y="center", color=arcade.color.BLACK,
+                                        font_name="bananaslip plus plus")
 
-        sec = LogSection(logger, "loading gum wrapper")
-        # Generate "gum wrapper" background
-        self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
-        sec.done()
+            self.dead_text = arcade.Text("DEAD.", (self.size[0] // 2), (self.size[1] // 3) * 2, font_size=64,
+                                        anchor_x="center", anchor_y="center", color=arcade.color.BLACK,
+                                        font_name="bananaslip plus plus")
 
-        sec = LogSection(logger, "finalizing")
-        self.last_player1_note = None
-        self.last_player2_note = None
-        self.last_camera_event = CameraFocusEvent(0, 2)
-        self.last_spotlight_position = 0
-        self.last_spotlight_change = 0
-        self.go_to_spotlight_position = 0
-        self.spotlight_position = 0
+        with LogSection(logger, "loading gum wrapper"):
+            # Generate "gum wrapper" background
+            self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
 
-        self.hp_bar_length = 250
+        with LogSection(logger, "finalizing"):
+            self.last_player1_note = None
+            self.last_player2_note = None
+            self.last_camera_event = CameraFocusEvent(0, 2)
+            self.last_spotlight_position = 0
+            self.last_spotlight_change = 0
+            self.go_to_spotlight_position = 0
+            self.spotlight_position = 0
 
-        self.key_state = [False] * 4
+            self.hp_bar_length = 250
 
-        self.boyfriend = sprite_from_adobe("BOYFRIEND", ["bottom", "center_x"])
-        self.boyfriend.set_animation("BF idle dance")
-        self.boyfriend.scale = 0.5
-        self.boyfriend.right = Settings.width - 10
-        self.boyfriend.bottom = 10
-        self.boyfriend_anim = None
-        self.boyfriend_anim_missed = False
+            self.key_state = [False] * 4
 
-        self.paused = False
-        self.show_text = True
-        sec.done()
+            self.boyfriend = sprite_from_adobe("BOYFRIEND", ["bottom", "center_x"])
+            self.boyfriend.set_animation("BF idle dance")
+            self.boyfriend.scale = 0.5
+            self.boyfriend.right = Settings.width - 10
+            self.boyfriend.bottom = 10
+            self.boyfriend_anim = None
+            self.boyfriend_anim_missed = False
+
+            self.paused = False
+            self.show_text = True
 
     @shows_errors
     def on_show(self):

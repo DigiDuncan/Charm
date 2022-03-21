@@ -11,3 +11,10 @@ class LogSection:
     def done(self):
         duration = int((time() - self.start_time) * 1000)
         self.logger.debug(f"Done {self.name} ({duration}ms)")
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, type, value, traceback):
+        if type is None:
+            self.done()
