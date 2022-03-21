@@ -1,7 +1,6 @@
 import logging
 
 import arcade
-from charm.lib.logsection import LogSection
 import pyglet.media as media
 
 from charm.lib import anim
@@ -9,6 +8,7 @@ from charm.lib.adobexml import sprite_from_adobe
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView, shows_errors
 from charm.lib.gamemodes.fnf2 import CameraFocusEvent, FNFEngine, FNFHighway, FNFSong
+from charm.lib.logsection import LogSection
 from charm.lib.settings import Settings
 from charm.lib.paths import songspath
 
@@ -16,13 +16,8 @@ logger = logging.getLogger("charm")
 
 
 class TrackCollection:
-    def __init__(self):
-        self.tracks: list[media.Player] = []
-
-    def load(self, sounds):
-        if self.tracks:
-            self.close()
-        self.tracks = [s.play(volume = 0.5) for s in sounds]
+    def __init__(self, sounds: arcade.Sound):
+        self.tracks: list[media.Player] = [s.play(volume = 0.5) for s in sounds]
         self.pause()
         self.seek(0)
 
@@ -31,8 +26,9 @@ class TrackCollection:
         return self.tracks[0].time
 
     def seek(self, time):
-        for t in self.tracks:
-            t.seek(time)
+        pass
+        #for t in self.tracks:
+        #    t.seek(time)
 
     def play(self):
         self.sync()
@@ -70,15 +66,40 @@ class TrackCollection:
 class FNFSongView(DigiView):
     def __init__(self, name: str, *args, **kwargs):
         super().__init__(fade_in=1, bg_color=CharmColors.FADED_GREEN, *args, **kwargs)
-        self.name = name
-        self.tracks = TrackCollection()
+        self.name: str = name
+        self.engine: FNFEngine = None
+        self.highway_1: FNFHighway = None
+        self.highway_2: FNFHighway = None
+        self.songdata: FNFSong = None
+        self.tracks: TrackCollection = None
+        self.song_time_text: arcade.Text = None
+        self.score_text: arcade.Text = None
+        self.judge_text: arcade.Text = None
+        self.grade_text: arcade.Text = None
+        self.pause_text: arcade.Text = None
+        self.dead_text: arcade.Text = None
+        self.last_camera_event: CameraFocusEvent = None
+        self.last_spotlight_position: float = 0
+        self.last_spotlight_change: float = 0
+        self.go_to_spotlight_position: int = 0
+        self.spotlight_position: float = 0
+        self.hp_bar_length: float = 250
+        self.key_state: tuple[bool, bool, bool, bool] = [False] * 4
+        self.boyfriend: arcade.Sprite = None
+        self.boyfriend_anim: int = None
+        self.boyfriend_anim_missed: bool = False
+        self.paused: bool = False
+        self.show_text: bool = True
+        self.logo_width: int = None
+        self.small_logos_forward: arcade.SpriteList = None
+        self.small_logos_backward: arcade.SpriteList = None
 
     def setup(self):
         super().setup()
 
         with LogSection(logger, "loading song data"):
-            self.path = songspath / "fnf" / self.name
-            self.songdata = FNFSong.parse(self.path)
+            path = songspath / "fnf" / self.name
+            self.songdata = FNFSong.parse(path)
             if not self.songdata:
                 raise ValueError("No valid chart found!")
 
@@ -90,11 +111,9 @@ class FNFSongView(DigiView):
             self.engine = FNFEngine(self.songdata.charts[0])
 
         with LogSection(logger, "loading sound"):
-            self.trackfiles: list[arcade.Sound] = []
-            soundfiles = [f for f in self.path.iterdir() if f.is_file() and f.suffix in [".ogg", ".mp3", ".wav"]]
-            for f in soundfiles:
-                s = arcade.load_sound(f, streaming = False)
-                self.trackfiles.append(s)
+            soundfiles = [f for f in path.iterdir() if f.is_file() and f.suffix in [".ogg", ".mp3", ".wav"]]
+            trackfiles = [arcade.load_sound(f) for f in soundfiles]
+            self.tracks = TrackCollection(trackfiles)
 
             self.window.theme_song.volume = 0
 
@@ -128,8 +147,6 @@ class FNFSongView(DigiView):
             self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
 
         with LogSection(logger, "finalizing"):
-            self.last_player1_note = None
-            self.last_player2_note = None
             self.last_camera_event = CameraFocusEvent(0, 2)
             self.last_spotlight_position = 0
             self.last_spotlight_change = 0
@@ -153,7 +170,6 @@ class FNFSongView(DigiView):
 
     @shows_errors
     def on_show(self):
-        self.tracks.load(self.trackfiles)
         self.tracks.play()
         super().on_show()
 
