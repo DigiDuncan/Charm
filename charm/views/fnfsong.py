@@ -27,8 +27,8 @@ class TrackCollection:
 
     def seek(self, time):
         pass
-        #for t in self.tracks:
-        #    t.seek(time)
+        # for t in self.tracks:
+        #     t.seek(time)
 
     def play(self):
         self.sync()

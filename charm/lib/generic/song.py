@@ -39,6 +39,10 @@ class Note:
     extra_data: tuple = None
 
     @property
+    def end(self) -> Seconds:
+        return self.time + self.length
+
+    @property
     def icon(self) -> str:
         return NotImplemented
 
