@@ -1,3 +1,4 @@
+from math import sqrt
 import arcade
 from pyglet.math import Vec2
 
@@ -9,7 +10,7 @@ class SpriteLayer:
         self.sprite_list = sprite_list
         self._z = z
         self._camera = arcade.Camera()
-        self._camera.scale = self._z
+        self._camera.scale = self._z ** 2
 
     @property
     def z(self) -> float:
@@ -18,7 +19,7 @@ class SpriteLayer:
     @z.setter
     def z(self, value: float):
         self._z = value
-        self._camera.scale = self._z
+        self._camera.scale = self._z ** 2
 
 
 class SpriteLayerList:
