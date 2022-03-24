@@ -66,6 +66,7 @@ class SpriteLayerList:
 
 
 colors = [
+    arcade.color.WHITE,
     arcade.color.RED,
     arcade.color.ORANGE,
     arcade.color.YELLOW,
@@ -74,10 +75,12 @@ colors = [
     arcade.color.BLUE,
     arcade.color.INDIGO,
     arcade.color.VIOLET,
-    arcade.color.MAGENTA,
-    arcade.color.WHITE,
-    arcade.color.GRAY
+    arcade.color.MAGENTA
 ]
+
+DEPTH = 20
+WIDTH = 60
+HEIGHT = 30
 
 
 class ParallaxView(DigiView):
@@ -87,15 +90,15 @@ class ParallaxView(DigiView):
     def setup(self):
         super().setup()
         self.parallax = SpriteLayerList()
-        for i in range(1, 11):
+        for i in range(1, DEPTH + 1):
             sprite_list = arcade.SpriteList()
-            for j in range(-20, 21):
-                for k in range(-10, 11):
-                    sprite = arcade.SpriteCircle(25, colors[i], True)
+            for j in range(-WIDTH // 2, (WIDTH // 2) + 1):
+                for k in range(-HEIGHT // 2, (HEIGHT // 2) + 1):
+                    sprite = arcade.SpriteCircle(25, colors[i % len(colors)], True)
                     sprite.center_x = j * 100
                     sprite.center_y = k * 100
                     sprite_list.append(sprite)
-            self.parallax.sprite_layers.append(SpriteLayer(sprite_list, z = i * 0.2))
+            self.parallax.sprite_layers.append(SpriteLayer(sprite_list, z = i * 0.25))
         self.parallax.sort()
 
     def on_show(self):
