@@ -102,31 +102,33 @@ class ParallaxView(DigiView):
         super().on_show()
         self.window.theme_song.volume = 0
 
+    def on_update(self, delta_time: float):
+        PX_PER_S = 100
+        if self.window.keyboard[arcade.key.W]:
+            self.parallax.y += delta_time * PX_PER_S
+        if self.window.keyboard[arcade.key.S]:
+            self.parallax.y -= delta_time * PX_PER_S
+        if self.window.keyboard[arcade.key.A]:
+            self.parallax.x -= delta_time * PX_PER_S
+        if self.window.keyboard[arcade.key.D]:
+            self.parallax.x += delta_time * PX_PER_S
+        if self.window.keyboard[arcade.key.R]:
+            for sl in self.parallax.sprite_layers:
+                sl.z *= 1 + delta_time
+        if self.window.keyboard[arcade.key.F]:
+            for sl in self.parallax.sprite_layers:
+                sl.z /= 1 + delta_time
+
+        return super().on_update(delta_time)
+
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:
             case arcade.key.BACKSPACE:
                 self.back.setup()
                 self.window.show_view(self.back)
                 arcade.play_sound(self.window.sounds["back"])
-            case arcade.key.W:
-                self.parallax.y += 10
-            case arcade.key.S:
-                self.parallax.y -= 10
-            case arcade.key.A:
-                self.parallax.x -= 10
-            case arcade.key.D:
-                self.parallax.x += 10
-            case arcade.key.R:
-                for sl in self.parallax.sprite_layers:
-                    sl.z *= 1.1
-            case arcade.key.F:
-                for sl in self.parallax.sprite_layers:
-                    sl.z /= 1.1
 
         return super().on_key_press(symbol, modifiers)
-
-    def on_update(self, delta_time):
-        super().on_update(delta_time)
 
     def on_draw(self):
         self.clear()
