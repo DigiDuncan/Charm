@@ -94,6 +94,7 @@ class FNFSong(Song):
     def __init__(self, song_code: str, mod: FNFMod = None) -> None:
         super().__init__(song_code)
         self.mod: FNFMod = mod
+        self.charts: list[FNFChart] = None
 
     @classmethod
     def parse(cls, folder: str, mod: FNFMod = None) -> FNFSong:
@@ -240,6 +241,9 @@ class FNFSong(Song):
             raise UnknownLanesError(f"Unknown lanes found in chart {name}: {unknown_lanes}")
 
         return charts
+
+    def get_chart(self, player, difficulty):
+        return next((c for c in self.charts if c.difficulty == difficulty and c.instrument == f"player{player}"), None)
 
 
 class FNFEngine(Engine):
@@ -423,11 +427,11 @@ class FNFLongNoteSprite(FNFNoteSprite):
 
 class SpriteBucketCollection:
     def __init__(self):
-        self.width = 5
+        self.width: Seconds = 5
         self.buckets: list[arcade.SpriteList] = []
         self.overbucket = arcade.SpriteList()
 
-    def append(self, sprite: arcade.Sprite, time: float, length: float):
+    def append(self, sprite: arcade.Sprite, time: Seconds, length: Seconds):
         b = self.calc_bucket(time)
         b2 = self.calc_bucket(time + length)
         if b == b2:
@@ -440,25 +444,25 @@ class SpriteBucketCollection:
             self.buckets.append(arcade.SpriteList())
         self.buckets[b].append(sprite)
 
-    def update(self, time: float, delta_time: float = 1/60):
+    def update(self, time: Seconds, delta_time: float = 1/60):
         b = self.calc_bucket(time)
         for bucket in self.buckets[b:b+2]:
             bucket.update(delta_time)
         self.overbucket.update(delta_time)
 
-    def update_animation(self, time: float, delta_time: float = 1/60):
+    def update_animation(self, time: Seconds, delta_time: float = 1/60):
         b = self.calc_bucket(time)
         for bucket in self.buckets[b:b+2]:
             bucket.update_animation(delta_time)
         self.overbucket.update_animation(delta_time)
 
-    def draw(self, time: float):
+    def draw(self, time: Seconds):
         b = self.calc_bucket(time)
         for bucket in self.buckets[b:b+2]:
             bucket.draw()
         self.overbucket.draw()
 
-    def calc_bucket(self, time: float) -> int:
+    def calc_bucket(self, time: Seconds) -> int:
         return math.floor(time / self.width)
 
 
@@ -523,3 +527,16 @@ class FNFHighway(Highway):
         )
         self.sprite_buckets.draw(self.song_time)
         _cam.use()
+
+
+class FNFSceneManager:
+    """Controls the display of the FNF scene.
+       Handles modcharting features, sprite loading, and most rendering."""
+    def __init__(self, chart: FNFChart):
+        self.chart = chart
+        self.song: FNFSong = chart.song
+        self.enemy_chart = self.song.get_chart(self.chart.difficulty, "player2")
+
+    def load_asset(self, asset_type: str, name: str):
+        sub_path = f"{asset_type}/{name}.png"
+        ...
