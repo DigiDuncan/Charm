@@ -536,11 +536,16 @@ class FNFHighway(Highway):
 
 class FNFSceneManager:
     """Controls the display of the FNF scene.
-       Handles modcharting features, sprite loading, and most rendering."""
+       Handles modcharting features, sprite loading, and most rendering.
+       
+       `chart: FNFChart`: the chart the player is currenty playing."""
     def __init__(self, chart: FNFChart):
         self.chart = chart
         self.song: FNFSong = chart.song
+        self.engine = FNFEngine(self.chart)
         self.enemy_chart = self.song.get_chart(self.chart.difficulty, "player2")
+        self.highway_1 = FNFHighway(self.chart, (((Settings.width // 3) * 2), 0))
+        self.highway_2 = FNFHighway(self.enemy_chart, (10, 0), auto=True)
         self.player_sprite = self.load_asset("character", self.chart.player1, "boyfriend")
         self.spectator_sprite = self.load_asset("character", self.chart.player3, "girlfriend")
         self.enemy_sprite = self.load_asset("character", self.chart.player2, "dad")
