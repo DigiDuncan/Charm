@@ -55,3 +55,8 @@ class NoChartsError(CharmException):
 class UnknownLanesError(CharmException):
     def __init__(self, show_message: str, *args: object):
         super().__init__("Unknown lanes found", show_message, "warning", *args)
+
+
+class AssetNotFoundError(CharmException):
+    def __init__(self, asset_name: str, *args: object):
+        super().__init__("Asset missing!", f"No asset named '{asset_name}' exists!", "error", *args)

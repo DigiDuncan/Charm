@@ -1,6 +1,8 @@
 from __future__ import annotations
+from collections import namedtuple
 from functools import cache
 
+import importlib.resources as pkg_resources
 import json
 import logging
 import math
@@ -10,18 +12,21 @@ from pathlib import Path
 from typing import Optional, TypedDict
 
 import arcade
-import PIL, PIL.ImageFilter  # noqa
+import PIL, PIL.ImageFilter
 
-import charm.data.images.skins.fnf as fnfskin
+from charm.lib.adobexml import AdobeSprite
 from charm.lib.anim import bounce
 from charm.lib.charm import generate_missing_texture_image
-from charm.lib.errors import NoChartsError, UnknownLanesError
+from charm.lib.errors import AssetNotFoundError, NoChartsError, UnknownLanesError
 from charm.lib.generic.engine import DigitalKeyEvent, Engine, Judgement, KeyStates
 from charm.lib.generic.highway import Highway
 from charm.lib.generic.song import BPMChangeEvent, Chart, Event, Milliseconds, Note, Seconds, Song
 from charm.lib.paths import modsfolder, songspath
 from charm.lib.settings import Settings
 from charm.lib.utils import clamp, img_from_resource
+
+import charm.data.assets
+import charm.data.images.skins.fnf as fnfskin
 
 logger = logging.getLogger("charm")
 
@@ -536,7 +541,34 @@ class FNFSceneManager:
         self.chart = chart
         self.song: FNFSong = chart.song
         self.enemy_chart = self.song.get_chart(self.chart.difficulty, "player2")
+        self.player_sprite = self.load_asset("character", self.chart.player1, "boyfriend")
+        self.spectator_sprite = self.load_asset("character", self.chart.player3, "girlfriend")
+        self.enemy_sprite = self.load_asset("character", self.chart.player2, "dad")
+        self.stage = self.load_asset("stage", self.chart.stage, "stage")
 
-    def load_asset(self, asset_type: str, name: str):
+    def load_asset(self, asset_type: str, name: str, default: str = None):
         sub_path = f"{asset_type}/{name}.png"
-        ...
+        possiblepaths: list[Path] = []
+        # Path to asset if it's in the song folder
+        possiblepaths.append(self.song.path / "assets" / sub_path)
+        # Path to asset if it's in the mod folder (and y'know, the mod exists)
+        if self.song.mod is not None:
+            possiblepaths.append(self.song.mod.path / "assets" / sub_path)
+        # Path to asset if it's in the game files
+        with pkg_resources.path(charm.data.assets) as p:
+            possiblepaths.append(p / sub_path)
+        # Path to asset if it's the default
+        if default:
+            with pkg_resources.path(charm.data.assets) as p:
+                possiblepaths.append(p / f"{asset_type}/{default}.png")
+
+        try:
+            path = next(p for p in possiblepaths if p.exists)
+        except StopIteration:
+            raise AssetNotFoundError(name)
+
+        xml_path = path.parent / f"{name}.xml"
+        if xml_path.exists:
+            return AdobeSprite(xml_path.parent, name)
+        else:
+            return arcade.Sprite(path)
