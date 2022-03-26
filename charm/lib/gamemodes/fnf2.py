@@ -546,10 +546,10 @@ class FNFSceneManager:
         self.enemy_chart = self.song.get_chart(self.chart.difficulty, "player2")
         self.highway_1 = FNFHighway(self.chart, (((Settings.width // 3) * 2), 0))
         self.highway_2 = FNFHighway(self.enemy_chart, (10, 0), auto=True)
-        self.player_sprite = self.load_asset("character", self.chart.player1, "boyfriend")
-        self.spectator_sprite = self.load_asset("character", self.chart.player3, "girlfriend")
-        self.enemy_sprite = self.load_asset("character", self.chart.player2, "dad")
-        self.stage = self.load_asset("stage", self.chart.stage, "stage")
+        self.player_sprite = self.load_asset("characters", self.chart.player1, "boyfriend")
+        self.spectator_sprite = self.load_asset("characters", self.chart.player3, "girlfriend")
+        self.enemy_sprite = self.load_asset("characters", self.chart.player2, "dad")
+        self.stage = self.load_asset("stages", self.chart.stage, "stage")
 
     def load_asset(self, asset_type: str, name: str, default: str = None):
         sub_path = f"{asset_type}/{name}.png"
