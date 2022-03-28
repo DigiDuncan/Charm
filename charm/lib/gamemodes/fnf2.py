@@ -21,6 +21,7 @@ from charm.lib.errors import AssetNotFoundError, NoChartsError, UnknownLanesErro
 from charm.lib.generic.engine import DigitalKeyEvent, Engine, Judgement, KeyStates
 from charm.lib.generic.highway import Highway
 from charm.lib.generic.song import BPMChangeEvent, Chart, Event, Milliseconds, Note, Seconds, Song
+from charm.lib.logsection import LogSection
 from charm.lib.paths import modsfolder, songspath
 from charm.lib.settings import Settings
 from charm.lib.utils import clamp, img_from_resource
@@ -534,24 +535,11 @@ class FNFHighway(Highway):
         _cam.use()
 
 
-class FNFSceneManager:
-    """Controls the display of the FNF scene.
-       Handles sprite loading, most rendering, and inter-element interactions.
-       
-       `chart: FNFChart`: the chart the player is currenty playing."""
-    def __init__(self, chart: FNFChart):
-        self.chart = chart
-        self.song: FNFSong = cast(FNFSong, chart.song)
-        self.engine = FNFEngine(self.chart)
-        self.enemy_chart = self.song.get_chart(2, self.chart.difficulty)
-        self.highway_1 = FNFHighway(self.chart, (((Settings.width // 3) * 2), 0))
-        self.highway_2 = FNFHighway(self.enemy_chart, (10, 0), auto=True)
-        self.player_sprite = self.load_asset("characters", self.chart.player1, "boyfriend")
-        self.spectator_sprite = self.load_asset("characters", self.chart.spectator, "girlfriend")
-        self.enemy_sprite = self.load_asset("characters", self.chart.player2, "dad")
-        self.stage = self.load_asset("stages", self.chart.stage, "stage")
+class FNFAssetManager:
+    def __init__(self, song: FNFSong):
+        self.song = song
 
-    def load_asset(self, asset_type: str, name: str, default: str = None) -> AdobeSprite | arcade.Sprite:
+    def load_asset(self, asset_type: str, name: str, default: str = None, *, anchors: list[str] = ["bottom"]) -> AdobeSprite | arcade.Sprite:
         sub_path = f"{asset_type}/{name}.png"
         possiblepaths: list[Path] = []
         # Path to asset if it's in the song folder
@@ -574,6 +562,44 @@ class FNFSceneManager:
 
         xml_path = path.parent / f"{path.stem}.xml"
         if xml_path.exists():
-            return AdobeSprite(xml_path.parent, path.stem)
+            return AdobeSprite(xml_path.parent, path.stem, anchors)
         else:
             return arcade.Sprite(path)
+
+
+class FNFSceneManager:
+    """Controls the display of the FNF scene.
+       Handles sprite loading, most rendering, and inter-element interactions.
+       
+       `chart: FNFChart`: the chart the player is currenty playing."""
+    def __init__(self, chart: FNFChart):
+        self.chart = chart
+        self.song: FNFSong = cast(FNFSong, chart.song)
+
+        self.enemy_chart = self.song.get_chart(2, self.chart.difficulty)
+
+        with LogSection(logger, "asset manager init"):
+            self.assetmanager = FNFAssetManager(self.song)
+            # function alias
+            self.load_asset = self.assetmanager.load_asset
+
+        with LogSection(logger, "creating engine"):
+            self.engine = FNFEngine(self.chart)
+
+        with LogSection(logger, "creating highways"):
+            self.highway_1 = FNFHighway(self.chart, (((Settings.width // 3) * 2), 0))
+            self.highway_2 = FNFHighway(self.enemy_chart, (10, 0), auto=True)
+
+        with LogSection(logger, "loading assets"):
+            # Characters
+            self.player_sprite = self.load_asset("characters", self.chart.player1, "boyfriend")
+            self.spectator_sprite = self.load_asset("characters", self.chart.spectator, "girlfriend")
+            self.enemy_sprite = self.load_asset("characters", self.chart.player2, "dad")
+
+            self.stage = self.load_asset("stages", self.chart.stage, "stage")
+
+            # Categories
+            self.characters = [self.player_sprite, self.spectator_sprite, self.enemy_sprite]
+
+    def update(self, song_time: Seconds, delta_time: Seconds):
+        pass

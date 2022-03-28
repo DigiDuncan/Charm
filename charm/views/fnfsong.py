@@ -106,12 +106,13 @@ class FNFSongView(DigiView):
             if not self.songdata:
                 raise ValueError("No valid chart found!")
 
-        with LogSection(logger, "loading highways"):
-            self.highway_1 = FNFHighway(self.songdata.charts[0], (((Settings.width // 3) * 2), 0))
-            self.highway_2 = FNFHighway(self.songdata.charts[1], (10, 0), auto=True)
+        with LogSection(logger, "scene"):
+            self.scene = FNFSceneManager(self.songdata.charts[0])
 
-        with LogSection(logger, "loading engine"):
-            self.engine = FNFEngine(self.songdata.charts[0])
+        self.highway_1 = self.scene.highway_1
+        self.highway_2 = self.scene.highway_2
+        self.engine = self.scene.engine
+        self.boyfriend = self.scene.player_sprite
 
         with LogSection(logger, "loading sound"):
             soundfiles = [f for f in path.iterdir() if f.is_file() and f.suffix in [".ogg", ".mp3", ".wav"]]
@@ -160,7 +161,6 @@ class FNFSongView(DigiView):
 
             self.key_state = [False] * 4
 
-            self.boyfriend = sprite_from_adobe("BOYFRIEND", ["bottom", "center_x"])
             self.boyfriend.set_animation("BF idle dance")
             self.boyfriend.scale = 0.5
             self.boyfriend.right = Settings.width - 10
@@ -170,9 +170,6 @@ class FNFSongView(DigiView):
 
             self.paused = False
             self.show_text = True
-
-        with LogSection(logger, "scene"):
-            self.scene = FNFSceneManager(self.songdata.charts[0])
 
     @shows_errors
     def on_show(self):
