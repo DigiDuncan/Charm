@@ -85,9 +85,9 @@ class FNFSongView(DigiView):
         self.spotlight_position: float = 0
         self.hp_bar_length: float = 250
         self.key_state: tuple[bool, bool, bool, bool] = [False] * 4
-        self.boyfriend: arcade.Sprite = None
-        self.boyfriend_anim: int = None
-        self.boyfriend_anim_missed: bool = False
+        self.player_sprite: arcade.Sprite = None
+        self.player_anim: int = None
+        self.player_anim_missed: bool = False
         self.paused: bool = False
         self.show_text: bool = True
         self.logo_width: int = None
@@ -112,7 +112,7 @@ class FNFSongView(DigiView):
         self.highway_1 = self.scene.highway_1
         self.highway_2 = self.scene.highway_2
         self.engine = self.scene.engine
-        self.boyfriend = self.scene.player_sprite
+        self.player_sprite = self.scene.player_sprite
 
         with LogSection(logger, "loading sound"):
             soundfiles = [f for f in path.iterdir() if f.is_file() and f.suffix in [".ogg", ".mp3", ".wav"]]
@@ -161,12 +161,12 @@ class FNFSongView(DigiView):
 
             self.key_state = [False] * 4
 
-            self.boyfriend.set_animation("BF idle dance")
-            self.boyfriend.scale = 0.5
-            self.boyfriend.right = Settings.width - 10
-            self.boyfriend.bottom = 10
-            self.boyfriend_anim = None
-            self.boyfriend_anim_missed = False
+            self.player_sprite.set_animation("BF idle dance")
+            self.player_sprite.scale = 0.5
+            self.player_sprite.right = Settings.width - 10
+            self.player_sprite.bottom = 10
+            self.player_anim = None
+            self.player_anim_missed = False
 
             self.paused = False
             self.show_text = True
@@ -219,14 +219,6 @@ class FNFSongView(DigiView):
         if not self.tracks.loaded:
             return
 
-        self.engine.update(self.tracks.time)
-
-        # TODO: Lag? Maybe not calculate this every tick?
-        # The only way to solve this I think is to create something like an
-        # on_note_valid and on_note_expired event, which you can do with
-        # Arcade.schedule() if we need to look into that.
-        self.engine.calculate_score()
-
         move_gum_wrapper(self.logo_width, self.small_logos_forward, self.small_logos_backward, delta_time)
 
         time = f"{int(self.tracks.time // 60)}:{int(self.tracks.time % 60):02}"
@@ -239,42 +231,39 @@ class FNFSongView(DigiView):
 
         self.get_spotlight_position(self.tracks.time)
 
-        self.highway_1.update(self.tracks.time)
-        self.highway_2.update(self.tracks.time)
-
         self.judge_text.y = anim.ease_circout((self.size[1] // 2) + 20, self.size[1] // 2, self.engine.latest_judgement_time, self.engine.latest_judgement_time + 0.25, self.engine.chart_time)
-        if self.engine.accuracy:
+        if self.engine.accuracy is not None:
             if self.grade_text._label.text != f"{self.engine.fc_type} | {round(self.engine.accuracy * 100, 2)}% ({self.engine.grade})":
                 self.grade_text._label.text = f"{self.engine.fc_type} | {round(self.engine.accuracy * 100, 2)}% ({self.engine.grade})"
 
-        if (self.engine.last_p1_note, self.engine.last_note_missed) != (self.boyfriend_anim, self.boyfriend_anim_missed):
+        if (self.engine.last_p1_note, self.engine.last_note_missed) != (self.player_anim, self.player_anim_missed):
             # logger.debug(f"animation changed from {(self.engine.last_p1_note, self.engine.last_note_missed)} to {(self.boyfriend_anim, self.boyfriend_anim_missed)}")
             if self.engine.last_p1_note is None:
-                self.boyfriend.set_animation("BF idle dance")
-                self.boyfriend_anim = None
+                self.player_sprite.set_animation("BF idle dance")
+                self.player_anim = None
             else:
                 a = ""
                 match self.engine.last_p1_note:
                     case 0:
                         a = "BF NOTE LEFT"
-                        self.boyfriend_anim = self.engine.last_p1_note
+                        self.player_anim = self.engine.last_p1_note
                     case 1:
                         a = "BF NOTE DOWN"
-                        self.boyfriend_anim = self.engine.last_p1_note
+                        self.player_anim = self.engine.last_p1_note
                     case 2:
                         a = "BF NOTE UP"
-                        self.boyfriend_anim = self.engine.last_p1_note
+                        self.player_anim = self.engine.last_p1_note
                     case 3:
                         a = "BF NOTE RIGHT"
-                        self.boyfriend_anim = self.engine.last_p1_note
+                        self.player_anim = self.engine.last_p1_note
                 if self.engine.last_note_missed:
                     a += " MISS"
-                    self.boyfriend_anim_missed = True
+                    self.player_anim_missed = True
                 else:
-                    self.boyfriend_anim_missed = False
-                self.boyfriend.set_animation(a)
+                    self.player_anim_missed = False
+                self.player_sprite.set_animation(a)
 
-        self.boyfriend.update_animation(delta_time)
+        self.scene.update(self.tracks.time, delta_time)
 
     def get_spotlight_position(self, song_time: float):
         focus_pos = {
@@ -318,7 +307,9 @@ class FNFSongView(DigiView):
         self.small_logos_forward.draw()
         self.small_logos_backward.draw()
 
-        self.boyfriend.draw()
+        self.scene.stage.draw()
+
+        self.player_sprite.draw()
 
         if self.show_text:
             self.song_time_text.draw()

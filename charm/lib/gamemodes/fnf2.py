@@ -287,7 +287,7 @@ class FNFEngine(Engine):
     def process_keystate(self, key_states: KeyStates):
         last_state = self.key_state
         if self.last_p1_note in (0, 1, 2, 3) and key_states[self.last_p1_note] is False:
-            self.last_p1_note = None  # should set BF to idle?
+            self.last_p1_note = None
         # ignore spam during front/back porch
         if (self.chart_time < self.chart.notes[0].time - self.hit_window
            or self.chart_time > self.chart.notes[-1].time + self.hit_window):
@@ -602,4 +602,16 @@ class FNFSceneManager:
             self.characters = [self.player_sprite, self.spectator_sprite, self.enemy_sprite]
 
     def update(self, song_time: Seconds, delta_time: Seconds):
-        pass
+        self.engine.update(song_time)
+
+        # TODO: Lag? Maybe not calculate this every tick?
+        # The only way to solve this I think is to create something like an
+        # on_note_valid and on_note_expired event, which you can do with
+        # Arcade.schedule() if we need to look into that.
+        self.engine.calculate_score()
+
+        self.highway_1.update(song_time)
+        self.highway_2.update(song_time)
+
+        for c in self.characters:
+            c.update_animation(delta_time)
