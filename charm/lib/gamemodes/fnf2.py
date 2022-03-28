@@ -99,7 +99,7 @@ class FNFSong(Song):
     def __init__(self, song_code: str, mod: FNFMod = None) -> None:
         super().__init__(song_code)
         self.mod: FNFMod = mod
-        self.charts: list[FNFChart] = None
+        self.charts: list[FNFChart] = []
 
     @classmethod
     def parse(cls, folder: str, mod: FNFMod = None) -> FNFSong:
@@ -256,8 +256,8 @@ class FNFEngine(Engine):
         hit_window = 0.166
         mapping = [arcade.key.D, arcade.key.F, arcade.key.J, arcade.key.K]
         judgements = [
-            #           ("name",  ms,       score, acc,  hp = 0)
-            FNFJudgement("sick",  45,       350,   1,    0.04),
+            #           ("name",  ms,       score, acc,   hp=0)
+            FNFJudgement("sick",  45,       350,   1,     0.04),
             FNFJudgement("good",  90,       200,   0.75),
             FNFJudgement("bad",   135,      100,   0.5,  -0.03),
             FNFJudgement("awful", 166,      50,    -1,   -0.06),  # I'm not calling this "s***", it's not funny.
@@ -536,7 +536,7 @@ class FNFHighway(Highway):
 
 class FNFSceneManager:
     """Controls the display of the FNF scene.
-       Handles modcharting features, sprite loading, and most rendering.
+       Handles sprite loading, most rendering, and inter-element interactions.
        
        `chart: FNFChart`: the chart the player is currenty playing."""
     def __init__(self, chart: FNFChart):
