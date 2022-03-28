@@ -9,7 +9,7 @@ import math
 from dataclasses import dataclass
 from hashlib import sha1
 from pathlib import Path
-from typing import Optional, TypedDict
+from typing import Optional, TypedDict, cast
 
 import arcade
 import PIL, PIL.ImageFilter
@@ -541,17 +541,17 @@ class FNFSceneManager:
        `chart: FNFChart`: the chart the player is currenty playing."""
     def __init__(self, chart: FNFChart):
         self.chart = chart
-        self.song: FNFSong = chart.song
+        self.song: FNFSong = cast(FNFSong, chart.song)
         self.engine = FNFEngine(self.chart)
-        self.enemy_chart = self.song.get_chart(self.chart.difficulty, "player2")
+        self.enemy_chart = self.song.get_chart(2, self.chart.difficulty)
         self.highway_1 = FNFHighway(self.chart, (((Settings.width // 3) * 2), 0))
         self.highway_2 = FNFHighway(self.enemy_chart, (10, 0), auto=True)
         self.player_sprite = self.load_asset("characters", self.chart.player1, "boyfriend")
-        self.spectator_sprite = self.load_asset("characters", self.chart.player3, "girlfriend")
+        self.spectator_sprite = self.load_asset("characters", self.chart.spectator, "girlfriend")
         self.enemy_sprite = self.load_asset("characters", self.chart.player2, "dad")
         self.stage = self.load_asset("stages", self.chart.stage, "stage")
 
-    def load_asset(self, asset_type: str, name: str, default: str = None):
+    def load_asset(self, asset_type: str, name: str, default: str = None) -> AdobeSprite | arcade.Sprite:
         sub_path = f"{asset_type}/{name}.png"
         possiblepaths: list[Path] = []
         # Path to asset if it's in the song folder
@@ -560,20 +560,20 @@ class FNFSceneManager:
         if self.song.mod is not None:
             possiblepaths.append(self.song.mod.path / "assets" / sub_path)
         # Path to asset if it's in the game files
-        with pkg_resources.path(charm.data.assets) as p:
-            possiblepaths.append(p / sub_path)
+        with pkg_resources.path(charm.data.assets, "__init__.py") as p:
+            builtin_assets = p.parent
+            possiblepaths.append(builtin_assets / sub_path)
         # Path to asset if it's the default
         if default:
-            with pkg_resources.path(charm.data.assets) as p:
-                possiblepaths.append(p / f"{asset_type}/{default}.png")
+            possiblepaths.append(builtin_assets / f"{asset_type}/{default}.png")
 
         try:
-            path = next(p for p in possiblepaths if p.exists)
+            path = next(p for p in possiblepaths if p.exists())
         except StopIteration:
             raise AssetNotFoundError(name)
 
-        xml_path = path.parent / f"{name}.xml"
-        if xml_path.exists:
-            return AdobeSprite(xml_path.parent, name)
+        xml_path = path.parent / f"{path.stem}.xml"
+        if xml_path.exists():
+            return AdobeSprite(xml_path.parent, path.stem)
         else:
             return arcade.Sprite(path)
