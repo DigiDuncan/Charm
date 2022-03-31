@@ -7,7 +7,7 @@ from charm.lib import anim
 from charm.lib.adobexml import sprite_from_adobe
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView, shows_errors
-from charm.lib.gamemodes.fnf2 import CameraFocusEvent, FNFEngine, FNFHighway, FNFSceneManager, FNFSong
+from charm.lib.gamemodes.fnf import CameraFocusEvent, FNFEngine, FNFHighway, FNFSceneManager, FNFSong
 from charm.lib.logsection import LogSection
 from charm.lib.settings import Settings
 from charm.lib.paths import songspath
@@ -95,6 +95,7 @@ class FNFSongView(DigiView):
         self.small_logos_backward: arcade.SpriteList = None
 
         self.scene: FNFSceneManager = None
+        self.success = False
 
     @shows_errors
     def setup(self):
@@ -170,9 +171,12 @@ class FNFSongView(DigiView):
 
             self.paused = False
             self.show_text = True
+            self.success = True
 
     @shows_errors
     def on_show(self):
+        if self.success is False:
+            self.window.show_view(self.back)
         self.tracks.play()
         super().on_show()
 

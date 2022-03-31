@@ -9,13 +9,12 @@ import charm.data.images
 from charm.lib.anim import ease_quartout
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView, shows_errors
+from charm.lib.generic.song import Song
 from charm.lib.gamemodes.fnf import FNFSong
 from charm.lib.paths import songspath
 from charm.lib.settings import Settings
 from charm.objects.songmenu import SongMenu
-from charm.lib.generic.song import Song
 from charm.views.fnfsong import FNFSongView
-from charm.lib.gamemodes.fnf import hashes
 
 
 class FNFSongMenuView(DigiView):
@@ -25,6 +24,7 @@ class FNFSongMenuView(DigiView):
         self.album_art_buffer = Settings.width // 20
         self.static_time = 0.25
 
+    @shows_errors
     def setup(self):
         super().setup()
 
@@ -42,7 +42,7 @@ class FNFSongMenuView(DigiView):
                 if (d / f"{k}{suffix}.json").exists():
                     with open(d / f"{k}{suffix}.json", encoding="utf-8") as chart:
                         c = chart.read()
-                        songdata = FNFSong.simple_parse(k, c)
+                        songdata = FNFSong.get_metadata(k, c)
                         self.songs.append(songdata)
                         break
 
@@ -61,7 +61,6 @@ class FNFSongMenuView(DigiView):
 
     @shows_errors
     def on_show(self):
-        print(hashes)
         return super().on_show()
 
     @shows_errors

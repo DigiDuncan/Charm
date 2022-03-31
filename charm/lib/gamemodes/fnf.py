@@ -1,162 +1,116 @@
-from dataclasses import dataclass
-from hashlib import sha1
+from __future__ import annotations
+from collections import namedtuple
+from functools import cache
+
+import importlib.resources as pkg_resources
 import json
 import logging
 import math
-from typing import Literal, Optional, TypedDict
-from uuid import uuid4
+from dataclasses import dataclass
+from hashlib import sha1
+from pathlib import Path
+from typing import Optional, TypedDict, cast
 
 import arcade
-import PIL.Image
+import PIL, PIL.ImageFilter
 
+from charm.lib.adobexml import AdobeSprite
+from charm.lib.anim import bounce
 from charm.lib.charm import generate_missing_texture_image
+from charm.lib.errors import AssetNotFoundError, NoChartsError, UnknownLanesError
 from charm.lib.generic.engine import DigitalKeyEvent, Engine, Judgement, KeyStates
 from charm.lib.generic.highway import Highway
 from charm.lib.generic.song import BPMChangeEvent, Chart, Event, Milliseconds, Note, Seconds, Song
+from charm.lib.logsection import LogSection
+from charm.lib.paths import modsfolder, songspath
 from charm.lib.settings import Settings
 from charm.lib.utils import clamp, img_from_resource
 
+import charm.data.assets
 import charm.data.images.skins.fnf as fnfskin
 
 logger = logging.getLogger("charm")
-hashes = {}
-
-PlayerNum = Literal[1, 2]
-JsonLaneNum = Literal[0, 1, 2, 3, 4, 5, 6, 7]
-
-colormap = {
-    0: arcade.color.MAGENTA + (0xFF,),
-    1: arcade.color.CYAN + (0xFF,),
-    2: arcade.color.GREEN + (0xFF,),
-    3: arcade.color.RED + (0xFF,)
-}
-
-altcolormap = {
-    0: arcade.color.DARK_MAGENTA + (0xFF,),
-    1: arcade.color.DARK_CYAN + (0xFF,),
-    2: arcade.color.DARK_GREEN + (0xFF,),
-    3: arcade.color.DARK_RED + (0xFF,)
-}
-
-wordmap = {
-    0: "left",
-    1: "down",
-    2: "up",
-    3: "right"
-}
 
 
 class SongFileJson(TypedDict):
-    song: "SongJson"
+    song: SongJson
 
 
 class SongJson(TypedDict):
     song: str
     bpm: float
     speed: float
-    notes: list["NoteJson"]
+    notes: list[NoteJson]
 
 
 class NoteJson(TypedDict):
     bpm: float
     mustHitSection: bool
-    sectionNotes: list[tuple[Milliseconds, JsonLaneNum, Milliseconds]]
+    sectionNotes: list[tuple[Milliseconds, int, Milliseconds]]
     lengthInSteps: int
+
+
+class NoteType(str):
+    NORMAL = "normal"
+    BOMB = "bomb"
+    DEATH = "death"
+    HEAL = "heal"
+    CAUTION = "caution"
 
 
 @dataclass
 class CameraFocusEvent(Event):
     focused_player: int
 
-    @property
-    def icon(self) -> str:
-        return f"cam_p{self.focused_player}"
 
-
-class FNFHardcode:
-    def __init__(self, hash: str, mod_name: str, author: str, lanemap: list[tuple[int, int, str]] = None):
-        self.hash = hash
-        self.mod_name = mod_name
-        self.author = author
-        self.lanemap = lanemap if lanemap is not None else [(0, 0, "normal"), (0, 1, "normal"), (0, 2, "normal"), (0, 3, "normal"),
-                                                            (1, 0, "normal"), (1, 1, "normal"), (1, 2, "normal"), (1, 3, "normal")]
-
-
-hardcodes = [
-    FNFHardcode("09959de9dca4800df18e74108c1d8a36940be6eb", "Vs. Tricky", "Banbuds",  # madness
-    [(0, 0, "normal"), (0, 1, "normal"), (0, 2, "normal"), (0, 3, "normal"),
-     (1, 0, "normal"), (1, 1, "normal"), (1, 2, "normal"), (1, 3, "normal"),
-     (0, 0, "bomb"), (0, 1, "bomb"), (0, 2, "bomb"), (0, 3, "bomb"),
-     (1, 0, "bomb"), (1, 1, "bomb"), (1, 2, "bomb"), (1, 3, "bomb")]),
-    FNFHardcode("3a1f66a3d87637dfeaa2c8a44e6b4946b5013c94", "Vs. Tricky", "Banbuds",  # hellclown
-    [(0, 0, "normal"), (0, 1, "normal"), (0, 2, "normal"), (0, 3, "normal"),
-     (1, 0, "normal"), (1, 1, "normal"), (1, 2, "normal"), (1, 3, "normal"),
-     (0, 0, "bomb"), (0, 1, "bomb"), (0, 2, "bomb"), (0, 3, "bomb"),
-     (1, 0, "bomb"), (1, 1, "bomb"), (1, 2, "bomb"), (1, 3, "bomb")]),
-    FNFHardcode("7113289f3f65068d67db58c11756271f5792ae28", "Vs. Tricky", "Banbuds",  # expurgation
-    [(0, 0, "normal"), (0, 1, "normal"), (0, 2, "normal"), (0, 3, "normal"),
-     (1, 0, "normal"), (1, 1, "normal"), (1, 2, "normal"), (1, 3, "normal"),
-     (0, 0, "death"), (0, 1, "death"), (0, 2, "death"), (0, 3, "death"),
-     (1, 0, "death"), (1, 1, "death"), (1, 2, "death"), (1, 3, "death")])
-]
-
-
-class FNFNoteSprite(arcade.Sprite):
-    def __init__(self, note: Note, height: 128, *args, **kwargs):
-        self.note = note
-        self.time = note.time
-        self.type = note.type
-        self.lane = note.lane
-        self.hit = note.hit
-        self.hit_time = note.hit_time
-        self.missed = note.missed
-        icon = f"{self.note.type}-{wordmap[self.note.lane]}"
-        try:
-            self.icon = img_from_resource(fnfskin, f"{icon}.png")
-            whratio = self.icon.width / self.icon.height
-            if self.icon.height != height:
-                self.icon = self.icon.resize((int(height * whratio), height), PIL.Image.LANCZOS)
-        except Exception:
-            self.icon = generate_missing_texture_image(height, height)
-
-        if self.type == "sustain":
-            full_height = self.icon.height
-            self.icon = self.icon.crop((0, 0, self.icon.width, 1))
-
-        tex = arcade.Texture(f"_fnf_note_{icon}", image=self.icon, hit_box_algorithm=None)
-        super().__init__(texture=tex, *args, **kwargs)
-
-        if self.type == "sustain":
-            self.height = full_height
-
+class FNFNote(Note):
     def __lt__(self, other):
         return (self.time, self.lane, self.type) < (other.time, other.lane, other.type)
 
 
+class FNFJudgement(Judgement):
+    pass
+    # @property
+    # def image_name(self) -> str:
+    #     return f"judge-{self.name}"
+
+
 class FNFChart(Chart):
-    def __init__(self, difficulty: str, instrument: str, notespeed: float = 1) -> None:
-        self.notespeed = notespeed
-        super().__init__("fnf", difficulty, instrument, 4)
+    def __init__(self, song: FNFSong, difficulty: str, player: int, speed: float, hash: str):
+        super().__init__(song, "fnf", difficulty, f"player{player}", 4, hash)
+        self.player1 = "bf"
+        self.player2 = "dad"
+        self.spectator = "gf"
+        self.stage = "stage"
+        self.notespeed = speed
+        self.hash = hash
+
+        self.notes: list[FNFNote] = []
+
+
+class FNFMod:
+    def __init__(self, folder_name: str) -> None:
+        self.folder_name = folder_name
+        self.path = modsfolder / self.folder_name
+        self.name: str = None
+        self.songs = list[FNFSong]
 
 
 class FNFSong(Song):
-    def __init__(self, name: str, bpm: float) -> None:
-        self.key: str = None
-        self.player2: str = None
-        super().__init__(name, bpm)
+    def __init__(self, song_code: str, mod: FNFMod = None) -> None:
+        super().__init__(song_code)
+        self.mod: FNFMod = mod
+        self.charts: list[FNFChart] = []
 
     @classmethod
-    def simple_parse(cls, k: str, s: str):
+    def get_metadata(cls, k: str, s: str):
+        """Legacy. Gets metadata from a chart file."""
         j: SongFileJson = json.loads(s)
         hash = sha1(bytes(json.dumps(j), encoding='utf-8')).hexdigest()
         song = j["song"]
         title = song["song"].replace("-", " ").title()
-        hardcode_search = (h for h in hardcodes if h.hash == hash)
-        hardcode = next(hardcode_search, None)
-        artist = "Unknown Artist" if not hardcode else hardcode.author
-        album = "Unknown Album" if not hardcode else hardcode.mod_name
-
-        hashes[k] = hash
+        artist = "Unknown Artist"
+        album = "Unknown Album"
 
         return {
             "title": title,
@@ -167,40 +121,69 @@ class FNFSong(Song):
         }
 
     @classmethod
-    def parse(cls, k: str, s: str):
-        j: SongFileJson = json.loads(s)
-        hash = sha1(bytes(json.dumps(j), encoding='utf-8')).hexdigest()
-        song = j["song"]
+    def parse(cls, folder: str, mod: FNFMod = None) -> FNFSong:
+        song = FNFSong(folder)
+        song.path = songspath / "fnf" / folder
+        if mod:
+            song.mod = mod
+            song.path = mod.path / folder
 
-        name = song["song"].replace("-", " ").title()
+        charts = song.path.glob("*.json")
+        parsed_charts = [cls.parse_chart(chart, song) for chart in charts]
+        for charts in parsed_charts:
+            for chart in charts:
+                song.charts.append(chart)
+
+        if not song.charts:
+            raise NoChartsError(folder)
+
+        # Global attributes that are stored per-chart, for some reason.
+        chart: FNFChart = song.charts[0]
+        song.bpm = chart.bpm
+        song.metadata["title"] = chart.name
+
+        return song
+
+    @classmethod
+    def parse_chart(cls, file_path: Path, song: FNFSong) -> list[FNFChart]:
+        with open(file_path) as p:
+            j: SongFileJson = json.load(p)
+        hash = sha1(bytes(json.dumps(j), encoding="utf-8")).hexdigest()
+        difficulty = file_path.stem.rsplit("-", 1)[1] if "-" in file_path.stem else "normal"
+        songdata = j["song"]
+
+        name = songdata["song"].replace("-", " ").title()
         logger.debug(f"Parsing {name}...")
-        bpm = song["bpm"]
-        speed = song["speed"]
-        player2 = song["player2"]
-        returnsong = FNFSong(name, bpm)
-        returnsong.key = k
-        returnsong.player2 = player2
-        returnsong.hash = hash
-        returnsong.charts = [
-            FNFChart("hard", "player1", speed),
-            FNFChart("hard", "player2", speed)]
+        bpm = songdata["bpm"]
+        speed = songdata["speed"]
+        charts = [
+            FNFChart(song, difficulty, 1, speed, hash),
+            FNFChart(song, difficulty, 2, speed, hash)]
 
-        sections = song["song"]
+        for chart in charts:
+            chart.name = songdata["song"]
+            chart.bpm = bpm
+            chart.player1 = songdata.get("player1", "bf")
+            chart.player2 = songdata.get("player2", "dad")
+            chart.spectator = songdata.get("player3", "gf")
+            chart.stage = songdata.get("stage", "stage")
+
+        sections = songdata["song"]
 
         last_bpm = bpm
-        last_focus: Optional[PlayerNum] = None
+        last_focus: Optional[int] = None
         section_start = 0.0
-        songevents: list[Event] = []
-        sections = song["notes"]
+        events: list[Event] = []
+        sections = songdata["notes"]
         section_starts = []
         unknown_lanes = []
 
-        hardcode_search = (h for h in hardcodes if h.hash == returnsong.hash)
-        hardcode = next(hardcode_search, None)
+        # hardcode_search = (h for h in hardcodes if h.hash == returnsong.hash)
+        # hardcode = next(hardcode_search, None)
 
-        if hardcode:
-            returnsong.metadata["artist"] = hardcode.author
-            returnsong.metadata["album"] = hardcode.mod_name
+        # if hardcode:
+        #     returnsong.metadata["artist"] = hardcode.author
+        #     returnsong.metadata["album"] = hardcode.mod_name
 
         for section in sections:
             # There's a changeBPM event but like, it always has to be paired
@@ -208,7 +191,7 @@ class FNFSong(Song):
             if "bpm" in section:
                 new_bpm = section["bpm"]
                 if new_bpm != last_bpm:
-                    songevents.append(BPMChangeEvent(section_start, new_bpm))
+                    events.append(BPMChangeEvent(section_start, new_bpm))
                     last_bpm = new_bpm
             section_starts.append((section_start, bpm))
 
@@ -223,19 +206,18 @@ class FNFSong(Song):
 
             # Create a camera focus event like they should have in the first place
             if section["mustHitSection"]:
-                focused, unfocused = 1, 2
+                focused, unfocused = 0, 1
             else:
-                focused, unfocused = 2, 1
+                focused, unfocused = 1, 0
 
             if focused != last_focus:
-                songevents.append(CameraFocusEvent(section_start, focused))
+                events.append(CameraFocusEvent(section_start, focused))
                 last_focus = focused
 
-            if hardcode:
-                lanemap = hardcode.lanemap
-            else:
-                lanemap = [(0, 0, "normal"), (0, 1, "normal"), (0, 2, "normal"), (0, 3, "normal"),
-                           (1, 0, "normal"), (1, 1, "normal"), (1, 2, "normal"), (1, 3, "normal")]
+            # Lanemap: (player, lane, type)
+            # TODO: overrides for this
+            lanemap: list[tuple[int, int, NoteType]] = [(0, 0, NoteType.NORMAL), (0, 1, NoteType.NORMAL), (0, 2, NoteType.NORMAL), (0, 3, NoteType.NORMAL),
+                                                        (1, 0, NoteType.NORMAL), (1, 1, NoteType.NORMAL), (1, 2, NoteType.NORMAL), (1, 3, NoteType.NORMAL)]
 
             # Actually make two charts
             sectionNotes = section["sectionNotes"]
@@ -252,115 +234,40 @@ class FNFSong(Song):
                     note_data = lanemap[lane]
                 except IndexError:
                     unknown_lanes.append(lane)
+                    continue
 
                 note_player = focused if note_data[0] == 0 else unfocused
                 chart_lane = note_data[1]
                 note_type = note_data[2]
 
-                thisnote = Note(str(uuid4()), pos, chart_lane, length, type = note_type)
+                thisnote = FNFNote(charts[note_player], pos, chart_lane, length, type = note_type)
                 thisnote.extra_data = extra
-                returnsong.charts[note_player - 1].notes.append(thisnote)
-                returnsong.charts[note_player - 1].note_by_uuid[thisnote.uuid] = thisnote
+                charts[note_player].notes.append(thisnote)
 
-                # TODO: Fake sustains (change this.)
-                seconds_per_thirtysecond = seconds_per_sixteenth / 2
+                # TODO: Fake sustains (change this?)
                 if thisnote.length != 0:
-                    sustainbeats = round(thisnote.length / seconds_per_thirtysecond)
+                    sustainbeats = round(thisnote.length / seconds_per_sixteenth)
                     for i in range(sustainbeats):
                         j = i + 1
-                        thatnote = Note(str(uuid4()), pos + (seconds_per_thirtysecond * (i + 1)), chart_lane, 0, "sustain", thisnote)
-                        returnsong.charts[note_player - 1].notes.append(thatnote)
-                        returnsong.charts[note_player - 1].note_by_uuid[thatnote.uuid] = thatnote
+                        thatnote = FNFNote(charts[note_player], pos + (seconds_per_sixteenth * (i + 1)), chart_lane, 0, "sustain")
+                        charts[note_player].notes.append(thatnote)
 
             section_start += section_length
 
-        for c in returnsong.charts:
+        for c in charts:
+            c.events = events
             c.notes.sort()
-            c.active_notes = c.notes.copy()
             c.events.sort()
             logger.debug(f"Parsed chart {c.instrument} with {len(c.notes)} notes.")
 
-        returnsong.events = songevents
-        returnsong.events.sort()
-
         unknown_lanes = sorted(set(unknown_lanes))
         if unknown_lanes:
-            logger.warn(f"Unknown lanes {unknown_lanes}")
+            raise UnknownLanesError(f"Unknown lanes found in chart {name}: {unknown_lanes}")
 
-        return returnsong
+        return charts
 
-
-class FNFHighway(Highway):
-    def __init__(self, chart: FNFChart, pos: tuple[int, int], size: tuple[int, int] = None, gap: int = 5, auto = False):
-        if size is None:
-            size = int(Settings.width / (1280 / 400)), Settings.height
-
-        super().__init__(chart, pos, size, gap)
-
-        self.viewport = 1 / (chart.notespeed * 0.75)
-
-        self.auto = auto
-
-        sprites = []
-        for note in self.notes:
-            sprite = FNFNoteSprite(note, self.note_size)
-            sprite.top = self.note_y(note.time)
-            sprite.left = self.lane_x(sprite.lane)
-            sprites.append(sprite)
-        sprites = [s for s in sprites if s.type == "sustain"] + [s for s in sprites if s.type != "sustain"][::-1]
-        self.sprite_list = arcade.SpriteList(capacity=len(chart.notes))
-        for s in sprites:
-            self.sprite_list.append(s)
-
-        self.strikeline = arcade.SpriteList()
-        for i in [0, 1, 2, 3]:
-            sprite = FNFNoteSprite(Note(i, 0, i, 0), self.note_size)
-            sprite.top = self.strikeline_y
-            sprite.left = self.lane_x(sprite.lane)
-            sprite.alpha = 64
-            self.strikeline.append(sprite)
-
-        logger.debug(f"Generated highway for chart {chart.instrument}.")
-
-    def note_visible(self, n: FNFNoteSprite):
-        if self.auto:
-            return self.song_time < n.time <= self.song_time + self.viewport
-        return self.song_time - (self.viewport / 2) < n.time <= self.song_time + self.viewport
-
-    def note_expired(self, n: FNFNoteSprite):
-        if self.auto:
-            return self.song_time > n.time
-        return self.song_time - self.viewport > n.time
-
-    @property
-    def visible_notes(self) -> list[FNFNoteSprite]:
-        return [n for n in self.sprite_list if self.note_visible(n)]
-
-    @property
-    def expired_notes(self) -> list[FNFNoteSprite]:
-        return [n for n in self.sprite_list if self.note_expired(n)]
-
-    def update(self, song_time):
-        super().update(song_time)
-        for n in self.visible_notes:
-            if n.note.hit and n.note.type != "sustain":
-                n.alpha = 0
-            if n.note.hit and n.note.type == "sustain" and song_time >= n.time:
-                n.alpha = 0
-        for n in self.expired_notes:
-            n.alpha = 0
-
-    def draw(self):
-        self.strikeline.draw()
-        scroll = (self.px_per_s * self.song_time)
-        arcade.set_viewport(
-            0,
-            Settings.width,
-            0 - scroll,
-            Settings.height - scroll
-        )
-        self.sprite_list.draw()
-        arcade.get_window().current_camera.use()
+    def get_chart(self, player, difficulty):
+        return next((c for c in self.charts if c.difficulty == difficulty and c.instrument == f"player{player}"), None)
 
 
 class FNFEngine(Engine):
@@ -368,12 +275,12 @@ class FNFEngine(Engine):
         hit_window = 0.166
         mapping = [arcade.key.D, arcade.key.F, arcade.key.J, arcade.key.K]
         judgements = [
-            #        ("name",  ms,       score, acc,  hp = 0)
-            Judgement("sick",  45,       350,   1,    0.04),
-            Judgement("good",  90,       200,   0.75),
-            Judgement("bad",   135,      100,   0.5,  -0.03),
-            Judgement("awful", 166,      50,    -1,   -0.06),  # I'm not calling this "s***", it's not funny.
-            Judgement("miss",  math.inf, 0,     -1,   -0.1)
+            #           ("name",  ms,       score, acc,   hp=0)
+            FNFJudgement("sick",  45,       350,   1,     0.04),
+            FNFJudgement("good",  90,       200,   0.75),
+            FNFJudgement("bad",   135,      100,   0.5,  -0.03),
+            FNFJudgement("awful", 166,      50,    -1,   -0.06),  # I'm not calling this "s***", it's not funny.
+            FNFJudgement("miss",  math.inf, 0,     -1,   -0.1)
         ]
         super().__init__(chart, mapping, hit_window, judgements, offset)
 
@@ -387,8 +294,9 @@ class FNFEngine(Engine):
 
         self.latest_judgement = ""
         self.latest_judgement_time = 0
+        self.all_judgements: list[tuple[Seconds, Seconds, Judgement]] = []
 
-        self.current_notes: list[FNFNoteSprite] = self.chart.notes.copy()
+        self.current_notes: list[FNFNote] = self.chart.notes.copy()
         self.current_events: list[DigitalKeyEvent] = []
 
         self.last_p1_note = None
@@ -397,7 +305,7 @@ class FNFEngine(Engine):
     def process_keystate(self, key_states: KeyStates):
         last_state = self.key_state
         if self.last_p1_note in (0, 1, 2, 3) and key_states[self.last_p1_note] is False:
-            self.last_p1_note = None  # should set BF to idle?
+            self.last_p1_note = None
         # ignore spam during front/back porch
         if (self.chart_time < self.chart.notes[0].time - self.hit_window
            or self.chart_time > self.chart.notes[-1].time + self.hit_window):
@@ -412,14 +320,24 @@ class FNFEngine(Engine):
         self.key_state = key_states.copy()
 
     def calculate_score(self):
-        for note in [n for n in self.current_notes if n.type != "sustain" and n.time <= self.chart_time + self.hit_window]:
+        # Get all non-scored notes within the current window
+        for note in [n for n in self.current_notes if n.time <= self.chart_time + self.hit_window]:
+            # Missed notes (current time is higher than max allowed time for note)
             if self.chart_time > note.time + self.hit_window:
                 note.missed = True
                 note.hit_time = math.inf  # how smart is this? :thinking:
                 self.score_note(note)
                 self.current_notes.remove(note)
             else:
+                if note.type == "sustain":
+                    if self.key_state[note.lane]:
+                        note.hit = True
+                        note.hit_time = note.time
+                        self.score_note(note)
+                        self.current_notes.remove(note)
+                # Check non-used events to see if one matches our note
                 for event in [e for e in self.current_events if e.new_state == "down"]:
+                    # We've determined the note was hit
                     if event.key == note.lane and abs(event.time - note.time) <= self.hit_window:
                         note.hit = True
                         note.hit_time = event.time
@@ -427,51 +345,291 @@ class FNFEngine(Engine):
                         self.current_notes.remove(note)
                         self.current_events.remove(event)
                         break
-        # aaaaaa do not do this loop
-        for note in [n for n in self.current_notes if n.type == "sustain" and n.time <= self.chart_time + self.hit_window]:
-            if self.chart_time > note.time + self.hit_window:
-                note.missed = True
-                note.hit_time = math.inf
-                self.score_note(note)
-                self.current_notes.remove(note)
-            else:
-                if self.key_state[note.lane] is True:
-                    note.hit = True
-                    note.hit_time = note.time
-                    self.score_note(note)
-                    self.current_notes.remove(note)
+
+        # Make sure we can't go below min_hp or above max_hp
         self.hp = clamp(self.min_hp, self.hp, self.max_hp)
         if self.hp == self.min_hp:
             self.has_died = True
 
-    def score_note(self, note: FNFNoteSprite):
-        if note.type == "sustain":
-            if note.hit:
-                self.hp += 0.01
-            elif note.missed:
-                self.hp -= 0.025
+    def score_note(self, note: FNFNote):
+        # Ignore notes we haven't done anything with yet
+        if not (note.hit or note.missed):
             return
+
+        # Sustains use different scoring
+        if note.type == "sustain":
+            self.last_p1_note = note.lane
+            if note.hit:
+                self.hp += 0.02
+                self.last_note_missed = False
+            elif note.missed:
+                self.hp -= 0.05
+                self.last_note_missed = True
+            return
+
+        # Death notes set HP to minimum when hit
         if note.type == "death":
             if note.hit:
                 self.hp = self.min_hp
             return
+
+        # Bomb notes penalize HP when hit
         if note.type == "bomb":
             if note.hit:
                 self.hp -= self.bomb_hp
             return
+
+        # Score the note
         j = self.get_note_judgement(note)
         self.score += j.score
         self.weighted_hit_notes += j.accuracy_weight
+
+        # Give HP for hit note (heal notes give more)
         if note.type == "heal":
             self.hp += self.heal_hp
         else:
             self.hp += j.hp_change
+
+        # Judge the player
+        rt = abs(note.hit_time - note.time)
         self.latest_judgement = j.name
         self.latest_judgement_time = self.chart_time
+        self.all_judgements.append((self.latest_judgement_time, rt, self.latest_judgement))
+
+        # Animation and hit/miss tracking
+        self.last_p1_note = note.lane
         if note.hit:
             self.hits += 1
-            self.last_p1_note = note.lane
             self.last_note_missed = False
         elif note.missed:
             self.misses += 1
             self.last_note_missed = True
+
+
+@cache
+def load_note_texture(note_type, note_lane, height):
+    image_name = f"{note_type}-{note_lane + 1}"
+    try:
+        image = img_from_resource(fnfskin, image_name + ".png")
+        if image.height != height:
+            width = int((height / image.height) * image.width)
+            image = image.resize((width, height), PIL.Image.LANCZOS)
+    except Exception:
+        logger.error(f"Unable to load texture: {image_name}")
+        return load_missing_texture(height, height)
+    return arcade.Texture(f"_fnfnote_{image_name}", image=image, hit_box_algorithm=None)
+
+
+@cache
+def load_missing_texture(height, width):
+    image_name = f"{height}x{width}"
+    image = generate_missing_texture_image(height, width)
+    return arcade.Texture(f"_fnfmissing_{image_name}", image=image, hit_box_algorithm=None)
+
+
+class FNFNoteSprite(arcade.Sprite):
+    def __init__(self, note: FNFNote, highway: FNFHighway, height = 128, *args, **kwargs):
+        self.note = note
+        self.highway = highway
+        tex = load_note_texture(note.type, note.lane, height)
+        super().__init__(texture=tex, *args, **kwargs)
+
+    def __lt__(self, other: FNFNoteSprite):
+        return self.note.time < other.note.time
+
+    def update_animation(self, delta_time: float):
+        if self.note.type == "sustain":
+            if self.note.hit and self.highway.song_time >= self.note.time:
+                self.alpha = 0
+        elif self.note.hit:
+            self.alpha = 0
+
+
+class FNFLongNoteSprite(FNFNoteSprite):
+    pass
+
+
+class SpriteBucketCollection:
+    def __init__(self):
+        self.width: Seconds = 5
+        self.buckets: list[arcade.SpriteList] = []
+        self.overbucket = arcade.SpriteList()
+
+    def append(self, sprite: arcade.Sprite, time: Seconds, length: Seconds):
+        b = self.calc_bucket(time)
+        b2 = self.calc_bucket(time + length)
+        if b == b2:
+            self.append_bucket(sprite, b)
+        else:
+            self.overbucket.append(sprite)
+
+    def append_bucket(self, sprite, b):
+        while len(self.buckets) <= b:
+            self.buckets.append(arcade.SpriteList())
+        self.buckets[b].append(sprite)
+
+    def update(self, time: Seconds, delta_time: float = 1/60):
+        b = self.calc_bucket(time)
+        for bucket in self.buckets[b:b+2]:
+            bucket.update(delta_time)
+        self.overbucket.update(delta_time)
+
+    def update_animation(self, time: Seconds, delta_time: float = 1/60):
+        b = self.calc_bucket(time)
+        for bucket in self.buckets[b:b+2]:
+            bucket.update_animation(delta_time)
+        self.overbucket.update_animation(delta_time)
+
+    def draw(self, time: Seconds):
+        b = self.calc_bucket(time)
+        for bucket in self.buckets[b:b+2]:
+            bucket.draw()
+        self.overbucket.draw()
+
+    def calc_bucket(self, time: Seconds) -> int:
+        return math.floor(time / self.width)
+
+
+class FNFHighway(Highway):
+    def __init__(self, chart: FNFChart, pos: tuple[int, int], size: tuple[int, int] = None, gap: int = 5, auto = False):
+        if size is None:
+            size = int(Settings.width / (1280 / 400)), Settings.height
+
+        super().__init__(chart, pos, size, gap)
+
+        self.viewport = 1 / (chart.notespeed * 0.75)
+
+        self.auto = auto
+
+        self.sprite_buckets = SpriteBucketCollection()
+        for note in self.notes:
+            sprite = FNFNoteSprite(note, self, self.note_size) if note.length == 0 else FNFLongNoteSprite(note, self, self.note_size)
+            sprite.top = self.note_y(note.time)
+            sprite.left = self.lane_x(note.lane)
+            note.sprite = sprite
+            self.sprite_buckets.append(sprite, note.time, note.length)
+
+        self.strikeline = arcade.SpriteList()
+        for i in [0, 1, 2, 3]:
+            sprite = FNFNoteSprite(FNFNote(self.chart, 0, i, 0), self, self.note_size)
+            sprite.top = self.strikeline_y
+            sprite.left = self.lane_x(sprite.note.lane)
+            sprite.alpha = 64
+            self.strikeline.append(sprite)
+
+        logger.debug(f"Generated highway for chart {chart.instrument}.")
+
+        # TODO: Replace with better pixel_offset calculation
+        self.last_update_time = 0
+        self._pixel_offset = 0
+
+    def update(self, song_time: float):
+        super().update(song_time)
+        self.camera.scale = bounce(1, 1.05, self.chart.bpm / 2, self.song_time)
+        self.sprite_buckets.update_animation(song_time)
+        # TODO: Replace with better pixel_offset calculation
+        delta_draw_time = self.song_time - self.last_update_time
+        self._pixel_offset += (self.px_per_s * delta_draw_time)
+        self.last_update_time = self.song_time
+
+    @property
+    def pixel_offset(self):
+        # TODO: Replace with better pixel_offset calculation
+        return self._pixel_offset
+
+    def draw(self):
+        _cam = arcade.get_window().current_camera
+        self.camera.use()
+        self.strikeline.draw()
+        vp = arcade.get_viewport()
+        height = vp[3] - vp[2]
+        arcade.set_viewport(
+            0,
+            Settings.width,
+            -self.pixel_offset,
+            -self.pixel_offset + height
+        )
+        self.sprite_buckets.draw(self.song_time)
+        _cam.use()
+
+
+class FNFAssetManager:
+    def __init__(self, song: FNFSong):
+        self.song = song
+
+    def load_asset(self, asset_type: str, name: str, default: str = None, *, anchors: list[str] = ["bottom"]) -> AdobeSprite | arcade.Sprite:
+        sub_path = f"{asset_type}/{name}.png"
+        possiblepaths: list[Path] = []
+        # Path to asset if it's in the song folder
+        possiblepaths.append(self.song.path / "assets" / sub_path)
+        # Path to asset if it's in the mod folder (and y'know, the mod exists)
+        if self.song.mod is not None:
+            possiblepaths.append(self.song.mod.path / "assets" / sub_path)
+        # Path to asset if it's in the game files
+        with pkg_resources.path(charm.data.assets, "__init__.py") as p:
+            builtin_assets = p.parent
+            possiblepaths.append(builtin_assets / sub_path)
+        # Path to asset if it's the default
+        if default:
+            possiblepaths.append(builtin_assets / f"{asset_type}/{default}.png")
+
+        try:
+            path = next(p for p in possiblepaths if p.exists())
+        except StopIteration:
+            raise AssetNotFoundError(name)
+
+        xml_path = path.parent / f"{path.stem}.xml"
+        if xml_path.exists():
+            return AdobeSprite(xml_path.parent, path.stem, anchors)
+        else:
+            return arcade.Sprite(path)
+
+
+class FNFSceneManager:
+    """Controls the display of the FNF scene.
+       Handles sprite loading, most rendering, and inter-element interactions.
+       
+       `chart: FNFChart`: the chart the player is currenty playing."""
+    def __init__(self, chart: FNFChart):
+        self.chart = chart
+        self.song: FNFSong = cast(FNFSong, chart.song)
+
+        self.enemy_chart = self.song.get_chart(2, self.chart.difficulty)
+
+        with LogSection(logger, "asset manager init"):
+            self.assetmanager = FNFAssetManager(self.song)
+            # function alias
+            self.load_asset = self.assetmanager.load_asset
+
+        with LogSection(logger, "creating engine"):
+            self.engine = FNFEngine(self.chart)
+
+        with LogSection(logger, "creating highways"):
+            self.highway_1 = FNFHighway(self.chart, (((Settings.width // 3) * 2), 0))
+            self.highway_2 = FNFHighway(self.enemy_chart, (10, 0), auto=True)
+
+        with LogSection(logger, "loading assets"):
+            # Characters
+            self.player_sprite = self.load_asset("characters", self.chart.player1, "boyfriend")
+            self.spectator_sprite = self.load_asset("characters", self.chart.spectator, "girlfriend")
+            self.enemy_sprite = self.load_asset("characters", self.chart.player2, "dad")
+
+            self.stage = self.load_asset("stages", self.chart.stage, "stage")
+
+            # Categories
+            self.characters = [self.player_sprite, self.spectator_sprite, self.enemy_sprite]
+
+    def update(self, song_time: Seconds, delta_time: Seconds):
+        self.engine.update(song_time)
+
+        # TODO: Lag? Maybe not calculate this every tick?
+        # The only way to solve this I think is to create something like an
+        # on_note_valid and on_note_expired event, which you can do with
+        # Arcade.schedule() if we need to look into that.
+        self.engine.calculate_score()
+
+        self.highway_1.update(song_time)
+        self.highway_2.update(song_time)
+
+        for c in self.characters:
+            c.update_animation(delta_time)
