@@ -5,8 +5,8 @@ class LogSection:
     def __init__(self, logger: Logger, name: str):
         self.logger = logger
         self.name = name
-        self.start_time = time()
         logger.debug(f"Starting {name}")
+        self.start_time = time()
     
     def done(self):
         duration = int((time() - self.start_time) * 1000)

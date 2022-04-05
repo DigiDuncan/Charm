@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import importlib.resources as pkg_resources
 import logging
 from random import randint
+from time import perf_counter
 
 import arcade
 import librosa
@@ -14,7 +15,7 @@ from charm.lib.adobexml import sprite_from_adobe
 from charm.lib.anim import ease_linear, ease_quartout
 from charm.lib.digiview import DigiView
 from charm.lib.logsection import LogSection
-from charm.lib.gamemodes.fnf import FNFSong
+from charm.lib.gamemodes.fnf import FNFNote, FNFSong
 from charm.lib.paths import songspath
 from charm.lib.settings import Settings
 
@@ -46,7 +47,7 @@ animationmap = [
     "right"
 ]
 
-BAD_HARDCODE_TIME = 129857.142857143
+BAD_HARDCODE_TIME = 129.857142857143
 
 
 class VisualizerView(DigiView):
@@ -118,11 +119,17 @@ class VisualizerView(DigiView):
             self.scott_atlas = arcade.TextureAtlas((8192, 8192))
             self.sprite_list = arcade.SpriteList(atlas = self.scott_atlas)
             self.sprite = sprite_from_adobe("scott", ["bottom", "left"])
+            self.boyfriend = sprite_from_adobe("bfScott", ["bottom", "right"])
             self.sprite_list.append(self.sprite)
-            self.sprite_list.preload_textures(self.sprite.textures)
+            self.sprite_list.append(self.boyfriend)
+            self.sprite.cache_textures()
+            self.boyfriend.cache_textures()
             self.sprite.bottom = 0
             self.sprite.left = 0
+            self.boyfriend.bottom = 0
+            self.boyfriend.right = Settings.width - 50
             self.sprite.set_animation("idle")
+            self.boyfriend.set_animation("idle")
 
         # Settings
         with LogSection(logger, "finalizing setup"):
@@ -136,6 +143,9 @@ class VisualizerView(DigiView):
             # RAM
             self.pixels: list[tuple[int, int]] = [(0, 0) * Settings.width]
             self.last_beat = -self.beat_time
+            self.last_enemy_note: FNFNote = None
+            self.last_player_note: FNFNote = None
+            self.did_harcode = False
 
     def on_show(self):
         self.window.theme_song.volume = 0
@@ -157,9 +167,21 @@ class VisualizerView(DigiView):
         if last_beat:
             self.last_beat = last_beat.time
         enemy_note = self.enemy_chart.lt(self.song.time)
-        if enemy_note:
+        player_note = self.player_chart.lt(self.song.time)
+        
+        if (not self.did_harcode) and self.song.time >= BAD_HARDCODE_TIME:
+            # Y'know?
+            self.sprite.play_animation_once("phone")
+            self.did_harcode = True
+        if enemy_note and self.last_enemy_note is not enemy_note:
             self.sprite.play_animation_once(animationmap[enemy_note.lane])
+            self.last_enemy_note = enemy_note
+        if player_note and self.last_player_note is not player_note:
+            self.boyfriend.play_animation_once(animationmap[player_note.lane])
+            self.last_player_note = player_note
+
         self.sprite.update_animation(delta_time)
+        self.boyfriend.update_animation(delta_time)
 
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:
@@ -181,9 +203,10 @@ class VisualizerView(DigiView):
             return
 
         # Camera zoom
-        zoom = ease_quartout(1, 0.9, self.last_beat, self.last_beat + self.beat_time, self.song.time)
-        self.star_camera.scale = zoom
-        self.text.scale = (1 / zoom)
+        star_zoom = ease_quartout(1, 0.9, self.last_beat, self.last_beat + self.beat_time, self.song.time)
+        cam_zoom = ease_quartout(1.05, 1, self.last_beat, self.last_beat + self.beat_time, self.song.time)
+        self.star_camera.scale = star_zoom
+        self.camera.scale = 1 / cam_zoom
 
         # Gradient
         self.gradient.draw()
@@ -195,30 +218,32 @@ class VisualizerView(DigiView):
 
         self.camera.use()
 
-        # Text
-        self.text.draw()
-
         # Note flashes
         if self.chart_available:
-            self.sprite_list.draw()
             player_note = self.player_chart.lt(self.song.time)
             if player_note:
                 player_color = colormap[player_note.lane]
                 player_time = player_note.time
-                player_opacity = ease_linear(127, 0, player_time, player_time + self.beat_time, self.song.time)
+                player_opacity = ease_linear(32, 0, player_time, player_time + self.beat_time, self.song.time)
                 player_color = player_color + (int(player_opacity),)
                 arcade.draw_xywh_rectangle_filled(Settings.width / 2, 0, Settings.width / 2, Settings.height, player_color)
             enemy_note = self.enemy_chart.lt(self.song.time)
             if enemy_note:
                 enemy_color = colormap[enemy_note.lane]
                 enemy_time = enemy_note.time
-                enemy_opacity = ease_linear(127, 0, enemy_time, enemy_time + self.beat_time, self.song.time)
+                enemy_opacity = ease_linear(32, 0, enemy_time, enemy_time + self.beat_time, self.song.time)
                 enemy_color = enemy_color + (int(enemy_opacity),)
                 arcade.draw_xywh_rectangle_filled(0, 0, Settings.width / 2, Settings.height, enemy_color)
+
+        # Text
+        self.text.draw()
 
         line_color = (0, 255, 255, 255)
         line_outline_color = (255, 255, 255, 255)
         arcade.draw_line_strip(self.pixels, line_outline_color, self.line_width + 2)
         arcade.draw_line_strip(self.pixels, line_color, self.line_width)
+
+        if self.chart_available:
+            self.sprite_list.draw()
 
         super().on_draw()

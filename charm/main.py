@@ -35,7 +35,7 @@ logger.addHandler(dfhandler)
 logger.addHandler(phandler)
 
 arcadelogger = logging.getLogger("arcade")
-arcadelogger.setLevel(logging.INFO)
+arcadelogger.setLevel(logging.WARN)
 arcadelogger.handlers = []
 arcadelogger.propagate = False
 arcadelogger.addHandler(dfhandlersource)

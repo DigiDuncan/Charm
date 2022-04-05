@@ -13,6 +13,7 @@ from arcade import Sprite
 import arcade
 
 import charm.data.images.spritesheets
+from charm.lib.logsection import LogSection
 
 logger = logging.getLogger("charm")
 
@@ -111,19 +112,19 @@ class AdobeSprite(Sprite):
                 # a texture here and basically throwing it away.
                 # This also noticably increases load time the first time you load
                 # a paticular AdobeSprite.
-                tx = arcade.load_texture(self._image_path, st.x, st.y, st.width, st.height)
+                tx = arcade.load_texture(self._image_path, st.x, st.y, st.width, st.height, hit_box_algorithm=None)
                 im = PIL.Image.new("RGBA", (st.frame_width, st.frame_height))
                 im.paste(tx.image, (-st.frame_x, -st.frame_y))
                 tx = arcade.Texture(f"_as_{self._ata.image_path}_{st.x}-{st.y}-{st.width}-{st.height}", im, None)
             else:
-                tx = arcade.load_texture(self._image_path, st.x, st.y, st.width, st.height)
+                tx = arcade.load_texture(self._image_path, st.x, st.y, st.width, st.height, hit_box_algorithm=None)
             if debug:
                 draw = PIL.ImageDraw.ImageDraw(tx.image)
                 draw.rectangle((0, 0, tx.image.width - 1, tx.image.height - 1), outline = arcade.color.RED)
             textures.append(tx)
             self.texture_map[st] = n
 
-        super().__init__(image_width=self._ata.width, image_height=self._ata.height)
+        super().__init__(image_width=self._ata.width, image_height=self._ata.height, hit_box_algorithm=None)
         for tx in textures:
             self.append_texture(tx)
         self.set_texture(0)
@@ -141,6 +142,7 @@ class AdobeSprite(Sprite):
     def cache_textures(self):
         for texture in self.textures:
             self.texture = texture
+            self.hit_box = self.texture.hit_box_points
             logger.info(f"Cached texture {texture.name}")
 
     def set_animation(self, name: str):
