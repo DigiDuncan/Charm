@@ -14,8 +14,8 @@ class SpriteTestView(DigiView):
     def setup(self):
         super().setup()
 
-        SPRITE_NAME = "BOYFRIEND"
-        SPRITE_ANIM = "boyfriend attack"
+        SPRITE_NAME = "scott"
+        SPRITE_ANIM = "idle"
 
         self.sprite = sprite_from_adobe(SPRITE_NAME, ["bottom", "left"])
         self.sprite.fps = 24

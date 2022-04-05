@@ -130,12 +130,18 @@ class AdobeSprite(Sprite):
         self.animations = set([st.name for st in self.texture_map])
 
         self._current_animation = []
+        self._current_once_animation = []
         self._current_animation_sts = []
         self._current_animation_index = 0
         self.fps = 24
         self._animation_time = 0
 
         self.anchors = anchors
+
+    def cache_textures(self):
+        for texture in self.textures:
+            self.texture = texture
+            logger.info(f"Cached texture {texture.name}")
 
     def set_animation(self, name: str):
         self._current_animation = []
@@ -147,25 +153,41 @@ class AdobeSprite(Sprite):
         self._current_animation_index = -1
         self._animation_time = math.inf
 
+    def play_animation_once(self, name: str):
+        self._current_once_animation = []
+        for st, n in self.texture_map.items():
+            if st.name == name:
+                self._current_once_animation.append(n)
+        self._animation_time = math.inf
+
     def update_animation(self, delta_time):
         self._animation_time += delta_time
         if self.fps == 0:
             return
-        if self._current_animation:
-            if self._animation_time >= 1 / abs(self.fps):
+        if self._animation_time >= 1 / abs(self.fps):
+            # Get anchors
+            if self.anchors:
+                anchorlist = [getattr(self, a) for a in self.anchors]
+            # Is there an animation override?
+            if self._current_once_animation:
+                self.set_texture(self._current_once_animation.pop(0))
+                self.hit_box = self.texture.hit_box_points
+                self._animation_time = 0
+            # If not, is there a normal animation?
+            elif self._current_animation:
                 if self.fps > 0:
                     self._current_animation_index += 1
                 else:
                     self._current_animation_index -= 1
                 self._current_animation_index %= len(self._current_animation)
-                if self.anchors:
-                    anchorlist = [getattr(self, a) for a in self.anchors]
+                
                 self.set_texture(self._current_animation[self._current_animation_index])
                 self.hit_box = self.texture.hit_box_points
-                if self.anchors:
-                    for a, v in zip(self.anchors, anchorlist):
-                        setattr(self, a, v)
                 self._animation_time = 0
+            # Set anchors
+            if self.anchors:
+                for a, v in zip(self.anchors, anchorlist):
+                    setattr(self, a, v)
 
 
 def sprite_from_adobe(s: str, anchors = ["bottom"], debug = False) -> AdobeSprite:

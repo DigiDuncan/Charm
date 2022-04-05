@@ -10,6 +10,7 @@ from numpy import ndarray
 from pyglet.math import Vec2
 
 import charm.data.audio
+from charm.lib.adobexml import sprite_from_adobe
 from charm.lib.anim import ease_linear, ease_quartout
 from charm.lib.digiview import DigiView
 from charm.lib.logsection import LogSection
@@ -37,6 +38,15 @@ colormap = [
     arcade.color.GREEN,
     arcade.color.MAGENTA
 ]
+
+animationmap = [
+    "left",
+    "down",
+    "up",
+    "right"
+]
+
+BAD_HARDCODE_TIME = 129857.142857143
 
 
 class VisualizerView(DigiView):
@@ -87,23 +97,32 @@ class VisualizerView(DigiView):
             star_height = Settings.height + int(self._song.source.duration * self.scroll_speed)
             star_amount = int(stars_per_screen * (star_height / Settings.height))
             logger.info(f"Generating {star_amount} stars...")
-            print(star_height)
             for i in range(star_amount):
                 sprite = arcade.SpriteCircle(5, arcade.color.WHITE + (255,), True)
                 sprite.center_x = randint(0, Settings.width)
                 sprite.center_y = randint(-(star_height - Settings.height), Settings.height)
-                print(sprite.center_y)
                 self.stars.append(sprite)
 
         with LogSection(logger, "creating text"):
             self.text = arcade.Text("Fourth Wall by Jacaris", Settings.width / 2, Settings.height * (0.9),
             font_name = "Determination Sans", font_size = 32, align="center", anchor_x="center", anchor_y="center", width = Settings.width)
 
-        # Gradient
-        self.gradient = arcade.create_rectangle_filled_with_colors(
-            [(-250, Settings.height), (Settings.width + 250, Settings.height), (Settings.width + 250, -250), (-250, -250)],
-            [arcade.color.BLACK, arcade.color.BLACK, arcade.color.DARK_PASTEL_PURPLE, arcade.color.DARK_PASTEL_PURPLE]
-        )
+        with LogSection(logger, "making gradient"):
+            # Gradient
+            self.gradient = arcade.create_rectangle_filled_with_colors(
+                [(-250, Settings.height), (Settings.width + 250, Settings.height), (Settings.width + 250, -250), (-250, -250)],
+                [arcade.color.BLACK, arcade.color.BLACK, arcade.color.DARK_PASTEL_PURPLE, arcade.color.DARK_PASTEL_PURPLE]
+            )
+
+        with LogSection(logger, "loading sprite"):
+            self.scott_atlas = arcade.TextureAtlas((8192, 8192))
+            self.sprite_list = arcade.SpriteList(atlas = self.scott_atlas)
+            self.sprite = sprite_from_adobe("scott", ["bottom", "left"])
+            self.sprite_list.append(self.sprite)
+            self.sprite_list.preload_textures(self.sprite.textures)
+            self.sprite.bottom = 0
+            self.sprite.left = 0
+            self.sprite.set_animation("idle")
 
         # Settings
         with LogSection(logger, "finalizing setup"):
@@ -137,6 +156,10 @@ class VisualizerView(DigiView):
         last_beat: Beat = self.beats.lt(self.song.time)
         if last_beat:
             self.last_beat = last_beat.time
+        enemy_note = self.enemy_chart.lt(self.song.time)
+        if enemy_note:
+            self.sprite.play_animation_once(animationmap[enemy_note.lane])
+        self.sprite.update_animation(delta_time)
 
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:
@@ -177,6 +200,7 @@ class VisualizerView(DigiView):
 
         # Note flashes
         if self.chart_available:
+            self.sprite_list.draw()
             player_note = self.player_chart.lt(self.song.time)
             if player_note:
                 player_color = colormap[player_note.lane]
