@@ -11,10 +11,10 @@ class VisualizerView(DigiView):
         super().__init__(fade_in=1, bg_color=arcade.color.BLACK, *args, **kwargs)
 
     def setup(self):
+        super().setup()
         with pkg_resources.path(charm.data.audio, "song.mp3") as p:
             self._song = arcade.load_sound(p)
             self.waveform, self.sample_rate = librosa.load(p)
-        super().setup()
 
     def on_show(self):
         super().on_show()
