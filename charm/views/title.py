@@ -51,6 +51,7 @@ class TitleView(DigiView):
 
         if self.egg_roll == 666:
             # it's tricky
+            self.splash_text = ""
             self.splash_label = arcade.Text("CLOWN KILLS YOU",
                           font_name='Impact',
                           font_size=48,
