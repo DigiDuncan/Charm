@@ -13,11 +13,11 @@ from charm.lib.utils import img_from_resource
 
 class MainMenuItem(Sprite):
     def __init__(self, label: str, icon: str, goto: DigiView,
-                 width: int = 200, border_color: Color = arcade.color.WHITE, border_width: int = 5,
+                 width: int = 200, border_color: Color = arcade.color.WHITE, border_width: int = 0,
                  *args, **kwargs):
         try:
             self.icon = img_from_resource(charm.data.icons, f"{icon}.png")
-            self.icon.resize((width, width), PIL.Image.LANCZOS)
+            self.icon = self.icon.resize((width, width), PIL.Image.LANCZOS)
         except Exception:
             self.icon = generate_missing_texture_image(width, width)
         self.icon = PIL.ImageOps.expand(self.icon, border=border_width, fill=border_color)

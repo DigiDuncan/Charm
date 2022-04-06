@@ -25,9 +25,9 @@ class MainMenuView(DigiView):
 
         self.menu = MainMenu(
             [
-                MainMenuItem("Playlists", "playlist", None),
+                MainMenuItem("Playlists", "playlists", None),
                 MainMenuItem("Songs", "songs", FNFSongMenuView(back=self)),
-                MainMenuItem("Options", "option", None),
+                MainMenuItem("Options", "options", None),
                 MainMenuItem("Sprite Test", "test", SpriteTestView(back=self)),
                 MainMenuItem("Lyric Test", "test", SubtitleView(back=self)),
                 MainMenuItem("Parallax Test", "test", ParallaxView(back=self)),
