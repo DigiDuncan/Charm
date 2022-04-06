@@ -429,8 +429,8 @@ def load_missing_texture(height, width):
 
 class FNFNoteSprite(arcade.Sprite):
     def __init__(self, note: FNFNote, highway: FNFHighway, height = 128, *args, **kwargs):
-        self.note = note
-        self.highway = highway
+        self.note: FNFNote = note
+        self.highway: FNFHighway = highway
         tex = load_note_texture(note.type, note.lane, height)
         super().__init__(texture=tex, *args, **kwargs)
 
@@ -438,6 +438,9 @@ class FNFNoteSprite(arcade.Sprite):
         return self.note.time < other.note.time
 
     def update_animation(self, delta_time: float):
+        if self.highway.auto:
+            if self.highway.song_time >= self.note.time:
+                self.note.hit = True
         if self.note.type == "sustain":
             if self.note.hit and self.highway.song_time >= self.note.time:
                 self.alpha = 0
@@ -525,7 +528,6 @@ class FNFHighway(Highway):
 
     def update(self, song_time: float):
         super().update(song_time)
-        self.camera.scale = bounce(1, 1.05, self.chart.bpm / 2, self.song_time)
         self.sprite_buckets.update_animation(song_time)
         # TODO: Replace with better pixel_offset calculation
         delta_draw_time = self.song_time - self.last_update_time

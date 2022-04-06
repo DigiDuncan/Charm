@@ -2,20 +2,18 @@ from dataclasses import dataclass
 import importlib.resources as pkg_resources
 import logging
 from random import randint
-from time import perf_counter
 
 import arcade
 import librosa
 import nindex
 from numpy import ndarray
-from pyglet.math import Vec2
 
 import charm.data.audio
 from charm.lib.adobexml import sprite_from_adobe
 from charm.lib.anim import ease_linear, ease_quartout
 from charm.lib.digiview import DigiView
 from charm.lib.logsection import LogSection
-from charm.lib.gamemodes.fnf import FNFNote, FNFSong
+from charm.lib.gamemodes.fnf import FNFHighway, FNFNote, FNFSong
 from charm.lib.paths import songspath
 from charm.lib.settings import Settings
 
@@ -88,12 +86,14 @@ class VisualizerView(DigiView):
                 self.player_chart = nindex.Index(self.songdata.charts[0].notes, "time")
                 enemy_chart = self.songdata.get_chart(2, self.songdata.charts[0].difficulty)
                 self.enemy_chart = nindex.Index(enemy_chart.notes, "time")
+            with LogSection(logger, "generating highway"):
+                self.highway = FNFHighway(self.songdata.charts[0], (((Settings.width // 3) * 2), 0), auto = True)
 
         # Create background stars
         with LogSection(logger, "creating stars"):
             self.star_camera = arcade.Camera()
             self.stars = arcade.SpriteList()
-            self.scroll_speed = 10  # px/s
+            self.scroll_speed = 20  # px/s
             stars_per_screen = 100
             star_height = Settings.height + int(self._song.source.duration * self.scroll_speed)
             star_amount = int(stars_per_screen * (star_height / Settings.height))
@@ -105,7 +105,7 @@ class VisualizerView(DigiView):
                 self.stars.append(sprite)
 
         with LogSection(logger, "creating text"):
-            self.text = arcade.Text("Fourth Wall by Jacaris", Settings.width / 2, Settings.height * (0.9),
+            self.text = arcade.Text("Fourth Wall by Jacaris", Settings.width / 4, Settings.height * (0.9),
             font_name = "Determination Sans", font_size = 32, align="center", anchor_x="center", anchor_y="center", width = Settings.width)
 
         with LogSection(logger, "making gradient"):
@@ -115,7 +115,7 @@ class VisualizerView(DigiView):
                 [arcade.color.BLACK, arcade.color.BLACK, arcade.color.DARK_PASTEL_PURPLE, arcade.color.DARK_PASTEL_PURPLE]
             )
 
-        with LogSection(logger, "loading sprite"):
+        with LogSection(logger, "loading sprites"):
             self.scott_atlas = arcade.TextureAtlas((8192, 8192))
             self.sprite_list = arcade.SpriteList(atlas = self.scott_atlas)
             self.sprite = sprite_from_adobe("scott", ["bottom", "left"])
@@ -139,6 +139,7 @@ class VisualizerView(DigiView):
             self.x_scale = 2
             self.resolution = 4
             self.beat_time = 0.5
+            self.show_text = False
 
             # RAM
             self.pixels: list[tuple[int, int]] = [(0, 0) * Settings.width]
@@ -168,7 +169,7 @@ class VisualizerView(DigiView):
             self.last_beat = last_beat.time
         enemy_note = self.enemy_chart.lt(self.song.time)
         player_note = self.player_chart.lt(self.song.time)
-        
+
         if (not self.did_harcode) and self.song.time >= BAD_HARDCODE_TIME:
             # Y'know?
             self.sprite.play_animation_once("phone")
@@ -182,6 +183,7 @@ class VisualizerView(DigiView):
 
         self.sprite.update_animation(delta_time)
         self.boyfriend.update_animation(delta_time)
+        self.highway.update(self.song.time)
 
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:
@@ -194,6 +196,8 @@ class VisualizerView(DigiView):
                 self.song.pause() if self.song.playing else self.song.play()
             case arcade.key.NUM_0:
                 self.song.seek(0)
+            case arcade.key.T:
+                self.show_text = not self.show_text
 
         return super().on_key_press(symbol, modifiers)
 
@@ -207,6 +211,7 @@ class VisualizerView(DigiView):
         cam_zoom = ease_quartout(1.05, 1, self.last_beat, self.last_beat + self.beat_time, self.song.time)
         self.star_camera.scale = star_zoom
         self.camera.scale = 1 / cam_zoom
+        self.highway.camera.scale = 1 / cam_zoom
 
         # Gradient
         self.gradient.draw()
@@ -236,7 +241,8 @@ class VisualizerView(DigiView):
                 arcade.draw_xywh_rectangle_filled(0, 0, Settings.width / 2, Settings.height, enemy_color)
 
         # Text
-        self.text.draw()
+        if self.show_text:
+            self.text.draw()
 
         line_color = (0, 255, 255, 255)
         line_outline_color = (255, 255, 255, 255)
@@ -245,5 +251,6 @@ class VisualizerView(DigiView):
 
         if self.chart_available:
             self.sprite_list.draw()
+            self.highway.draw()
 
         super().on_draw()

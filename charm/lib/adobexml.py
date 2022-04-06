@@ -132,6 +132,7 @@ class AdobeSprite(Sprite):
 
         self._current_animation = []
         self._current_once_animation = []
+        self._current_animation_override = []
         self._current_animation_sts = []
         self._current_animation_index = 0
         self.fps = 24
@@ -155,6 +156,19 @@ class AdobeSprite(Sprite):
         self._current_animation_index = -1
         self._animation_time = math.inf
 
+    def set_animation_override(self, name: str):
+        self._current_animation_override = []
+        for st, n in self.texture_map.items():
+            if st.name == name:
+                self._current_animation_override.append(n)
+        self._current_animation_index = -1
+        self._animation_time = math.inf
+
+    def clear_animation_override(self):
+        self._current_animation_override = []
+        self._current_animation_index = -1
+        self._animation_time = math.inf
+
     def play_animation_once(self, name: str):
         self._current_once_animation = []
         for st, n in self.texture_map.items():
@@ -170,9 +184,20 @@ class AdobeSprite(Sprite):
             # Get anchors
             if self.anchors:
                 anchorlist = [getattr(self, a) for a in self.anchors]
-            # Is there an animation override?
+            # Is there an animation override to be played once?
             if self._current_once_animation:
                 self.set_texture(self._current_once_animation.pop(0))
+                self.hit_box = self.texture.hit_box_points
+                self._animation_time = 0
+            # If not, an animation override?
+            elif self._current_animation_override:
+                if self.fps > 0:
+                    self._current_animation_index += 1
+                else:
+                    self._current_animation_index -= 1
+                self._current_animation_index %= len(self._current_animation_override)
+                
+                self.set_texture(self._current_animation_override[self._current_animation_index])
                 self.hit_box = self.texture.hit_box_points
                 self._animation_time = 0
             # If not, is there a normal animation?
