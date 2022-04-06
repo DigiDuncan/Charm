@@ -41,7 +41,7 @@ class SpriteTestView(DigiView):
             case arcade.key.ENTER:
                 a = next(self.anims)
                 self.sprite.set_animation(a)
-                self.anim_label.value = a
+                self.anim_label.text = a
             case arcade.key.MINUS:
                 self.sprite.fps -= 1
                 self.fps = self.sprite.fps
@@ -67,7 +67,7 @@ class SpriteTestView(DigiView):
         super().on_update(delta_time)
         self.sprite.update_animation(delta_time)
         st = self.sprite._current_animation_sts[self.sprite._current_animation_index]
-        self.data_label.value = f"""
+        self.data_label.text = f"""
         Sprite FPS: {self.fps}
         Sprite F#: {self.sprite._current_animation_index}
         X,Y,W,H: {st.x}, {st.y}, {st.width}, {st.height}

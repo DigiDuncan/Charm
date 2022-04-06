@@ -51,7 +51,7 @@ class CheatView(DigiView):
         if symbol in keymap:
             self.current_cheat += keymap[symbol]
 
-        self.cheat.value = self.current_cheat
+        self.cheat.text = self.current_cheat
 
         return super().on_key_press(symbol, modifiers)
 
