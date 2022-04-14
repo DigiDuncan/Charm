@@ -13,7 +13,6 @@ from arcade import Sprite
 import arcade
 
 import charm.data.images.spritesheets
-from charm.lib.logsection import LogSection
 
 logger = logging.getLogger("charm")
 
@@ -141,10 +140,11 @@ class AdobeSprite(Sprite):
         self.anchors = anchors
 
     def cache_textures(self):
+        # TODO: Can be very slow.
         for texture in self.textures:
             self.texture = texture
             self.hit_box = self.texture.hit_box_points
-            logger.info(f"Cached texture {texture.name}")
+            # logger.info(f"Cached texture {texture.name}")
 
     def set_animation(self, name: str):
         self._current_animation = []
