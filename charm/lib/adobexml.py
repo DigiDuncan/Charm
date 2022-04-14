@@ -1,3 +1,4 @@
+from functools import cache
 import logging
 import math
 from os import PathLike
@@ -217,6 +218,7 @@ class AdobeSprite(Sprite):
                     setattr(self, a, v)
 
 
+@cache
 def sprite_from_adobe(s: str, anchors = ["bottom"], debug = False) -> AdobeSprite:
     with pkg_resources.path(charm.data.images.spritesheets, f"{s}.xml") as p:
         parent = p.parent
