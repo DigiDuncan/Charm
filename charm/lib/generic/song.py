@@ -8,6 +8,17 @@ from typing import Optional
 Seconds = float
 Milliseconds = float
 
+@dataclass
+class Metadata:
+    """For menu sorting."""
+    title: str
+    artist: str = None
+    album: str = None
+    length: float = None
+    genre: str = None
+    charter: str = None
+    mod: str = None
+
 
 @dataclass
 @total_ordering
