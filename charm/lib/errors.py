@@ -53,8 +53,8 @@ class NoChartsError(CharmException):
 
 
 class ChartParseError(CharmException):
-    def __init__(self, show_message: str, *args: object):
-        super().__init__("Chart parsing error!", show_message, "error", *args)
+    def __init__(self, line_num: int, show_message: str, *args: object):
+        super().__init__("Chart parsing error!", f"[Line {line_num}] " + show_message, "error", *args)
 
 
 class UnknownLanesError(CharmException):
