@@ -11,15 +11,17 @@ Milliseconds = float
 
 @dataclass
 class Metadata:
-    """For menu sorting."""
+    """For menu sorting/display."""
     title: str
     artist: str = None
     album: str = None
-    length: float = None
+    length: Seconds = None
     genre: str = None
     year: int = None
     difficulty: int = None
     charter: str = None
+    preview_start: Seconds = None
+    preview_end: Seconds = None
     mod: str = None
     hash: str = None
     key: str = None  # TODO: Deprecate?
