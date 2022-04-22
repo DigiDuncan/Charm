@@ -1,7 +1,18 @@
 from functools import cache
 import importlib.resources as pkg_resources
+from typing import Any
 import PIL.Image
 import arcade
+
+def int_or_str(i: Any) -> int | str | None:
+    try:
+        o = int(i)
+    except ValueError:
+        try:
+            o = str(i)
+        except ValueError:
+            o = None
+    return o
 
 
 def clamp(minVal, val, maxVal):

@@ -52,6 +52,11 @@ class NoChartsError(CharmException):
         super().__init__("No charts found!", f"No charts found for song '{song_name}'", "error", *args)
 
 
+class ChartParseError(CharmException):
+    def __init__(self, show_message: str, *args: object):
+        super().__init__("Chart parsing error!", show_message, "error", *args)
+
+
 class UnknownLanesError(CharmException):
     def __init__(self, show_message: str, *args: object):
         super().__init__("Unknown lanes found", show_message, "warning", *args)

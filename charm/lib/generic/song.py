@@ -16,6 +16,7 @@ class Metadata:
     album: str = None
     length: float = None
     genre: str = None
+    year: int = None
     charter: str = None
     mod: str = None
 
@@ -72,7 +73,9 @@ class Note:
 
 @dataclass
 class Event:
-    """A very basic event that happens at a time."""
+    """A very basic event that happens at a time.
+    
+    * `time: float`: event start in seconds."""
     time: Seconds
 
     def __lt__(self, other) -> bool:
@@ -81,10 +84,15 @@ class Event:
 
 @dataclass
 class BPMChangeEvent(Event):
-    new_bpm: int
+    """Event indicating the song's BPM has changed.
+    
+    * `new_bpm: float`: the new BPM going forward.
+    * `time: float`: event start in seconds."""
+    new_bpm: float
 
 
 class Chart:
+    """A collection of notes and events, with helpful metadata."""
     def __init__(self, song: 'Song', gamemode: str, difficulty: str, instrument: str, lanes: int, hash: str) -> None:
         self.song: Song = song
         self.gamemode = gamemode
@@ -99,6 +107,7 @@ class Chart:
 
 
 class Song:
+    """A list of charts and global events, with some helpful metadata."""
     def __init__(self, name: str):
         self.name = name
         self.path: Path = None
@@ -111,5 +120,5 @@ class Song:
         self.events: list[Event] = []
 
     @classmethod
-    def parse(cls, folder: str):
+    def parse(cls, folder: Path):
         raise NotImplementedError
