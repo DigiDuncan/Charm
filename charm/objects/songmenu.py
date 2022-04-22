@@ -8,6 +8,7 @@ import PIL.Image
 
 from charm.lib.anim import ease_circout
 from charm.lib.charm import CharmColors
+from charm.lib.generic.song import Metadata
 from charm.lib.settings import Settings
 from charm.lib.utils import clamp
 
@@ -15,15 +16,15 @@ logger = logging.getLogger("charm")
 
 
 class SongMenuItem(Sprite):
-    def __init__(self, song: dict, w: int = None, h: int = None, *args, **kwargs):
+    def __init__(self, song: Metadata, w: int = None, h: int = None, *args, **kwargs):
         self.song = song
 
-        self.title = song["title"]
-        self.artist = song["artist"]
-        self.album = song["album"]
+        self.title = song.title
+        self.artist = song.artist
+        self.album = song.album
 
         # Make a real hash, probably on Song.
-        self.key = song["hash"]
+        self.key = song.hash
 
         try:
             album_art_img = PIL.Image.open(f"./albums/album_{self.key}.png")
@@ -61,7 +62,7 @@ class SongMenuItem(Sprite):
 
 
 class SongMenu:
-    def __init__(self, songs: list[dict] = None, radius = 4, buffer = 5, move_speed = 0.2) -> None:
+    def __init__(self, songs: list[Metadata] = None, radius = 4, buffer = 5, move_speed = 0.2) -> None:
         self._songs = songs
         self.items: list[SongMenuItem] = []
         if songs:

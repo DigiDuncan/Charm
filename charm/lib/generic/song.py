@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import dataclasses
 from functools import total_ordering
 from pathlib import Path
 from typing import Optional
@@ -17,8 +18,21 @@ class Metadata:
     length: float = None
     genre: str = None
     year: int = None
+    difficulty: int = None
     charter: str = None
     mod: str = None
+    hash: str = None
+    key: str = None  # TODO: Deprecate?
+
+    def get(self, key, default = None):
+        fields = [f.name for f in dataclasses.fields(self)]
+        if key not in fields:
+            return default
+        val = getattr(self, key)
+        if val is None:
+            return default
+        else:
+            return val
 
 
 @dataclass
@@ -111,11 +125,7 @@ class Song:
     def __init__(self, name: str):
         self.name = name
         self.path: Path = None
-        self.metadata = {
-            "title": name,
-            "artist": "Unknown Artist",
-            "album": "Unknown Album"
-        }
+        self.metadata = Metadata(name, "Unknown Artist", "Unknown Album")
         self.charts: list[Chart] = []
         self.events: list[Event] = []
 

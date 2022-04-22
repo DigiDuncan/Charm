@@ -20,7 +20,7 @@ from charm.lib.charm import generate_missing_texture_image
 from charm.lib.errors import AssetNotFoundError, NoChartsError, UnknownLanesError
 from charm.lib.generic.engine import DigitalKeyEvent, Engine, Judgement, KeyStates
 from charm.lib.generic.highway import Highway
-from charm.lib.generic.song import BPMChangeEvent, Chart, Event, Milliseconds, Note, Seconds, Song
+from charm.lib.generic.song import BPMChangeEvent, Chart, Event, Metadata, Milliseconds, Note, Seconds, Song
 from charm.lib.logsection import LogSection
 from charm.lib.paths import modsfolder, songspath
 from charm.lib.settings import Settings
@@ -103,7 +103,7 @@ class FNFSong(Song):
         self.charts: list[FNFChart] = []
 
     @classmethod
-    def get_metadata(cls, k: str, s: str):
+    def get_metadata(cls, k: str, s: str) -> Metadata:
         """Legacy. Gets metadata from a chart file."""
         j: SongFileJson = json.loads(s)
         hash = sha1(bytes(json.dumps(j), encoding='utf-8')).hexdigest()
@@ -111,14 +111,9 @@ class FNFSong(Song):
         title = song["song"].replace("-", " ").title()
         artist = "Unknown Artist"
         album = "Unknown Album"
+        key = k
 
-        return {
-            "title": title,
-            "artist": artist,
-            "album": album,
-            "hash": hash,
-            "key": k
-        }
+        return Metadata(title, artist, album, hash = hash, key = key)
 
     @classmethod
     def parse(cls, folder: str, mod: FNFMod = None) -> FNFSong:
@@ -140,7 +135,7 @@ class FNFSong(Song):
         # Global attributes that are stored per-chart, for some reason.
         chart: FNFChart = song.charts[0]
         song.bpm = chart.bpm
-        song.metadata["title"] = chart.name
+        song.metadata.title = chart.name
 
         return song
 

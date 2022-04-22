@@ -86,7 +86,7 @@ class FNFSongMenuView(DigiView):
                 arcade.play_sound(self.window.sounds["select"])
             case arcade.key.ENTER:
                 arcade.play_sound(self.window.sounds["valid"])
-                songview = FNFSongView(self.menu.selected.song["key"], back=self)
+                songview = FNFSongView(self.menu.selected.song.key, back=self)
                 songview.setup()
                 self.window.show_view(songview)
             case arcade.key.BACKSPACE:
