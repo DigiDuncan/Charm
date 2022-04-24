@@ -1,3 +1,4 @@
+from collections import defaultdict
 from dataclasses import dataclass
 from importlib.metadata import metadata
 import itertools
@@ -70,7 +71,10 @@ def tick_to_seconds(current_tick: Ticks, sync_track: list[RawBPMEvent], resoluti
     seconds = tick_delta / (resolution * bps)
     return seconds + offset
 
+@dataclass
 class HeroNote(Note):
+    tick: int = None
+
     @property
     def icon(self) -> str:
         return super().icon
@@ -78,6 +82,14 @@ class HeroNote(Note):
 class HeroChart(Chart):
     def __init__(self, song: 'Song', difficulty: str, instrument: str, lanes: int, hash: str) -> None:
         super().__init__(song, "hero", difficulty, instrument, lanes, hash)
+
+    @property
+    def chords(self) -> list[list[HeroNote]]:
+        c = defaultdict(list)
+        for note in self.notes:
+            c[note.tick].append(note)
+        return list(c.values())
+
 
 class HeroSong(Song):
     def __init__(self, name: str):
@@ -211,7 +223,7 @@ class HeroSong(Song):
                     seconds = tick_to_seconds(tick, sync_track, resolution, offset)
                     end = tick_to_seconds(tick + length, sync_track, resolution, offset)
                     sec_length = end - seconds
-                    chart.notes.append(HeroNote(chart, seconds, int(lane), sec_length))  # TODO: Note flags.
+                    chart.notes.append(HeroNote(chart, seconds, int(lane), sec_length, tick = tick))  # TODO: Note flags.
                 # Special events
                 elif m:= re.match(RE_S, line):
                     tick, s_type, length = m.groups()
