@@ -59,7 +59,10 @@ class RawBPMEvent:
 # ---
 
 def tick_to_seconds(current_tick: Ticks, sync_track: list[RawBPMEvent], resolution: int = 192, offset = 0) -> Seconds:
-    bpm_events = [b for b in sync_track if b.ticks >= current_tick]
+    current_tick = int(current_tick)
+    if current_tick == 0:
+        return 0
+    bpm_events = [b for b in sync_track if b.ticks <= current_tick]
     bpm_events.sort(key=lambda x: x.ticks)
     last_bpm_event = bpm_events[-1]
     tick_delta = current_tick - last_bpm_event.ticks
@@ -112,7 +115,7 @@ class HeroSong(Song):
                     raise ChartParseError(line_num, f"{header} is not a valid header.")
                 if last_header is None and header != "Song":
                     raise ChartParseError(line_num, "First header must be Song.")
-                last_line_type = "header"
+                last_line_type = "header"  # unused
                 last_header = header
             # Parse metadata
             elif last_header == "Song":
@@ -154,8 +157,8 @@ class HeroSong(Song):
                 # BPM Events
                 elif m := re.match(RE_B, line):
                     tick, mbpm = [int(i) for i in m.groups()]
-                    if not sync_track and tick != "0":
-                        raise ChartParseError("Chart has no BPM event at tick 0.")
+                    if not sync_track and tick != 0:
+                        raise ChartParseError(line_num, "Chart has no BPM event at tick 0.")
                     elif not sync_track:
                         events.append(BPMChangeEvent(0, mbpm / 1000))
                         sync_track.append(RawBPMEvent(0, mbpm))
@@ -164,11 +167,12 @@ class HeroSong(Song):
                         events.append(BPMChangeEvent(seconds, mbpm / 1000))
                         sync_track.append(RawBPMEvent(tick, mbpm))
                 # Time Sig events
-                elif m := re.match(RE_TS):
-                    tick, num, denom = [int(i) for i in m.groups()]
+                elif m := re.match(RE_TS, line):
+                    tick, num, denom = m.groups()
+                    tick = int(tick)
                     denom = 4 if denom is None else denom ** 2
                     seconds = tick_to_seconds(tick, sync_track, resolution, offset)
-                    events.append(TSEvent(seconds, num, denom))
+                    events.append(TSEvent(seconds, int(num), int(denom)))
                 else:
                     raise ChartParseError(line_num, f"Non-sync event in SyncTrack: {line!r}")
             # Events sections
@@ -207,7 +211,7 @@ class HeroSong(Song):
                     seconds = tick_to_seconds(tick, sync_track, resolution, offset)
                     end = tick_to_seconds(tick + length, sync_track, resolution, offset)
                     sec_length = end - seconds
-                    chart.notes.append(HeroNote(chart, seconds, lane, sec_length))  # TODO: Note flags.
+                    chart.notes.append(HeroNote(chart, seconds, int(lane), sec_length))  # TODO: Note flags.
                 # Special events
                 elif m:= re.match(RE_S, line):
                     tick, s_type, length = m.groups()
@@ -221,7 +225,7 @@ class HeroSong(Song):
                     raise ChartParseError(line_num, f"Non-chart event in {last_header}: {line!r}")
 
         song = HeroSong(metadata.key)
-        for chart in charts:
+        for chart in charts.values():
             chart.song = song
             song.charts.append(chart)
         for event in events:

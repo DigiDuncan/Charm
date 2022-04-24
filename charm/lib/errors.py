@@ -13,11 +13,15 @@ class CharmException(Exception):
         self.title = title
         self.show_message = show_message
         self._icon = icon
+        super().__init__(show_message, *args)
+        try:
+            arcade.get_window()
+        except RuntimeError:
+            return
         self.icon = img_from_resource(charm.data.images.errors, f"{icon}.png")
         self.icon.resize((32, 32), PIL.Image.LANCZOS)
         self.sprite = self.get_sprite()
         self.sprite.set_position(Settings.width / 2, Settings.height / 2)
-        super().__init__(*args)
 
     def get_sprite(self) -> Sprite:
         _tex = arcade.Texture.create_empty(f"_error-{self.title}-{self.show_message}", (500, 200))
