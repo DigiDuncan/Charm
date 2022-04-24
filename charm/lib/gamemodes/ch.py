@@ -144,8 +144,7 @@ class HeroSong(Song):
                         # Skipping "MediaType"
                         # Skipping "Audio streams"
                         case _:
-                            # Maybe don't raise an error and just skip?
-                            raise ChartParseError(line_num, f"{m.group(1)} is not a valid metadata key.")
+                            pass
                 else:
                     raise ChartParseError(line_num, f"Non-metadata found in metadata section: {line!r}")
             elif last_header == "SyncTrack":
