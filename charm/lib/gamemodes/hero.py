@@ -1,12 +1,14 @@
 from collections import defaultdict
 from dataclasses import dataclass
-from importlib.metadata import metadata
-import itertools
-from math import log
-import re
 from pathlib import Path
+import itertools
+import logging
+import re
+
 from charm.lib.errors import ChartParseError, NoChartsError
-from charm.lib.generic.song import BPMChangeEvent, Chart, Event, Metadata, Note, Seconds, Song
+from charm.lib.generic.song import Chart, Event, Metadata, Note, Seconds, Song
+
+logger = logging.getLogger("charm")
 
 RE_HEADER = r"\[(.+)\]"
 RE_DATA = r"([^\s]+)\s*=\s*\"?([^\"]+)\"?"
@@ -54,6 +56,7 @@ class LyricEvent(TickEvent):
 
 @dataclass
 class StarpowerEvent(TickEvent):
+    tick_length: Ticks
     length: Seconds
 
 @dataclass
@@ -82,13 +85,17 @@ def tick_to_seconds(current_tick: Ticks, sync_track: list[RawBPMEvent], resoluti
 @dataclass
 class HeroNote(Note):
     tick: int = None
+    tick_length: Ticks = None
 
     @property
     def icon(self) -> str:
         return super().icon
 
     def __str__(self) -> str:
-        return f"<HeroNote T{self.tick} ({round(self.time, 3)}) lane={self.lane} type={self.type} length={round(self.length)}>"
+        return f"<HeroNote T:{self.tick}{'+' + self.tick_length if self.tick_length else ''} ({round(self.time, 3)}) lane={self.lane} type={self.type} length={round(self.length)}>"
+
+    def __repr__(self) -> str:
+        return self.__str__()
 
 class HeroChart(Chart):
     def __init__(self, song: 'Song', difficulty: str, instrument: str, lanes: int, hash: str) -> None:
@@ -170,7 +177,7 @@ class HeroSong(Song):
                         # Skipping "MediaType"
                         # Skipping "Audio streams"
                         case _:
-                            continue
+                            logger.debug(f"Unrecognized .chart metadata {line!r}")
                 else:
                     raise ChartParseError(line_num, f"Non-metadata found in metadata section: {line!r}")
             elif last_header == "SyncTrack":
@@ -237,21 +244,21 @@ class HeroSong(Song):
                 elif m:= re.match(RE_N, line):
                     tick, lane, length = m.groups()
                     tick = int(tick)
-                    length = int(tick)
+                    length = int(length)
                     seconds = tick_to_seconds(tick, sync_track, resolution, offset)
                     end = tick_to_seconds(tick + length, sync_track, resolution, offset)
-                    sec_length = end - seconds
-                    chart.notes.append(HeroNote(chart, seconds, int(lane), sec_length, tick = tick))  # TODO: Note flags.
+                    sec_length = round(end - seconds, 5)  # accurate to 1/100ms
+                    chart.notes.append(HeroNote(chart, seconds, int(lane), sec_length, tick = tick, tick_length = length))  # TODO: Note flags.
                 # Special events
                 elif m:= re.match(RE_S, line):
                     tick, s_type, length = m.groups()
                     tick = int(tick)
-                    length = int(tick)
+                    length = int(length)
+                    seconds = tick_to_seconds(tick, sync_track, resolution, offset)
+                    end = tick_to_seconds(tick + length, sync_track, resolution, offset)
+                    sec_length = round(end - seconds, 5)  # accurate to 1/100ms
                     if s_type == "2":
-                        seconds = tick_to_seconds(tick, sync_track, resolution, offset)
-                        end = tick_to_seconds(tick + length, sync_track, resolution, offset)
-                        sec_length = end - seconds
-                        chart.events.append(StarpowerEvent(seconds, tick, sec_length))
+                        chart.events.append(StarpowerEvent(seconds, tick, length, sec_length))
                     # Ignoring non-SP events for now...
                 else:
                     raise ChartParseError(line_num, f"Non-chart event in {last_header}: {line!r}")
