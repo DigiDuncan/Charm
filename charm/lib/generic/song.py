@@ -6,6 +6,7 @@ from functools import total_ordering
 from pathlib import Path
 from typing import Optional
 
+
 Seconds = float
 Milliseconds = float
 
@@ -130,6 +131,16 @@ class Song:
         self.metadata = Metadata(name, "Unknown Artist", "Unknown Album")
         self.charts: list[Chart] = []
         self.events: list[Event] = []
+
+    def get_chart(self, difficulty = None, instrument = None):
+        if difficulty is None and instrument is None:
+            raise ValueError(".get_chart() called with no arguments!")
+        elif difficulty is not None and instrument is not None:
+            return next(c for c in self.charts if c.difficulty == difficulty and c.instrument == instrument)
+        elif difficulty is not None:
+            return next(c for c in self.charts if c.difficulty == difficulty)
+        elif instrument is not None:
+            return next(c for c in self.charts if c.instrument == instrument)
 
     @classmethod
     def parse(cls, folder: Path):

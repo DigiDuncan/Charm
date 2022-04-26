@@ -2,7 +2,7 @@ from importlib import resources as pkg_resources
 from charm.lib.gamemodes.ch import HeroSong
 import charm.data.tests
 
-soulless = None
+soulless: HeroSong = None
 
 def test_parse_soulless():
     global soulless
@@ -11,5 +11,5 @@ def test_parse_soulless():
     assert soulless is not None
 
 def test_soulless_chords():
-    expert_chart = next(c for c in soulless.charts if c.difficulty == "Expert")
-    assert len(expert_chart.chords) == 10699
+    expert_chart = soulless.get_chart("Expert")
+    assert len(expert_chart.chords) == 10699  # Known value
