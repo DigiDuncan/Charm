@@ -1,5 +1,5 @@
 from importlib import resources as pkg_resources
-from charm.lib.gamemodes.ch import HeroSong
+from charm.lib.gamemodes.hero import HeroSong
 import charm.data.tests
 
 soulless: HeroSong = None

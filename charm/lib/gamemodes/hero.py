@@ -87,6 +87,9 @@ class HeroNote(Note):
     def icon(self) -> str:
         return super().icon
 
+    def __str__(self) -> str:
+        return f"<HeroNote T{self.tick} ({round(self.time, 3)}) lane={self.lane} type={self.type} length={round(self.length)}>"
+
 class HeroChart(Chart):
     def __init__(self, song: 'Song', difficulty: str, instrument: str, lanes: int, hash: str) -> None:
         super().__init__(song, "hero", difficulty, instrument, lanes, hash)
@@ -104,7 +107,7 @@ class HeroSong(Song):
         super().__init__(name)
 
     @classmethod
-    def parse(self, folder: Path) -> "HeroSong":
+    def parse(cls, folder: Path) -> "HeroSong":
         if not (folder / "notes.chart").exists():
             raise NoChartsError(folder.stem)
         with open(folder / "notes.chart") as f:
@@ -256,8 +259,26 @@ class HeroSong(Song):
         song = HeroSong(metadata.key)
         for chart in charts.values():
             chart.song = song
+            cls.calculate_note_flags(chart)
             song.charts.append(chart)
         for event in events:
             song.events.append(event)
         song.metadata = metadata
         return song
+
+    @classmethod
+    def calculate_note_flags(cls, chart: HeroChart):
+        for c in chart.chords:
+            hopo = False
+            tap = False
+            for n in c:
+                if n.lane == 5:  # HOPO
+                    hopo = True
+                elif n.lane == 6:  # Tap
+                    tap = True
+            for n in c:
+                # Tap overrides HOPO, intentionally.
+                if tap:
+                    n.type = "tap"
+                elif hopo:
+                    n.type = "hopo"
