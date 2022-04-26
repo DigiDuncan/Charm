@@ -9,7 +9,7 @@ from charm.lib.errors import ChartParseError, NoChartsError
 from charm.lib.generic.song import BPMChangeEvent, Chart, Event, Metadata, Note, Seconds, Song
 
 RE_HEADER = r"\[(.+)\]"
-RE_DATA = r"(.+)\s*=\s*\"?(.+)\"?"
+RE_DATA = r"([^\s]+)\s*=\s*\"?([^\"]+)\"?"
 
 RE_B = r"(\d+)\s*=\s*B\s(\d+)"  # BPM Event
 RE_TS = r"(\d+)\s*=\s*TS\s(\d+)\s?(\d+)?"  # Time Sig Event
@@ -32,25 +32,33 @@ VALID_HEADERS = DIFF_INST_PAIRS + SPECIAL_HEADERS
 Ticks = int
 
 @dataclass
-class TSEvent(Event):
+class TickEvent(Event):
+    tick: int
+
+@dataclass
+class TSEvent(TickEvent):
     new_numerator: int
     new_denominator: int = 4
 
 @dataclass
-class TextEvent(Event):
+class TextEvent(TickEvent):
     text: str
 
 @dataclass
-class SectionEvent(Event):
+class SectionEvent(TickEvent):
     name: str
 
 @dataclass
-class LyricEvent(Event):
+class LyricEvent(TickEvent):
     text: str
 
 @dataclass
-class StarpowerEvent(Event):
+class StarpowerEvent(TickEvent):
     length: Seconds
+
+@dataclass
+class BPMChangeTickEvent(TickEvent):
+    new_bpm: float
 
 @dataclass
 class RawBPMEvent:
@@ -131,7 +139,7 @@ class HeroSong(Song):
                 last_header = header
             # Parse metadata
             elif last_header == "Song":
-                if m:= re.match(RE_DATA, line):
+                if m := re.match(RE_DATA, line):
                     match m.group(1):
                         case "Resolution":
                             resolution = Ticks(m.group(2))
@@ -142,7 +150,7 @@ class HeroSong(Song):
                         case "Album":
                             metadata.album = m.group(2)
                         case "Year":
-                            metadata.year = int(m.group(2).removeprefix(", "))
+                            metadata.year = int(m.group(2).removeprefix(",").strip())
                         case "Charter":
                             metadata.charter = m.group(2)
                         case "Offset":
@@ -159,7 +167,7 @@ class HeroSong(Song):
                         # Skipping "MediaType"
                         # Skipping "Audio streams"
                         case _:
-                            pass
+                            continue
                 else:
                     raise ChartParseError(line_num, f"Non-metadata found in metadata section: {line!r}")
             elif last_header == "SyncTrack":
@@ -169,14 +177,15 @@ class HeroSong(Song):
                 # BPM Events
                 elif m := re.match(RE_B, line):
                     tick, mbpm = [int(i) for i in m.groups()]
+                    tick = int(tick)
                     if not sync_track and tick != 0:
                         raise ChartParseError(line_num, "Chart has no BPM event at tick 0.")
                     elif not sync_track:
-                        events.append(BPMChangeEvent(0, mbpm / 1000))
+                        events.append(BPMChangeTickEvent(0, tick, mbpm / 1000))
                         sync_track.append(RawBPMEvent(0, mbpm))
                     else:
                         seconds = tick_to_seconds(tick, sync_track, resolution, offset)
-                        events.append(BPMChangeEvent(seconds, mbpm / 1000))
+                        events.append(BPMChangeTickEvent(seconds, tick, mbpm / 1000))
                         sync_track.append(RawBPMEvent(tick, mbpm))
                 # Time Sig events
                 elif m := re.match(RE_TS, line):
@@ -184,7 +193,7 @@ class HeroSong(Song):
                     tick = int(tick)
                     denom = 4 if denom is None else denom ** 2
                     seconds = tick_to_seconds(tick, sync_track, resolution, offset)
-                    events.append(TSEvent(seconds, int(num), int(denom)))
+                    events.append(TSEvent(seconds, tick, int(num), int(denom)))
                 else:
                     raise ChartParseError(line_num, f"Non-sync event in SyncTrack: {line!r}")
             # Events sections
@@ -192,18 +201,21 @@ class HeroSong(Song):
                 # Section events
                 if m := re.match(RE_SECTION, line):
                     tick, name = m.groups()
+                    tick = int(tick)
                     seconds = tick_to_seconds(tick, sync_track, resolution, offset)
-                    events.append(SectionEvent(seconds, name))
+                    events.append(SectionEvent(seconds, tick, name))
                 # Lyric events
                 elif m := re.match(RE_LYRIC, line):
                     tick, text = m.groups()
+                    tick = int(tick)
                     seconds = tick_to_seconds(tick, sync_track, resolution, offset)
-                    events.append(LyricEvent(seconds, text))
+                    events.append(LyricEvent(seconds, tick, text))
                 # Misc. events
                 elif m := re.match(RE_E, line):
                     tick, text = m.groups()
+                    tick = int(tick)
                     seconds = tick_to_seconds(tick, sync_track, resolution, offset)
-                    events.append(TextEvent(seconds, text))
+                    events.append(TextEvent(seconds, tick, text))
                 else:
                     raise ChartParseError(line_num, f"Non-event in Events: {line!r}")
             else:
@@ -215,11 +227,14 @@ class HeroSong(Song):
                 # Track events
                 if m := re.match(RE_TRACK_E, line):
                     tick, text = m.groups()
+                    tick = int(tick)
                     seconds = tick_to_seconds(tick, sync_track, resolution, offset)
-                    chart.events.append(TextEvent(seconds, text))
+                    chart.events.append(TextEvent(seconds, tick, text))
                 # Note events
                 elif m:= re.match(RE_N, line):
                     tick, lane, length = m.groups()
+                    tick = int(tick)
+                    length = int(tick)
                     seconds = tick_to_seconds(tick, sync_track, resolution, offset)
                     end = tick_to_seconds(tick + length, sync_track, resolution, offset)
                     sec_length = end - seconds
@@ -227,11 +242,13 @@ class HeroSong(Song):
                 # Special events
                 elif m:= re.match(RE_S, line):
                     tick, s_type, length = m.groups()
+                    tick = int(tick)
+                    length = int(tick)
                     if s_type == "2":
                         seconds = tick_to_seconds(tick, sync_track, resolution, offset)
                         end = tick_to_seconds(tick + length, sync_track, resolution, offset)
                         sec_length = end - seconds
-                        chart.events.append(StarpowerEvent(seconds, sec_length))
+                        chart.events.append(StarpowerEvent(seconds, tick, sec_length))
                     # Ignoring non-SP events for now...
                 else:
                     raise ChartParseError(line_num, f"Non-chart event in {last_header}: {line!r}")

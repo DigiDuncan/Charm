@@ -10,6 +10,12 @@ def test_parse_soulless():
         soulless = HeroSong.parse(p)
     assert soulless is not None
 
-def test_soulless_chords():
+def test_soulless_chord_count():
     expert_chart = soulless.get_chart("Expert")
     assert len(expert_chart.chords) == 10699  # Known value
+
+def test_soulless_metadata():
+    assert soulless.metadata.title == "Soulless 5"  # Known values
+    assert soulless.metadata.artist == "ExileLord"
+    assert soulless.metadata.album == "Get Smoked"
+    assert soulless.metadata.year == 2018
