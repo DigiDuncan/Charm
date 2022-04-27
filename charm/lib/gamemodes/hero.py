@@ -71,7 +71,7 @@ class RawBPMEvent:
 # ---
 
 def tick_to_seconds(current_tick: Ticks, sync_track: list[RawBPMEvent], resolution: int = 192, offset = 0) -> Seconds:
-    current_tick = int(current_tick)
+    current_tick = int(current_tick)  # you should really just be passing ints in here anyway but eh
     if current_tick == 0:
         return 0
     bpm_events = [b for b in sync_track if b.ticks <= current_tick]
@@ -97,21 +97,43 @@ class HeroNote(Note):
     def __repr__(self) -> str:
         return self.__str__()
 
+class HeroChord:
+    """A data object to hold notes and have useful functions for manipulating and reading them."""
+    def __init__(self, notes: list[HeroNote] = None) -> None:
+        self.notes = notes if notes else []
+
+    @property
+    def frets(self) -> tuple[int]:
+        return tuple(set(n.lane for n in self.notes))
+
+    @property
+    def tick(self) -> Ticks:
+        return self.notes[0].tick
+
+    @property
+    def tick_length(self) -> Ticks:
+        return max([n.tick_length for n in self.notes])
+
+    @property
+    def tick_end(self) -> Ticks:
+        return self.tick + self.tick_length
+
+    @property
+    def flag(self) -> str:
+        return ""
+
 class HeroChart(Chart):
     def __init__(self, song: 'Song', difficulty: str, instrument: str, lanes: int, hash: str) -> None:
         super().__init__(song, "hero", difficulty, instrument, lanes, hash)
-
-    @property
-    def chords(self) -> list[list[HeroNote]]:
-        c = defaultdict(list)
-        for note in self.notes:
-            c[note.tick].append(note)
-        return list(c.values())
-
+        self.chords: list[HeroChord] = None
 
 class HeroSong(Song):
     def __init__(self, name: str):
         super().__init__(name)
+
+    @property
+    def sections(self):
+        return [e for e in self.events if isinstance(e, SectionEvent)]
 
     @classmethod
     def parse(cls, folder: Path) -> "HeroSong":
@@ -127,7 +149,7 @@ class HeroSong(Song):
         events: list[Event] = []
 
         line_num = 0
-        last_line_type = None
+        last_line_type = None  # unused
         last_header = None
         sync_track: list[RawBPMEvent] = []
 
@@ -145,7 +167,7 @@ class HeroSong(Song):
                     raise ChartParseError(line_num, f"{header} is not a valid header.")
                 if last_header is None and header != "Song":
                     raise ChartParseError(line_num, "First header must be Song.")
-                last_line_type = "header"  # unused
+                last_line_type = "header"
                 last_header = header
             # Parse metadata
             elif last_header == "Song":
@@ -263,9 +285,11 @@ class HeroSong(Song):
                 else:
                     raise ChartParseError(line_num, f"Non-chart event in {last_header}: {line!r}")
 
+        # Finalize
         song = HeroSong(metadata.key)
         for chart in charts.values():
             chart.song = song
+            cls.create_chords(chart)
             cls.calculate_note_flags(chart)
             song.charts.append(chart)
         for event in events:
@@ -274,18 +298,35 @@ class HeroSong(Song):
         return song
 
     @classmethod
+    def create_chords(cls, chart: HeroChart):
+        c = defaultdict(list)
+        for note in chart.notes:
+            c[note.tick].append(note)
+        chord_lists = list(c.values())
+        chords = []
+        for cl in chord_lists:
+            chords.append(HeroChord(cl))
+        chart.chords = chords
+
+    @classmethod
     def calculate_note_flags(cls, chart: HeroChart):
         for c in chart.chords:
-            hopo = False
+            forced = False
             tap = False
-            for n in c:
-                if n.lane == 5:  # HOPO
-                    hopo = True
+            for n in c.notes:
+                if n.lane == 5:  # HOPO force
+                    forced = True
                 elif n.lane == 6:  # Tap
                     tap = True
-            for n in c:
+            for n in c.notes:
                 # Tap overrides HOPO, intentionally.
                 if tap:
                     n.type = "tap"
-                elif hopo:
-                    n.type = "hopo"
+                elif forced:
+                    n.type = "forced"
+            c = HeroChord([n for n in c.notes if n.lane not in [5, 6]])
+
+    @classmethod
+    def calculate_hopos(cls, chart: HeroChart):
+        for last_chord, current_chord in zip(chart.chords[:-1], chart.chords[1:]):  # python zip pattern, wee
+            chord_distance = current_chord[0].tick - last_chord[0].tick
