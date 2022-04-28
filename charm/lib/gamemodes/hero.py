@@ -5,6 +5,8 @@ import itertools
 import logging
 import re
 
+from nindex import Index
+
 from charm.lib.errors import ChartParseError, NoChartsError
 from charm.lib.generic.song import Chart, Event, Metadata, Note, Seconds, Song
 
@@ -169,10 +171,8 @@ class HeroChart(Chart):
 class HeroSong(Song):
     def __init__(self, name: str):
         super().__init__(name)
-
-    @property
-    def sections(self):
-        return [e for e in self.events if isinstance(e, SectionEvent)]
+        self.indexes_by_tick: dict[str, Index] = {}
+        self.indexes_by_time: dict[str, Index] = {}
 
     @classmethod
     def parse(cls, folder: Path) -> "HeroSong":
@@ -333,4 +333,14 @@ class HeroSong(Song):
         for event in events:
             song.events.append(event)
         song.metadata = metadata
+        song.finalize()
         return song
+
+    def finalize(self):
+        self.indexes_by_tick["bpm"] = Index([e for e in self.events if isinstance(e, BPMChangeTickEvent)], "tick")
+        self.indexes_by_tick["time_sig"] = Index([e for e in self.events if isinstance(e, TSEvent)], "tick")
+        self.indexes_by_tick["section"] = Index([e for e in self.events if isinstance(e, SectionEvent)], "tick")
+
+        self.indexes_by_time["bpm"] = Index([e for e in self.events if isinstance(e, BPMChangeTickEvent)], "time")
+        self.indexes_by_time["time_sig"] = Index([e for e in self.events if isinstance(e, TSEvent)], "time")
+        self.indexes_by_time["section"] = Index([e for e in self.events if isinstance(e, SectionEvent)], "time")
