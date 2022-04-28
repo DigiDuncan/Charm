@@ -1,4 +1,5 @@
 from collections import defaultdict
+from typing import cast
 from dataclasses import dataclass
 from pathlib import Path
 import itertools
@@ -41,8 +42,8 @@ class TickEvent(Event):
 
 @dataclass
 class TSEvent(TickEvent):
-    new_numerator: int
-    new_denominator: int = 4
+    numerator: int
+    denominator: int = 4
 
 @dataclass
 class TextEvent(TickEvent):
@@ -121,13 +122,19 @@ class HeroChord:
         return self.tick + self.tick_length
 
     @property
-    def flag(self) -> str:
-        return ""
+    def type(self) -> str:
+        return self.notes[0].type
+
+    @type.setter
+    def type(self, v):
+        for n in self.notes:
+            n.type = v
 
 class HeroChart(Chart):
     def __init__(self, song: 'Song', difficulty: str, instrument: str, lanes: int, hash: str) -> None:
         super().__init__(song, "hero", difficulty, instrument, lanes, hash)
         self.chords: list[HeroChord] = None
+        self.song = cast(HeroSong, self.song)
 
     def finalize(self):
         """Do some last-pass parsing steps."""
@@ -165,14 +172,42 @@ class HeroChart(Chart):
             c = HeroChord([n for n in c.notes if n.lane not in [5, 6]])
 
     def calculate_hopos(self):
+        # This is basically ripped from Charm-Legacy.
+        # https://github.com/DigiDuncan/Charm-Legacy/blob/3187a8f2fa8c8876c2706b731bff6913dc0bad60/charm/song.py#L179
         for last_chord, current_chord in zip(self.chords[:-1], self.chords[1:]):  # python zip pattern, wee
+            timesig = self.song.indexes_by_tick["time_sig"].lteq(last_chord.tick)
+            if timesig is None:
+                timesig = TSEvent(0, 0, 4, 4)
+
+            ticks_per_quarternote = self.song.resolution
+            ticks_per_wholenote = ticks_per_quarternote * 4
+            beats_per_wholenote = timesig.denominator
+            ticks_per_beat = ticks_per_wholenote / beats_per_wholenote
+
             chord_distance = current_chord.tick - last_chord.tick
+
+            hopo_cutoff = ticks_per_beat / (192 / 66)  # Why? WHere does this number come from?
+                                                       # It's like 1/81 more than 1/3? Why?
+
+            if current_chord.frets == last_chord.frets:
+                # You can't have two HOPO chords of the same fretting.
+                if current_chord.type == "forced":
+                    current_chord.type = "normal"
+            elif chord_distance <= hopo_cutoff:
+                if current_chord.type == "forced":
+                    current_chord.type = "normal"
+                elif current_chord.type == "normal":
+                    current_chord.type = "hopo"
+            else:
+                if current_chord.type == "forced":
+                    current_chord.type = "hopo"
 
 class HeroSong(Song):
     def __init__(self, name: str):
         super().__init__(name)
         self.indexes_by_tick: dict[str, Index] = {}
         self.indexes_by_time: dict[str, Index] = {}
+        self.resolution: int = 192
 
     @classmethod
     def parse(cls, folder: Path) -> "HeroSong":
@@ -326,17 +361,19 @@ class HeroSong(Song):
 
         # Finalize
         song = HeroSong(metadata.key)
+        song.index()
         for chart in charts.values():
             chart.song = song
             chart.finalize()
             song.charts.append(chart)
         for event in events:
             song.events.append(event)
+        song.resolution = resolution
         song.metadata = metadata
-        song.finalize()
         return song
 
-    def finalize(self):
+    def index(self):
+        """Save indexes of important look-up events."""
         self.indexes_by_tick["bpm"] = Index([e for e in self.events if isinstance(e, BPMChangeTickEvent)], "tick")
         self.indexes_by_tick["time_sig"] = Index([e for e in self.events if isinstance(e, TSEvent)], "tick")
         self.indexes_by_tick["section"] = Index([e for e in self.events if isinstance(e, SectionEvent)], "tick")
