@@ -127,6 +127,45 @@ class HeroChart(Chart):
         super().__init__(song, "hero", difficulty, instrument, lanes, hash)
         self.chords: list[HeroChord] = None
 
+    def finalize(self):
+        """Do some last-pass parsing steps."""
+        self.create_chords()
+        self.calculate_note_flags()
+        self.calculate_hopos()
+
+    def create_chords(self):
+        """Turn lists of notes (in `self.notes`) into `HeroChord`s (in `self.chords`)"""
+        c = defaultdict(list)
+        for note in self.notes:
+            c[note.tick].append(note)
+        chord_lists = list(c.values())
+        chords = []
+        for cl in chord_lists:
+            chords.append(HeroChord(cl))
+        self.chords = chords
+
+    def calculate_note_flags(self):
+        """Turn notes that aren't really notes but flags into properties on the notes."""
+        for c in self.chords:
+            forced = False
+            tap = False
+            for n in c.notes:
+                if n.lane == 5:  # HOPO force
+                    forced = True
+                elif n.lane == 6:  # Tap
+                    tap = True
+            for n in c.notes:
+                # Tap overrides HOPO, intentionally.
+                if tap:
+                    n.type = "tap"
+                elif forced:
+                    n.type = "forced"
+            c = HeroChord([n for n in c.notes if n.lane not in [5, 6]])
+
+    def calculate_hopos(self):
+        for last_chord, current_chord in zip(self.chords[:-1], self.chords[1:]):  # python zip pattern, wee
+            chord_distance = current_chord.tick - last_chord.tick
+
 class HeroSong(Song):
     def __init__(self, name: str):
         super().__init__(name)
@@ -289,44 +328,9 @@ class HeroSong(Song):
         song = HeroSong(metadata.key)
         for chart in charts.values():
             chart.song = song
-            cls.create_chords(chart)
-            cls.calculate_note_flags(chart)
+            chart.finalize()
             song.charts.append(chart)
         for event in events:
             song.events.append(event)
         song.metadata = metadata
         return song
-
-    @classmethod
-    def create_chords(cls, chart: HeroChart):
-        c = defaultdict(list)
-        for note in chart.notes:
-            c[note.tick].append(note)
-        chord_lists = list(c.values())
-        chords = []
-        for cl in chord_lists:
-            chords.append(HeroChord(cl))
-        chart.chords = chords
-
-    @classmethod
-    def calculate_note_flags(cls, chart: HeroChart):
-        for c in chart.chords:
-            forced = False
-            tap = False
-            for n in c.notes:
-                if n.lane == 5:  # HOPO force
-                    forced = True
-                elif n.lane == 6:  # Tap
-                    tap = True
-            for n in c.notes:
-                # Tap overrides HOPO, intentionally.
-                if tap:
-                    n.type = "tap"
-                elif forced:
-                    n.type = "forced"
-            c = HeroChord([n for n in c.notes if n.lane not in [5, 6]])
-
-    @classmethod
-    def calculate_hopos(cls, chart: HeroChart):
-        for last_chord, current_chord in zip(chart.chords[:-1], chart.chords[1:]):  # python zip pattern, wee
-            chord_distance = current_chord[0].tick - last_chord[0].tick
