@@ -8,7 +8,7 @@ import re
 
 from nindex import Index
 
-from charm.lib.errors import ChartParseError, NoChartsError
+from charm.lib.errors import ChartParseError, ChartPostReadParseError, NoChartsError
 from charm.lib.generic.song import Chart, Event, Metadata, Note, Seconds, Song
 
 logger = logging.getLogger("charm")
@@ -71,11 +71,17 @@ class StarpowerEvent(TickEvent):
     length: Seconds
 
 @dataclass
+class SoloEvent(TickEvent):
+    tick_length: Ticks
+    length: Seconds
+
+@dataclass
 class BPMChangeTickEvent(TickEvent):
     new_bpm: float
 
 @dataclass
 class RawBPMEvent:
+    """Only used for parsing, and shouldn't be in a Song post-parse."""
     ticks: Ticks
     mbpm: int
 
@@ -143,14 +149,13 @@ class HeroChart(Chart):
     def __init__(self, song: 'Song', difficulty: str, instrument: str, lanes: int, hash: str) -> None:
         super().__init__(song, "hero", difficulty, instrument, lanes, hash)
         self.chords: list[HeroChord] = None
-        self.song = cast(HeroSong, self.song)
 
     def finalize(self):
         """Do some last-pass parsing steps."""
         self.create_chords()
         self.calculate_note_flags()
         self.calculate_hopos()
-        self.events.sort()
+        self.parse_text_events()
 
     def create_chords(self):
         """Turn lists of notes (in `self.notes`) into `HeroChord`s (in `self.chords`)
@@ -212,6 +217,31 @@ class HeroChart(Chart):
             else:
                 if current_chord.type == "forced":
                     current_chord.type = "hopo"
+
+    def parse_text_events(self):
+        self.events = cast(list[TickEvent], self.events)
+        parsed: list[TextEvent] = []
+        new_events: list[SoloEvent] = []
+        current_solo = None
+        for e in [e for e in self.events if isinstance(TextEvent, e)]:
+            if e.text == "solo":
+                current_solo = e
+                parsed.append(e)
+            elif e.text == "soloend":
+                if current_solo is None:
+                    raise ChartPostReadParseError("`solo_end` without `solo` event!")
+                else:
+                    tick_length = e.tick - current_solo.tick
+                    length = e.time - current_solo.time
+                    new_events.append(SoloEvent(current_solo.time, current_solo.tick, tick_length, length))
+                    current_solo = None
+                parsed.append(e)
+        for e in parsed:
+            self.events.remove(e)
+        for e in new_events:
+            self.events.append(e)
+        self.events.sort()
+
 
 class HeroSong(Song):
     def __init__(self, name: str):

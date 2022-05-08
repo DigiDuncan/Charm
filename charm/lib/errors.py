@@ -61,6 +61,11 @@ class ChartParseError(CharmException):
         super().__init__("Chart parsing error!", f"[Line {line_num}] " + show_message, "error", *args)
 
 
+class ChartPostReadParseError(CharmException):
+    def __init__(self, show_message: str, *args: object):
+        super().__init__("Chart post-read parse error!", show_message, "error", *args)
+
+
 class UnknownLanesError(CharmException):
     def __init__(self, show_message: str, *args: object):
         super().__init__("Unknown lanes found", show_message, "warning", *args)
