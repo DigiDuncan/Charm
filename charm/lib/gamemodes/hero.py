@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import cast
+from typing import cast, TypedDict
 from dataclasses import dataclass
 from pathlib import Path
 import itertools
@@ -36,9 +36,17 @@ VALID_HEADERS = DIFF_INST_PAIRS + SPECIAL_HEADERS
 
 Ticks = int
 
+class IndexDict(TypedDict):
+    bpm: Index
+    time_sig: Index
+    section: Index
+
 @dataclass
 class TickEvent(Event):
     tick: int
+
+    def __lt__(self, other: "TickEvent") -> bool:
+        return self.tick < other.tick
 
 @dataclass
 class TSEvent(TickEvent):
@@ -74,6 +82,7 @@ class RawBPMEvent:
 # ---
 
 def tick_to_seconds(current_tick: Ticks, sync_track: list[RawBPMEvent], resolution: int = 192, offset = 0) -> Seconds:
+    """Takes a tick (and an associated sync_track,) and returns its position in seconds as a float."""
     current_tick = int(current_tick)  # you should really just be passing ints in here anyway but eh
     if current_tick == 0:
         return 0
@@ -141,9 +150,11 @@ class HeroChart(Chart):
         self.create_chords()
         self.calculate_note_flags()
         self.calculate_hopos()
+        self.events.sort()
 
     def create_chords(self):
-        """Turn lists of notes (in `self.notes`) into `HeroChord`s (in `self.chords`)"""
+        """Turn lists of notes (in `self.notes`) into `HeroChord`s (in `self.chords`)
+        A chord is defined as all notes occuring at the same tick."""
         c = defaultdict(list)
         for note in self.notes:
             c[note.tick].append(note)
@@ -186,7 +197,7 @@ class HeroChart(Chart):
 
             chord_distance = current_chord.tick - last_chord.tick
 
-            hopo_cutoff = ticks_per_beat / (192 / 66)  # Why? WHere does this number come from?
+            hopo_cutoff = ticks_per_beat / (192 / 66)  # Why? Where does this number come from?
                                                        # It's like 1/81 more than 1/3? Why?
 
             if current_chord.frets == last_chord.frets:
@@ -205,8 +216,8 @@ class HeroChart(Chart):
 class HeroSong(Song):
     def __init__(self, name: str):
         super().__init__(name)
-        self.indexes_by_tick: dict[str, Index] = {}
-        self.indexes_by_time: dict[str, Index] = {}
+        self.indexes_by_tick: IndexDict = {}
+        self.indexes_by_time: IndexDict = {}
         self.resolution: int = 192
 
     @classmethod
@@ -368,16 +379,17 @@ class HeroSong(Song):
             song.charts.append(chart)
         for event in events:
             song.events.append(event)
+        song.events.sort()
         song.resolution = resolution
         song.metadata = metadata
         return song
 
     def index(self):
         """Save indexes of important look-up events."""
-        self.indexes_by_tick["bpm"] = Index([e for e in self.events if isinstance(e, BPMChangeTickEvent)], "tick")
-        self.indexes_by_tick["time_sig"] = Index([e for e in self.events if isinstance(e, TSEvent)], "tick")
-        self.indexes_by_tick["section"] = Index([e for e in self.events if isinstance(e, SectionEvent)], "tick")
+        self.indexes_by_tick["bpm"] = Index(self.events_by_type(BPMChangeTickEvent), "tick")
+        self.indexes_by_tick["time_sig"] = Index(self.events_by_type(TSEvent), "tick")
+        self.indexes_by_tick["section"] = Index(self.events_by_type(SectionEvent), "tick")
 
-        self.indexes_by_time["bpm"] = Index([e for e in self.events if isinstance(e, BPMChangeTickEvent)], "time")
-        self.indexes_by_time["time_sig"] = Index([e for e in self.events if isinstance(e, TSEvent)], "time")
-        self.indexes_by_time["section"] = Index([e for e in self.events if isinstance(e, SectionEvent)], "time")
+        self.indexes_by_time["bpm"] = Index(self.events_by_type(BPMChangeTickEvent), "time")
+        self.indexes_by_time["time_sig"] = Index(self.events_by_type(TSEvent), "time")
+        self.indexes_by_time["section"] = Index(self.events_by_type(SectionEvent), "time")

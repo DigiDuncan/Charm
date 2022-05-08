@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import dataclasses
-from functools import total_ordering
+from functools import cache, total_ordering
 from pathlib import Path
 from typing import Optional
 
@@ -132,6 +132,7 @@ class Song:
         self.charts: list[Chart] = []
         self.events: list[Event] = []
 
+    @cache
     def get_chart(self, difficulty = None, instrument = None):
         if difficulty is None and instrument is None:
             raise ValueError(".get_chart() called with no arguments!")
@@ -141,6 +142,10 @@ class Song:
             return next(c for c in self.charts if c.difficulty == difficulty)
         elif instrument is not None:
             return next(c for c in self.charts if c.instrument == instrument)
+
+    @cache
+    def events_by_type(self, t: type):
+        return [e for e in self.events if isinstance(e, t)]
 
     @classmethod
     def parse(cls, folder: Path):
