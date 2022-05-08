@@ -28,6 +28,7 @@ class Metadata:
     key: str = None  # TODO: Deprecate?
 
     def get(self, key, default = None):
+        """Basically a duplicate of dict.get()"""
         fields = [f.name for f in dataclasses.fields(self)]
         if key not in fields:
             return default

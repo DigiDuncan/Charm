@@ -17,6 +17,7 @@ class CharmException(Exception):
         try:
             arcade.get_window()
         except RuntimeError:
+            # If we aren't in an arcade Window (e.g., unit esting) we don't need the sprite stuff.
             return
         self.icon = img_from_resource(charm.data.images.errors, f"{icon}.png")
         self.icon.resize((32, 32), PIL.Image.LANCZOS)
