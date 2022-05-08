@@ -30,9 +30,9 @@ RE_TRACK_E = r"(\d+)\s*=\s*E\s([^\s]+)"  # Track Event (text event but with no q
 DIFFICULTIES = ["Easy", "Medium", "Hard", "Expert"]
 INSTRUMENTS = ["Single", "DoubleGuitar", "DoubleBass", "DoubleRhythm", "Drums", "Keyboard", "GHLGuitar", "GHLBass"]
 SPECIAL_HEADERS = ["Song", "SyncTrack", "Events"]
-DIFF_INST_PAIRS = [a + b for a, b in itertools.product(DIFFICULTIES, INSTRUMENTS)]
+# Produce every unique pair of difficulties and instruments (e.g.: EasySingle) and map them to tuples (e.g.: (Easy, Single))
 DIFF_INST_MAP: dict[str, tuple[str, str]] = {(a + b): (a, b) for a, b in itertools.product(DIFFICULTIES, INSTRUMENTS)}
-VALID_HEADERS = DIFF_INST_PAIRS + SPECIAL_HEADERS
+VALID_HEADERS = list(DIFF_INST_MAP.keys()) + SPECIAL_HEADERS
 
 Ticks = int
 
