@@ -1,15 +1,24 @@
 from collections import defaultdict
+from functools import cache
 from typing import cast, TypedDict
 from dataclasses import dataclass
 from pathlib import Path
 import itertools
 import logging
 import re
+import PIL.Image
+import arcade
 
 from nindex import Index
+from charm.lib.charm import load_missing_texture
 
 from charm.lib.errors import ChartParseError, ChartPostReadParseError, NoChartsError
+from charm.lib.generic.highway import Highway
 from charm.lib.generic.song import Chart, Event, Metadata, Note, Seconds, Song
+from charm.lib.settings import Settings
+from charm.lib.utils import img_from_resource
+
+import charm.data.images.skins.hero as heroskin
 
 logger = logging.getLogger("charm")
 
@@ -423,3 +432,40 @@ class HeroSong(Song):
         self.indexes_by_time["bpm"] = Index(self.events_by_type(BPMChangeTickEvent), "time")
         self.indexes_by_time["time_sig"] = Index(self.events_by_type(TSEvent), "time")
         self.indexes_by_time["section"] = Index(self.events_by_type(SectionEvent), "time")
+
+@cache
+def load_note_texture(note_type, note_lane, height):
+    image_name = f"{note_type}-{note_lane + 1}"
+    try:
+        image = img_from_resource(heroskin, image_name + ".png")
+        if image.height != height:
+            width = int((height / image.height) * image.width)
+            image = image.resize((width, height), PIL.Image.LANCZOS)
+    except Exception:
+        logger.error(f"Unable to load texture: {image_name}")
+        return load_missing_texture(height, height)
+    return arcade.Texture(f"_heronote_{image_name}", image=image, hit_box_algorithm=None)
+
+class HeroNoteSprite(arcade.Sprite):
+    def __init__(self, note: HeroNote, highway: "HeroHighway", height = 128, *args, **kwargs):
+        self.note: HeroNote = note
+        self.highway: HeroHighway = highway
+        tex = load_note_texture(note.type, note.lane, height)
+        super().__init__(texture=tex, *args, **kwargs)
+
+    def __lt__(self, other: "HeroNoteSprite"):
+        return self.note.time < other.note.time
+
+    def update_animation(self, delta_time: float):
+        if self.highway.auto:
+            if self.highway.song_time >= self.note.time:
+                self.note.hit = True
+        elif self.note.hit:
+            self.alpha = 0
+
+class HeroHighway(Highway):
+    def __init__(self, chart: HeroChart, pos: tuple[int, int], size: tuple[int, int] = None, gap: int = 5, auto = False):
+        if size is None:
+            size = int(Settings.width / (1280 / 400)), Settings.height
+
+        super().__init__(chart, pos, size, gap)
