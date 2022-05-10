@@ -1,5 +1,4 @@
 from __future__ import annotations
-from collections import namedtuple
 from functools import cache
 
 import importlib.resources as pkg_resources
@@ -15,8 +14,7 @@ import arcade
 import PIL, PIL.ImageFilter
 
 from charm.lib.adobexml import AdobeSprite
-from charm.lib.anim import bounce
-from charm.lib.charm import generate_missing_texture_image
+from charm.lib.charm import load_missing_texture
 from charm.lib.errors import AssetNotFoundError, NoChartsError, UnknownLanesError
 from charm.lib.generic.engine import DigitalKeyEvent, Engine, Judgement, KeyStates
 from charm.lib.generic.highway import Highway
@@ -414,13 +412,6 @@ def load_note_texture(note_type, note_lane, height):
         logger.error(f"Unable to load texture: {image_name}")
         return load_missing_texture(height, height)
     return arcade.Texture(f"_fnfnote_{image_name}", image=image, hit_box_algorithm=None)
-
-
-@cache
-def load_missing_texture(height, width):
-    image_name = f"{height}x{width}"
-    image = generate_missing_texture_image(height, width)
-    return arcade.Texture(f"_fnfmissing_{image_name}", image=image, hit_box_algorithm=None)
 
 
 class FNFNoteSprite(arcade.Sprite):

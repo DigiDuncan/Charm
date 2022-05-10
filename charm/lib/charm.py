@@ -30,6 +30,13 @@ def generate_missing_texture_image(w, h) -> PIL.Image.Image:
 
 
 @cache
+def load_missing_texture(height, width):
+    image_name = f"{height}x{width}"
+    image = generate_missing_texture_image(height, width)
+    return arcade.Texture(f"_missing_{image_name}", image=image, hit_box_algorithm=None)
+
+
+@cache
 def generate_gum_wrapper(size: tuple[int], buffer: int = 20, alpha = 128) -> tuple[int, SpriteList, SpriteList]:
     """Generate two SpriteLists that makes a gum wrapper-style background."""
     small_logos_forward = arcade.SpriteList()
