@@ -118,8 +118,8 @@ class VisualizerView(DigiView):
         with LogSection(logger, "loading sprites"):
             self.scott_atlas = arcade.TextureAtlas((8192, 8192))
             self.sprite_list = arcade.SpriteList(atlas = self.scott_atlas)
-            self.sprite = sprite_from_adobe("scott", ["bottom", "left"])
-            self.boyfriend = sprite_from_adobe("bfScott", ["bottom", "right"])
+            self.sprite = sprite_from_adobe("scott", ("bottom", "left"))
+            self.boyfriend = sprite_from_adobe("bfScott", ("bottom", "right"))
             self.sprite_list.append(self.sprite)
             self.sprite_list.append(self.boyfriend)
             self.sprite.cache_textures()

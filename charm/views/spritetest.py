@@ -17,7 +17,7 @@ class SpriteTestView(DigiView):
         SPRITE_NAME = "scott"
         SPRITE_ANIM = "idle"
 
-        self.sprite = sprite_from_adobe(SPRITE_NAME, ["bottom", "left"])
+        self.sprite = sprite_from_adobe(SPRITE_NAME, ("bottom", "left"))
         self.sprite.fps = 24
         self.sprite.bottom = 0
         self.sprite.left = 0

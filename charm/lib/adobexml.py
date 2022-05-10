@@ -219,7 +219,7 @@ class AdobeSprite(Sprite):
 
 
 @cache
-def sprite_from_adobe(s: str, anchors = ["bottom"], debug = False) -> AdobeSprite:
+def sprite_from_adobe(s: str, anchors: tuple[str] = ("bottom"), debug = False) -> AdobeSprite:
     with pkg_resources.path(charm.data.images.spritesheets, f"{s}.xml") as p:
         parent = p.parent
         return AdobeSprite(parent, s, anchors, debug)
