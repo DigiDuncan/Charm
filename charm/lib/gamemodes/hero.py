@@ -16,6 +16,7 @@ from charm.lib.errors import ChartParseError, ChartPostReadParseError, NoChartsE
 from charm.lib.generic.highway import Highway
 from charm.lib.generic.song import Chart, Event, Metadata, Note, Seconds, Song
 from charm.lib.settings import Settings
+from charm.lib.spritebucket import SpriteBucketCollection
 from charm.lib.utils import img_from_resource
 
 import charm.data.images.skins.hero as heroskin
@@ -232,7 +233,7 @@ class HeroChart(Chart):
         parsed: list[TextEvent] = []
         new_events: list[SoloEvent] = []
         current_solo = None
-        for e in [e for e in self.events if isinstance(TextEvent, e)]:
+        for e in [e for e in self.events if isinstance(e, TextEvent)]:
             if e.text == "solo":
                 current_solo = e
                 parsed.append(e)
@@ -436,13 +437,17 @@ class HeroSong(Song):
 @cache
 def load_note_texture(note_type, note_lane, height):
     image_name = f"{note_type}-{note_lane + 1}"
+    open_height = int(height / (128 / 48))
     try:
         image = img_from_resource(heroskin, image_name + ".png")
-        if image.height != height:
+        if image.height != height and note_lane != 7:
             width = int((height / image.height) * image.width)
             image = image.resize((width, height), PIL.Image.LANCZOS)
-    except Exception:
-        logger.error(f"Unable to load texture: {image_name}")
+        elif image.height != open_height:
+            width = int((open_height / image.height) * image.width)
+            image = image.resize((width, open_height), PIL.Image.LANCZOS)
+    except Exception as e:
+        logger.error(f"Unable to load texture: {image_name} | {e}")
         return load_missing_texture(height, height)
     return arcade.Texture(f"_heronote_{image_name}", image=image, hit_box_algorithm=None)
 
@@ -464,8 +469,73 @@ class HeroNoteSprite(arcade.Sprite):
             self.alpha = 0
 
 class HeroHighway(Highway):
-    def __init__(self, chart: HeroChart, pos: tuple[int, int], size: tuple[int, int] = None, gap: int = 5, auto = False):
+    def __init__(self, chart: HeroChart, pos: tuple[int, int], size: tuple[int, int] = None, gap: int = 5, auto = False, show_flags = False):
         if size is None:
             size = int(Settings.width / (1280 / 400)), Settings.height
 
         super().__init__(chart, pos, size, gap)
+
+        self.viewport = 0.75  # TODO: Set dynamically.
+
+        self.auto = auto
+
+        self.sprite_buckets = SpriteBucketCollection()
+        for note in self.notes:
+            sprite = HeroNoteSprite(note, self, self.note_size)
+            sprite.top = self.note_y(note.time)
+            sprite.left = self.lane_x(note.lane)
+            if note.lane in [5, 6]:  # flags
+                sprite.left = self.lane_x(5)
+                if show_flags is False:
+                    sprite.alpha = 0
+            elif note.lane == 7:  # open
+                sprite.center_x = self.w / 2
+            note.sprite = sprite
+            self.sprite_buckets.append(sprite, note.time, note.length)
+
+        self.strikeline = arcade.SpriteList()
+        for i in [0, 1, 2, 3, 4]:
+            sprite = HeroNoteSprite(HeroNote(self.chart, 0, i, 0, "strikeline"), self, self.note_size)
+            sprite.top = self.strikeline_y
+            sprite.left = self.lane_x(sprite.note.lane)
+            sprite.alpha = 128
+            self.strikeline.append(sprite)
+
+        logger.debug(f"Generated highway for chart {chart.instrument}.")
+
+        # TODO: Replace with better pixel_offset calculation
+        self.last_update_time = 0
+        self._pixel_offset = 0
+
+    def update(self, song_time: float):
+        super().update(song_time)
+        self.sprite_buckets.update_animation(song_time)
+        # TODO: Replace with better pixel_offset calculation
+        delta_draw_time = self.song_time - self.last_update_time
+        self._pixel_offset += (self.px_per_s * delta_draw_time)
+        self.last_update_time = self.song_time
+
+    @property
+    def pixel_offset(self):
+        # TODO: Replace with better pixel_offset calculation
+        return self._pixel_offset
+
+    def draw(self):
+        _cam = arcade.get_window().current_camera
+        self.camera.use()
+        self.strikeline.draw()
+        vp = arcade.get_viewport()
+        height = vp[3] - vp[2]
+        arcade.set_viewport(
+            0,
+            Settings.width,
+            -self.pixel_offset,
+            -self.pixel_offset + height
+        )
+        self.sprite_buckets.draw(self.song_time)
+        _cam.use()
+
+    def lane_x(self, lane_num):
+        if lane_num == 7:  # tap note override
+            return self.x
+        return (self.note_size + self.gap) * lane_num + self.x
