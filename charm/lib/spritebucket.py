@@ -7,10 +7,12 @@ from charm.lib.generic.song import Seconds
 class SpriteBucketCollection:
     def __init__(self):
         self.width: Seconds = 5
+        self.sprites: list[arcade.Sprite] = []
         self.buckets: list[arcade.SpriteList] = []
         self.overbucket = arcade.SpriteList()
 
     def append(self, sprite: arcade.Sprite, time: Seconds, length: Seconds):
+        self.sprites.append(sprite)
         b = self.calc_bucket(time)
         b2 = self.calc_bucket(time + length)
         if b == b2:

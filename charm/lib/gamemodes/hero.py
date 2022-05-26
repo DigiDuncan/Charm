@@ -479,6 +479,8 @@ class HeroHighway(Highway):
 
         self.auto = auto
 
+        self._show_flags = show_flags
+
         self.sprite_buckets = SpriteBucketCollection()
         for note in self.notes:
             sprite = HeroNoteSprite(note, self, self.note_size)
@@ -486,7 +488,7 @@ class HeroHighway(Highway):
             sprite.left = self.lane_x(note.lane)
             if note.lane in [5, 6]:  # flags
                 sprite.left = self.lane_x(5)
-                if show_flags is False:
+                if self._show_flags is False:
                     sprite.alpha = 0
             elif note.lane == 7:  # open
                 sprite.center_x = self.w / 2
@@ -539,3 +541,19 @@ class HeroHighway(Highway):
         if lane_num == 7:  # tap note override
             return self.x
         return (self.note_size + self.gap) * lane_num + self.x
+
+    @property
+    def show_flags(self) -> bool:
+        return self._show_flags
+
+    @show_flags.setter
+    def show_flags(self, v: bool):
+        self._show_flags = v
+        if self._show_flags:
+            for sprite in self.sprite_buckets.sprites:
+                if sprite.note.lane in [5, 6]:
+                    sprite.alpha = 255
+        else:
+            for sprite in self.sprite_buckets.sprites:
+                if sprite.note.lane in [5, 6]:
+                    sprite.alpha = 255

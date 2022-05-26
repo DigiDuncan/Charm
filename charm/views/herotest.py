@@ -4,11 +4,9 @@ import arcade
 
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView
-from charm.lib.gamemodes.hero import HeroChart, HeroHighway, HeroSong
+from charm.lib.gamemodes.hero import HeroHighway, HeroSong
 from charm.lib.paths import songspath
 from charm.lib.settings import Settings
-
-import charm.data.audio
 
 
 class HeroTestView(DigiView):
@@ -16,7 +14,7 @@ class HeroTestView(DigiView):
         super().__init__(fade_in=1, bg_color=CharmColors.FADED_GREEN, *args, **kwargs)
         self.song = None
         self.highway = None
-        self.volume = 1
+        self.volume = 0.25
 
     def setup(self):
         super().setup()
