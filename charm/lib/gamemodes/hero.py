@@ -473,7 +473,7 @@ class HeroHighway(Highway):
         if size is None:
             size = int(Settings.width / (1280 / 400)), Settings.height
 
-        super().__init__(chart, pos, size, gap)
+        super().__init__(chart, pos, size, gap, downscroll = True)
 
         self.viewport = 0.75  # TODO: Set dynamically.
 
@@ -531,8 +531,8 @@ class HeroHighway(Highway):
         arcade.set_viewport(
             0,
             Settings.width,
-            -self.pixel_offset,
-            -self.pixel_offset + height
+            self.pixel_offset,
+            self.pixel_offset + height
         )
         self.sprite_buckets.draw(self.song_time)
         _cam.use()

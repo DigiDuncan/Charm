@@ -4,13 +4,14 @@ from charm.lib.settings import Settings
 
 
 class Highway:
-    def __init__(self, chart: Chart, pos: tuple[int, int], size: tuple[int, int] = None, gap: int = 5):
+    def __init__(self, chart: Chart, pos: tuple[int, int], size: tuple[int, int] = None, gap: int = 5, downscroll = False):
         self.chart = chart
         self.notes = self.chart.notes
 
         self.pos = pos
         self.size = size if size is not None else (Settings.width // 3, Settings.height)
         self.gap = gap
+        self.downscroll = downscroll
         self.viewport: float = 1
 
         self.camera = Camera(Settings.width, Settings.height)
@@ -42,6 +43,8 @@ class Highway:
 
     @property
     def strikeline_y(self):
+        if self.downscroll:
+            return 89  # 64 + 25
         return self.h - 25
 
     @property
@@ -56,6 +59,8 @@ class Highway:
 
     def note_y(self, at: float):
         rt = at - self.song_time
+        if self.downscroll:
+            return (self.px_per_s * rt) + self.strikeline_y
         return (-self.px_per_s * rt) + self.strikeline_y + self.y
 
     def update(self, song_time):
