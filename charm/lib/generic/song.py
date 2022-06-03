@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import dataclasses
 from functools import cache, total_ordering
 from pathlib import Path
+from time import time
 from typing import Optional
 
 
@@ -71,6 +72,10 @@ class Note:
     @property
     def end(self) -> Seconds:
         return self.time + self.length
+
+    @end.setter
+    def end(self, v: Seconds):
+        self.length = v - self.time
 
     @property
     def icon(self) -> str:
