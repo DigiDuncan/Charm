@@ -86,6 +86,9 @@ class FNFChart(Chart):
 
         self.notes: list[FNFNote] = []
 
+    def get_current_sustains(self, time: Seconds):
+        return [note.lane for note in self.notes if note.is_sustain and note.time <= time and note.end >= time]
+
 
 class FNFMod:
     def __init__(self, folder_name: str) -> None:
@@ -265,7 +268,7 @@ class FNFSong(Song):
 
 
 class FNFEngine(Engine):
-    def __init__(self, chart: Chart, offset: Seconds = -0.075):  # FNF defaults to a 75ms input offset.
+    def __init__(self, chart: FNFChart, offset: Seconds = -0.075):  # FNF defaults to a 75ms input offset.
         hit_window = 0.166
         mapping = [arcade.key.D, arcade.key.F, arcade.key.J, arcade.key.K]
         judgements = [
@@ -336,7 +339,10 @@ class FNFEngine(Engine):
                         note.hit = True
                         note.hit_time = event.time
                         self.score_note(note)
-                        self.current_notes.remove(note)
+                        try:
+                            self.current_notes.remove(note)
+                        except ValueError:
+                            logger.log("Sustain pickup failed!")
                         self.current_events.remove(event)
                         break
 
@@ -536,7 +542,7 @@ class FNFAssetManager:
 class FNFSceneManager:
     """Controls the display of the FNF scene.
        Handles sprite loading, most rendering, and inter-element interactions.
-       
+
        `chart: FNFChart`: the chart the player is currenty playing."""
     def __init__(self, chart: FNFChart):
         self.chart = chart
