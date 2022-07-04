@@ -5,7 +5,6 @@ from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView, shows_errors
 from charm.lib.errors import TestError
 from charm.objects.menu import MainMenu, MainMenuItem
-from charm.views.cheat import CheatView
 from charm.views.fnfsongmenu import FNFSongMenuView
 from charm.views.herotest import HeroTestView
 from charm.views.parallaxtest import ParallaxView
@@ -33,8 +32,7 @@ class MainMenuView(DigiView):
                 MainMenuItem("Lyric Test", "test", SubtitleView(back=self)),
                 MainMenuItem("Parallax Test", "test", ParallaxView(back=self)),
                 MainMenuItem("Visualizer Test", "test", VisualizerView(back=self)),
-                MainMenuItem("Hero Test", "test", HeroTestView(back=self)),
-                MainMenuItem("Cheats", "cheats", CheatView(back=self))
+                MainMenuItem("Hero Test", "test", HeroTestView(back=self))
             ]
         )
 

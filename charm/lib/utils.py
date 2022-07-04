@@ -9,7 +9,7 @@ def int_or_str(i: Any) -> int | str | None:
         o = int(i)
     except ValueError:
         try:
-            o = str(i)
+            o = str(i)  # Does this ever actually raise ValueError?
         except ValueError:
             o = None
     return o
