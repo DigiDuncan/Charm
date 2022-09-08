@@ -111,8 +111,8 @@ class FNFSong(Song):
         hash = sha1(bytes(json.dumps(j), encoding='utf-8')).hexdigest()
         song = j["song"]
         title = song["song"].replace("-", " ").title()
-        artist = "Unknown Artist"
-        album = "Unknown Album"
+        artist = ""
+        album = ""
         key = k
 
         return Metadata(title, artist, album, hash = hash, key = key)
