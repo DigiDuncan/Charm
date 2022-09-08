@@ -12,3 +12,6 @@
 - [ ] Engine customization
 - [?] Difficulty parsing
 - [ ] Mod folders
+- [ ] Asset replacement animations
+## 4K
+- [ ] Rewrite 4K backend
