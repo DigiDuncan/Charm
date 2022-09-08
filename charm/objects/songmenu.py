@@ -49,14 +49,26 @@ class SongMenuItem(Sprite):
             fbo.clear()
             arcade.draw_circle_filled(self.width - self.height / 2, self.height / 2, self.height / 2, CharmColors.FADED_PURPLE)
             arcade.draw_lrtb_rectangle_filled(0, self.width - self.height / 2, self.height, 0, CharmColors.FADED_PURPLE)
-            arcade.draw_text(
-                self.title, self.width - self.height / 2 - 5, self.height / 2, arcade.color.BLACK,
-                font_size=self.height / 3 * (3 / 4), font_name="bananaslip plus plus", anchor_x="right"
-            )
-            arcade.draw_text(
-                self.artist + ", " + self.album, self.width - self.height / 2 - 5, self.height / 2, arcade.color.BLACK,
-                font_size=self.height / 4 * (3 / 4), font_name="bananaslip plus plus", anchor_x="right", anchor_y="top"
-            )
+            if (self.artist != "" or self.album != ""):
+                if self.artist != "":
+                    # add the comma
+                    artistalbum = self.artist + ", " + self.album
+                else:
+                    # only album name
+                    artistalbum = self.album
+                arcade.draw_text(
+                    self.title, self.width - self.height / 2 - 5, self.height / 2, arcade.color.BLACK,
+                    font_size=self.height / 3 * (3 / 4), font_name="bananaslip plus plus", anchor_x="right"
+                )
+                arcade.draw_text(
+                    artistalbum, self.width - self.height / 2 - 5, self.height / 2, arcade.color.BLACK,
+                    font_size=self.height / 4 * (3 / 4), font_name="bananaslip plus plus", anchor_x="right", anchor_y="top"
+                )
+            else:
+                arcade.draw_text(
+                    self.title, self.width - self.height / 2 - 5, self.height / 2, arcade.color.BLACK,
+                    font_size=self.height / 3, font_name="bananaslip plus plus", anchor_x="right", anchor_y="center"
+                )
 
         logger.info(f"Loaded MenuItem {self.title}")
 
