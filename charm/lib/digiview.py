@@ -108,5 +108,5 @@ class DigiView(View):
 
         self.window.debug_draw()
 
-        for i, (error, _) in enumerate(self._errors):
+        for (error, _) in self._errors:
             error.sprite.draw()
