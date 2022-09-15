@@ -1,12 +1,14 @@
 import importlib.resources as pkg_resources
+import logging
 
 import arcade
 
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView
-from charm.lib.gamemodes.hero import HeroHighway, HeroSong
+from charm.lib.gamemodes.hero import HeroHighway, HeroSong, SectionEvent
 from charm.lib.paths import songspath
-from charm.lib.settings import Settings
+
+logger = logging.getLogger("charm")
 
 
 class HeroTestView(DigiView):
@@ -20,9 +22,12 @@ class HeroTestView(DigiView):
         super().setup()
 
         self._song = arcade.load_sound(songspath / "ch" / "run_around_the_character_code" / "song.mp3")
-        self.song = HeroSong.parse(songspath / "ch" / "run_around_the_character_code")
-        self.chart = self.song.get_chart("Expert", "Single")
-        self.highway = HeroHighway(self.chart, (0, 0), show_flags=True)
+        self.hero_song = HeroSong.parse(songspath / "ch" / "run_around_the_character_code")
+        self.chart = self.hero_song.get_chart("Expert", "Single")
+        highway_x = (self.window.width / 2) - (int(self.window.width / (1280 / 400))) / 2
+        self.highway = HeroHighway(self.chart, (highway_x, 0), show_flags=False)
+
+        self.section_text = arcade.Text("[NO SECTION]", self.window.width - 5, 5, arcade.color.BLACK, 16, align = "right", anchor_x = "right", font_name = "bananaslip plus plus", width=self.window.width)
 
         # Generate "gum wrapper" background
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
@@ -38,6 +43,8 @@ class HeroTestView(DigiView):
                 self.back.setup()
                 self.window.show_view(self.back)
                 arcade.play_sound(self.window.sounds["back"])
+            case arcade.key.F:
+                self.highway.show_flags = not self.highway.show_flags
 
         return super().on_key_press(symbol, modifiers)
 
@@ -45,6 +52,12 @@ class HeroTestView(DigiView):
         super().on_update(delta_time)
 
         self.highway.update(self.song.time)
+
+        # Section name
+        current_section: SectionEvent = self.hero_song.indexes_by_time["section"].lteq(self.song.time)
+        if current_section and self.section_text.text != current_section.name:
+            logger.info(f"Section name is now {current_section.name} ({self.song.time})")
+            self.section_text.text = current_section.name
 
         move_gum_wrapper(self.logo_width, self.small_logos_forward, self.small_logos_backward, delta_time)
 
@@ -56,6 +69,10 @@ class HeroTestView(DigiView):
         self.small_logos_forward.draw()
         self.small_logos_backward.draw()
 
+        arcade.draw_lrtb_rectangle_filled(self.highway.x, self.highway.x + self.highway.w,
+                                          self.highway.y + self.highway.h, self.highway.y,
+                                          (0, 0, 0, 128))
         self.highway.draw()
+        self.section_text.draw()
 
         super().on_draw()

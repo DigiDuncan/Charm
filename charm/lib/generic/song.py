@@ -149,7 +149,6 @@ class Song:
         elif instrument is not None:
             return next(c for c in self.charts if c.instrument == instrument)
 
-    @cache
     def events_by_type(self, t: type):
         return [e for e in self.events if isinstance(e, t)]
 

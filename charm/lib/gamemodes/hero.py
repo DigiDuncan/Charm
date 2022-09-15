@@ -63,6 +63,10 @@ class TSEvent(TickEvent):
     numerator: int
     denominator: int = 4
 
+    @property
+    def time_sig(self) -> tuple[int, int]:
+        return (self.numerator, self.denominator)
+
 @dataclass
 class TextEvent(TickEvent):
     text: str
@@ -357,6 +361,7 @@ class HeroSong(Song):
             elif last_header == "Events":
                 # Section events
                 if m := re.match(RE_SECTION, line):
+                    logger.debug(f"Added section {line}")
                     tick, name = m.groups()
                     tick = int(tick)
                     seconds = tick_to_seconds(tick, sync_track, resolution, offset)
@@ -412,14 +417,14 @@ class HeroSong(Song):
 
         # Finalize
         song = HeroSong(metadata.key)
+        for event in events:
+            song.events.append(event)
+        song.events.sort()
         song.index()
         for chart in charts.values():
             chart.song = song
             chart.finalize()
             song.charts.append(chart)
-        for event in events:
-            song.events.append(event)
-        song.events.sort()
         song.resolution = resolution
         song.metadata = metadata
         return song
@@ -496,6 +501,7 @@ class HeroHighway(Highway):
             self.sprite_buckets.append(sprite, note.time, note.length)
 
         self.strikeline = arcade.SpriteList()
+        # TODO: Is this dumb?
         for i in [0, 1, 2, 3, 4]:
             sprite = HeroNoteSprite(HeroNote(self.chart, 0, i, 0, "strikeline"), self, self.note_size)
             sprite.top = self.strikeline_y
@@ -556,4 +562,4 @@ class HeroHighway(Highway):
         else:
             for sprite in self.sprite_buckets.sprites:
                 if sprite.note.lane in [5, 6]:
-                    sprite.alpha = 255
+                    sprite.alpha = 0
