@@ -56,7 +56,7 @@ class HeroTestView(DigiView):
         # Section name
         current_section: SectionEvent = self.hero_song.indexes_by_time["section"].lteq(self.song.time)
         if current_section and self.section_text.text != current_section.name:
-            logger.info(f"Section name is now {current_section.name} ({self.song.time})")
+            logger.debug(f"Section name is now {current_section.name} ({self.song.time})")
             self.section_text.text = current_section.name
 
         move_gum_wrapper(self.logo_width, self.small_logos_forward, self.small_logos_backward, delta_time)
