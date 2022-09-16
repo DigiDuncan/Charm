@@ -1,21 +1,31 @@
+import arcade
 from arcade import Camera
-from .song import Chart
-from charm.lib.settings import Settings
 
+from charm.lib.settings import Settings
+from charm.lib.generic.song import Chart
 
 class Highway:
     def __init__(self, chart: Chart, pos: tuple[int, int], size: tuple[int, int] = None, gap: int = 5, downscroll = False):
         self.chart = chart
         self.notes = self.chart.notes
 
-        self.pos = pos
+        self._pos = pos
         self.size = size if size is not None else (Settings.width // 3, Settings.height)
         self.gap = gap
         self.downscroll = downscroll
         self.viewport: float = 1
+        self.window = arcade.get_window()
 
         self.camera = Camera(Settings.width, Settings.height)
         self.song_time: float = 0
+
+    @property
+    def pos(self) -> tuple[int, int]:
+        return self._pos
+
+    @pos.setter
+    def pos(self, p: tuple[int, int]):
+        self._pos = p
 
     @property
     def px_per_s(self):
@@ -25,17 +35,33 @@ class Highway:
     def x(self) -> int:
         return self.pos[0]
 
+    @x.setter
+    def x(self, i: int):
+        self.pos = (i, self.pos[1])
+
     @property
     def y(self) -> int:
         return self.pos[1]
+
+    @y.setter
+    def y(self, i: int):
+        self.pos = (self.pos[0], i)
 
     @property
     def w(self) -> int:
         return self.size[0]
 
+    @w.setter
+    def w(self, i: int):
+        self.size = (i, self.size[1])
+
     @property
     def h(self) -> int:
         return self.size[1]
+    
+    @h.setter
+    def h(self, i: int):
+        self.size = (self.size[0], i)
 
     @property
     def note_size(self) -> int:

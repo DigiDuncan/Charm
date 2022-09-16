@@ -502,7 +502,7 @@ class HeroHighway(Highway):
 
         self.strikeline = arcade.SpriteList()
         # TODO: Is this dumb?
-        for i in [0, 1, 2, 3, 4]:
+        for i in range(5):
             sprite = HeroNoteSprite(HeroNote(self.chart, 0, i, 0, "strikeline"), self, self.note_size)
             sprite.top = self.strikeline_y
             sprite.left = self.lane_x(sprite.note.lane)
@@ -522,6 +522,21 @@ class HeroHighway(Highway):
         delta_draw_time = self.song_time - self.last_update_time
         self._pixel_offset += (self.px_per_s * delta_draw_time)
         self.last_update_time = self.song_time
+
+    @property
+    def pos(self) -> tuple[int, int]:
+        return self._pos
+
+    @pos.setter
+    def pos(self, p: tuple[int, int]):
+        old_pos = self._pos
+        diff_x = p[0] - old_pos[0]
+        diff_y = p[1] - old_pos[1]
+        self._pos = p
+        for bucket in self.sprite_buckets.buckets:
+            bucket.move(diff_x, diff_y)
+        self.sprite_buckets.overbucket.move(diff_x, diff_y)
+        self.strikeline.move(diff_x, diff_y)
 
     @property
     def pixel_offset(self):

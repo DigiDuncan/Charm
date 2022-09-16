@@ -1,5 +1,5 @@
-import importlib.resources as pkg_resources
 import logging
+import random
 
 import arcade
 
@@ -24,8 +24,8 @@ class HeroTestView(DigiView):
         self._song = arcade.load_sound(songspath / "ch" / "run_around_the_character_code" / "song.mp3")
         self.hero_song = HeroSong.parse(songspath / "ch" / "run_around_the_character_code")
         self.chart = self.hero_song.get_chart("Expert", "Single")
-        highway_x = (self.window.width / 2) - (int(self.window.width / (1280 / 400))) / 2
-        self.highway = HeroHighway(self.chart, (highway_x, 0), show_flags=False)
+        self.highway = HeroHighway(self.chart, (0, 0), show_flags=False)
+        self.highway.x += self.window.width // 2 - self.highway.w // 2
 
         self.section_text = arcade.Text("[NO SECTION]", self.window.width - 5, 5, arcade.color.BLACK, 16, align = "right", anchor_x = "right", font_name = "bananaslip plus plus", width=self.window.width)
 
