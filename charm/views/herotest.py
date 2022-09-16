@@ -24,10 +24,10 @@ class HeroTestView(DigiView):
         self._song = arcade.load_sound(songspath / "ch" / "run_around_the_character_code" / "song.mp3")
         self.hero_song = HeroSong.parse(songspath / "ch" / "run_around_the_character_code")
         self.chart = self.hero_song.get_chart("Expert", "Single")
-        self.highway = HeroHighway(self.chart, (0, 0), show_flags=False)
+        self.highway = HeroHighway(self.chart, (0, 0))
         self.highway.x += self.window.width // 2 - self.highway.w // 2
 
-        self.section_text = arcade.Text("[NO SECTION]", self.window.width - 5, 5, arcade.color.BLACK, 16, align = "right", anchor_x = "right", font_name = "bananaslip plus plus", width=self.window.width)
+        self.section_text = arcade.Text("", self.window.width - 5, 5, arcade.color.BLACK, 16, align = "right", anchor_x = "right", font_name = "bananaslip plus plus", width=self.window.width)
 
         # Generate "gum wrapper" background
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
@@ -54,6 +54,7 @@ class HeroTestView(DigiView):
         self.highway.update(self.song.time)
 
         # Section name
+        # This should in theory be kinda fast because it's using Indexes?
         current_section: SectionEvent = self.hero_song.indexes_by_time["section"].lteq(self.song.time)
         if current_section and self.section_text.text != current_section.name:
             logger.debug(f"Section name is now {current_section.name} ({self.song.time})")
