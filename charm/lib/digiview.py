@@ -68,7 +68,7 @@ class DigiView(View):
         self.shown = True
 
     def on_resize(self, width: int, height: int):
-        self.size = self.window.get_size()
+        self.size = (width, height)
 
     def on_key_press(self, symbol: int, modifiers: int):
         if symbol == arcade.key.KEY_7:
