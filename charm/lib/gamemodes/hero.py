@@ -486,6 +486,8 @@ class HeroHighway(Highway):
 
         self._show_flags = show_flags
 
+        self.color = (0, 0, 0, 128)
+
         self.sprite_buckets = SpriteBucketCollection()
         for note in self.notes:
             sprite = HeroNoteSprite(note, self, self.note_size)
@@ -546,6 +548,9 @@ class HeroHighway(Highway):
     def draw(self):
         _cam = arcade.get_window().current_camera
         self.camera.use()
+        arcade.draw_lrtb_rectangle_filled(self.x, self.x + self.w,
+                                          self.y + self.h, self.y,
+                                          self.color)
         self.strikeline.draw()
         vp = arcade.get_viewport()
         height = vp[3] - vp[2]

@@ -1,5 +1,4 @@
 import logging
-import random
 
 import arcade
 
@@ -70,9 +69,6 @@ class HeroTestView(DigiView):
         self.small_logos_forward.draw()
         self.small_logos_backward.draw()
 
-        arcade.draw_lrtb_rectangle_filled(self.highway.x, self.highway.x + self.highway.w,
-                                          self.highway.y + self.highway.h, self.highway.y,
-                                          (0, 0, 0, 128))
         self.highway.draw()
         self.section_text.draw()
 
