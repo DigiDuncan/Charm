@@ -95,6 +95,7 @@ class Note:
 
 
 @dataclass
+@total_ordering
 class Event:
     """A very basic event that happens at a time.
     

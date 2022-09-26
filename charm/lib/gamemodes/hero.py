@@ -268,7 +268,7 @@ class HeroSong(Song):
     def parse(cls, folder: Path) -> "HeroSong":
         if not (folder / "notes.chart").exists():
             raise NoChartsError(folder.stem)
-        with open(folder / "notes.chart") as f:
+        with open(folder / "notes.chart", encoding = "utf-8") as f:
             chartfile = f.readlines()
         
         resolution: Ticks = 192
@@ -333,7 +333,7 @@ class HeroSong(Song):
                     raise ChartParseError(line_num, f"Non-metadata found in metadata section: {line!r}")
             elif last_header == "SyncTrack":
                 if m := re.match(RE_A, line):
-                    # ignore anchor events
+                    # ignore anchor events [only used for charting]
                     continue
                 # BPM Events
                 elif m := re.match(RE_B, line):
@@ -393,7 +393,7 @@ class HeroSong(Song):
                     seconds = tick_to_seconds(tick, sync_track, resolution, offset)
                     chart.events.append(TextEvent(seconds, tick, text))
                 # Note events
-                elif m:= re.match(RE_N, line):
+                elif m := re.match(RE_N, line):
                     tick, lane, length = m.groups()
                     tick = int(tick)
                     length = int(length)
@@ -402,7 +402,7 @@ class HeroSong(Song):
                     sec_length = round(end - seconds, 5)  # accurate to 1/100ms
                     chart.notes.append(HeroNote(chart, seconds, int(lane), sec_length, tick = tick, tick_length = length))  # TODO: Note flags.
                 # Special events
-                elif m:= re.match(RE_S, line):
+                elif m := re.match(RE_S, line):
                     tick, s_type, length = m.groups()
                     tick = int(tick)
                     length = int(length)
