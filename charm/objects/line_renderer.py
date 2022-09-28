@@ -49,7 +49,7 @@ class LineRenderer:
             p.move(x, y)
 
     def move_points_past_time(self, x: float, y: float, time: float):
-        for p in self.points[self.points_by_time.gt_index(time):]:
+        for p in self.points[self.points_by_time.gteq_index(time):]:
             p.move(x, y)
 
     def move_from_now(self, x: float, y: float):
@@ -64,3 +64,10 @@ class LineRenderer:
 
     def draw(self):
         arcade.draw_line_strip(self.point_tuples, self.color, self.width)
+
+    def draw_points_past_time(self, x: float, y: float, time: float):
+        points = [p.point for p in self.points if p.time >= time]
+        arcade.draw_line_strip(points, self.color, self.width)
+
+    def draw_from_now(self, x: float, y: float):
+        self.draw_points_past_time(self.current_time)
