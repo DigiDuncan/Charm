@@ -42,7 +42,7 @@ class DigiView(View):
         self.back = back
         self.shown = False
         self.size = self.window.get_size()
-        self.local_time = 0
+        self.local_time = 0.0
         self.fade_in = fade_in
         self.bg_color = bg_color
         self.camera = arcade.Camera(Settings.width, Settings.height, self.window)

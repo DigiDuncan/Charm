@@ -49,7 +49,11 @@ class LineRenderer:
             p.move(x, y)
 
     def move_points_past_time(self, x: float, y: float, time: float):
-        for p in self.points[self.points_by_time.gteq_index(time):]:
+        # anchor_point = self.points_by_time.lteq(time)
+        ind = self.points_by_time.gteq_index(time)
+        if ind is None:
+            return
+        for p in self.points[ind:]:
             p.move(x, y)
 
     def move_from_now(self, x: float, y: float):
