@@ -69,9 +69,9 @@ class LineRenderer:
     def draw(self):
         arcade.draw_line_strip(self.point_tuples, self.color, self.width)
 
-    def draw_points_past_time(self, x: float, y: float, time: float):
+    def draw_points_past_time(self, time: float):
         points = [p.point for p in self.points if p.time >= time]
         arcade.draw_line_strip(points, self.color, self.width)
 
-    def draw_from_now(self, x: float, y: float):
+    def draw_from_now(self):
         self.draw_points_past_time(self.current_time)
