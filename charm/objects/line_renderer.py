@@ -135,7 +135,7 @@ class MultiLineRenderer:
 class NoteTrail(MultiLineRenderer):
     def __init__(self, note_id: Hashable, note_center: Point, time_start: Seconds, length: Seconds,
                  px_per_s: float, color: arcade.Color, point_depth: float = 50, width: float = 100,
-                 *, resolution: int = 2, thickness: int = 3, upscroll = False,
+                 *, resolution: int = 5, thickness: int = 3, upscroll = False,
                  fill_color: arcade.Color | None = None):
 
         self.note_center = note_center
@@ -162,7 +162,7 @@ class NoteTrail(MultiLineRenderer):
             end = start_y + trail_length
             point_tip = end + point_depth
 
-        for i in range(start_y, end, resolution):
+        for i in range(int(start_y), int(end), resolution):
             time = scale_float(time_start, trail_time_end, i, start_y, end)
             points1.append(((left_x, i), time))
             points2.append(((right_x, i), time))
@@ -201,6 +201,13 @@ class NoteTrail(MultiLineRenderer):
         for lr in self.line_renderers.values():
             lr.move(x, y)
         self.rectangles.move(x, y)
+        self.note_center = (self.note_center[0] + x, self.note_center[1] + y)
+
+    def set_position(self, x: float, y: float):
+        ox, oy = self.note_center
+        mx = x - ox
+        my = y - oy
+        self.move(mx, my)
 
     def move_points_past_time(self, x: float, y: float, time: float):
         for lr in self.line_renderers.values():

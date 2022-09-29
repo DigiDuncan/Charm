@@ -24,6 +24,7 @@ from charm.lib.paths import modsfolder, songspath
 from charm.lib.settings import Settings
 from charm.lib.spritebucket import SpriteBucketCollection
 from charm.lib.utils import clamp, img_from_resource
+from charm.objects.line_renderer import NoteTrail
 
 import charm.data.assets
 import charm.data.images.skins.fnf as fnfskin
@@ -49,12 +50,45 @@ class NoteJson(TypedDict):
     lengthInSteps: int
 
 
-class NoteType(str):
+class NoteType:
     NORMAL = "normal"
     BOMB = "bomb"
     DEATH = "death"
     HEAL = "heal"
     CAUTION = "caution"
+
+class NoteColor:
+    GREEN = arcade.color.LIME_GREEN
+    RED = arcade.color.RED
+    PINK = arcade.color.PINK
+    BLUE = arcade.color.CYAN
+    BOMB = arcade.color.DARK_RED
+    DEATH = arcade.color.BLACK
+    HEAL = arcade.color.WHITE
+    CAUTION = arcade.color.YELLOW
+
+    @classmethod
+    def from_note(cls, note: "FNFNote"):
+        match note.type:
+            case NoteType.NORMAL:
+                if note.lane == 0:
+                    return cls.PINK
+                elif note.lane == 1:
+                    return cls.BLUE
+                elif note.lane == 2:
+                    return cls.GREEN
+                elif note.lane == 3:
+                    return cls.RED
+            case NoteType.BOMB:
+                return cls.BOMB
+            case NoteType.DEATH:
+                return cls.DEATH
+            case NoteType.HEAL:
+                return cls.HEAL
+            case NoteType.CAUTION:
+                return cls.CAUTION
+            case _:
+                return arcade.color.BLACK
 
 
 @dataclass
@@ -426,6 +460,8 @@ class FNFNoteSprite(arcade.Sprite):
         self.highway: FNFHighway = highway
         tex = load_note_texture(note.type, note.lane, height)
         super().__init__(texture=tex, *args, **kwargs)
+        if self.note.type == "sustain":
+            self.alpha = 0
 
     def __lt__(self, other: FNFNoteSprite):
         return self.note.time < other.note.time
@@ -434,15 +470,26 @@ class FNFNoteSprite(arcade.Sprite):
         if self.highway.auto:
             if self.highway.song_time >= self.note.time:
                 self.note.hit = True
-        if self.note.type == "sustain":
-            if self.note.hit and self.highway.song_time >= self.note.time:
-                self.alpha = 0
+        # if self.note.hit and self.highway.song_time >= self.note.time:
+        #     self.alpha = 0
         elif self.note.hit:
             self.alpha = 0
 
 
 class FNFLongNoteSprite(FNFNoteSprite):
-    pass
+    id = 0
+    def __init__(self, note: FNFNote, highway: FNFHighway, height=128, *args, **kwargs):
+        super().__init__(note, highway, height, *args, **kwargs)
+        self.id += 1
+
+        color = NoteColor.from_note(self.note)
+        self.trail = NoteTrail(self.id, self.position, self.note.time, self.note.length, self.highway.px_per_s,
+        color, width = self.highway.note_size, upscroll = True, fill_color=color + (60,))
+
+    def update_animation(self, delta_time: float):
+        self.trail.set_position(*self.position)
+        self.trail.update(delta_time)
+        return super().update_animation(delta_time)
 
 
 class FNFHighway(Highway):
@@ -503,6 +550,11 @@ class FNFHighway(Highway):
             -self.pixel_offset,
             -self.pixel_offset + height
         )
+        b = self.sprite_buckets.calc_bucket(self.song_time)
+        for bucket in self.sprite_buckets.buckets[b:b+2] + [self.sprite_buckets.overbucket]:
+            for note in bucket.sprite_list:
+                if isinstance(note, FNFLongNoteSprite):
+                    note.trail.draw()
         self.sprite_buckets.draw(self.song_time)
         _cam.use()
 
