@@ -21,7 +21,7 @@ class LineTestView(DigiView):
         super().setup()
         
         self.note_trail = NoteTrail(123456789, (Settings.width / 2, Settings.height - 50), 0, 12, 50,
-                          arcade.color.PURPLE, upscroll = True, fill_color=(0, 0, 0, 60))
+                          arcade.color.PURPLE, upscroll = True, fill_color=(0, 0, 0, 60), resolution=5)
 
         self.time_text = arcade.Text("0.00", Settings.width - 5, Settings.height - 5, arcade.color.BLUE,
                                      24, Settings.width - 5, align="right", anchor_x="right", anchor_y="top")

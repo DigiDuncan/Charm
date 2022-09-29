@@ -189,8 +189,9 @@ class NoteTrail(MultiLineRenderer):
             mid_point_y = (point1[1] + point2[1]) / 2
             rect = arcade.create_rectangle_filled(mid_point_x, mid_point_y, self.width, self.resolution, self.fill_color)
             self.rectangles.append(rect)
-        tri_left = (self.line_renderer1.point_tuples[-2][0], self.line_renderer1.point_tuples[-2][1] - 1) if self.upscroll else (self.line_renderer1.point_tuples[-2][0], self.line_renderer1.point_tuples[-2][1] + 1)
-        tri_right = (self.line_renderer2.point_tuples[-2][0], self.line_renderer2.point_tuples[-2][1] - 1) if self.upscroll else (self.line_renderer2.point_tuples[-2][0], self.line_renderer2.point_tuples[-2][1] + 1)
+        tri_offset = self.resolution / 2
+        tri_left = (self.line_renderer1.point_tuples[-2][0], self.line_renderer1.point_tuples[-2][1] - tri_offset) if self.upscroll else (self.line_renderer1.point_tuples[-2][0], self.line_renderer1.point_tuples[-2][1] + tri_offset)
+        tri_right = (self.line_renderer2.point_tuples[-2][0], self.line_renderer2.point_tuples[-2][1] - tri_offset) if self.upscroll else (self.line_renderer2.point_tuples[-2][0], self.line_renderer2.point_tuples[-2][1] + tri_offset)
         tri_bottom = self.line_renderer2.point_tuples[-1]
         self.rectangles.append(arcade.create_polygon([tri_left, tri_right, tri_bottom], self.fill_color))
 
