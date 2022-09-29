@@ -271,10 +271,10 @@ class FNFSongView(DigiView):
 
     def get_spotlight_position(self, song_time: float):
         focus_pos = {
-            2: Settings.width // 2,
-            1: 0
+            1: Settings.width // 2,
+            0: 0
         }
-        cameraevents = [e for e in self.songdata.events if isinstance(e, CameraFocusEvent) and e.time < self.tracks.time + 0.25]
+        cameraevents = [e for e in self.songdata.charts[0].events if isinstance(e, CameraFocusEvent) and e.time < self.tracks.time + 0.25]
         if cameraevents:
             current_camera_event = cameraevents[-1]
             if self.last_camera_event != current_camera_event:
