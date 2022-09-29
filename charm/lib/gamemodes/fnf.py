@@ -12,6 +12,7 @@ from typing import Optional, TypedDict, cast
 
 import arcade
 import PIL, PIL.ImageFilter
+import toml
 
 from charm.lib.adobexml import AdobeSprite
 from charm.lib.charm import load_missing_texture
@@ -153,13 +154,15 @@ class FNFSong(Song):
 
     @classmethod
     def parse(cls, folder: str, mod: FNFMod = None) -> FNFSong:
-        song = FNFSong(folder)
-        song.path = songspath / "fnf" / folder
+        folder_path = Path(folder)
+        stem = folder_path.stem
+        song = FNFSong(stem)
+        song.path = songspath / "fnf" / stem
         if mod:
             song.mod = mod
-            song.path = mod.path / folder
+            song.path = mod.path / stem
 
-        charts = song.path.glob("*.json")
+        charts = song.path.glob(f"./{stem}*.json")
         parsed_charts = [cls.parse_chart(chart, song) for chart in charts]
         for charts in parsed_charts:
             for chart in charts:
@@ -179,6 +182,12 @@ class FNFSong(Song):
     def parse_chart(cls, file_path: Path, song: FNFSong) -> list[FNFChart]:
         with open(file_path) as p:
             j: SongFileJson = json.load(p)
+        fnf_overrides = None
+        override_path = file_path.parent / "fnf.json"
+        if override_path.exists() and override_path.is_file():
+            with open(override_path) as f:
+                fnf_overrides = json.load(f)
+        print(fnf_overrides)
         hash = sha1(bytes(json.dumps(j), encoding="utf-8")).hexdigest()
         difficulty = file_path.stem.rsplit("-", 1)[1] if "-" in file_path.stem else "normal"
         songdata = j["song"]
@@ -247,9 +256,11 @@ class FNFSong(Song):
 
             # Lanemap: (player, lane, type)
             # TODO: overrides for this
-            lanemap: list[tuple[int, int, NoteType]] = [(0, 0, NoteType.NORMAL), (0, 1, NoteType.NORMAL), (0, 2, NoteType.NORMAL), (0, 3, NoteType.NORMAL),
+            if fnf_overrides:
+                lanemap = [[l[0], l[1], getattr(NoteType, l[2])] for l in fnf_overrides["lanes"]]
+            else:
+                lanemap: list[tuple[int, int, NoteType]] = [(0, 0, NoteType.NORMAL), (0, 1, NoteType.NORMAL), (0, 2, NoteType.NORMAL), (0, 3, NoteType.NORMAL),
                                                         (1, 0, NoteType.NORMAL), (1, 1, NoteType.NORMAL), (1, 2, NoteType.NORMAL), (1, 3, NoteType.NORMAL)]
-
             # Actually make two charts
             sectionNotes = section["sectionNotes"]
             for note in sectionNotes:
@@ -273,6 +284,12 @@ class FNFSong(Song):
 
                 thisnote = FNFNote(charts[note_player], pos, chart_lane, length, type = note_type)
                 thisnote.extra_data = extra
+                if thisnote.type in [NoteType.BOMB, NoteType.DEATH, NoteType.HEAL, NoteType.CAUTION]:
+                    thisnote.length = 0  # why do these ever have length?
+                elif note.length < 1:
+                    note.length = 0
+                else:
+                    note.length = round(note.length, 2)
                 charts[note_player].notes.append(thisnote)
 
                 # TODO: Fake sustains (change this?)
@@ -376,7 +393,7 @@ class FNFEngine(Engine):
                         try:
                             self.current_notes.remove(note)
                         except ValueError:
-                            logger.log("Sustain pickup failed!")
+                            logger.info("Sustain pickup failed!")
                         self.current_events.remove(event)
                         break
 
