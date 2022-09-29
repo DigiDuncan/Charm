@@ -1,7 +1,9 @@
 from functools import total_ordering
 from typing import Hashable
+
 import arcade
 from nindex import Index
+
 from charm.lib.utils import scale_float
 
 Point = tuple[int | float, int | float]

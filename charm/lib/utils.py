@@ -1,8 +1,10 @@
 from functools import cache
-import importlib.resources as pkg_resources
 from typing import Any
-import PIL.Image
+import importlib.resources as pkg_resources
+
 import arcade
+import PIL.Image
+
 
 def int_or_str(i: Any) -> int | str | None:
     try:

@@ -1,6 +1,6 @@
 import arcade
-from charm.lib.anim import ease_quartout
 
+from charm.lib.anim import ease_quartout
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView, shows_errors
 from charm.lib.errors import TestError

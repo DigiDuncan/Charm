@@ -1,5 +1,3 @@
-import importlib.resources as pkg_resources
-
 import arcade
 
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
