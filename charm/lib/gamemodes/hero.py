@@ -6,12 +6,12 @@ from pathlib import Path
 import itertools
 import logging
 import re
+
+from nindex import Index
 import PIL.Image
 import arcade
 
-from nindex import Index
 from charm.lib.charm import load_missing_texture
-
 from charm.lib.errors import ChartParseError, ChartPostReadParseError, NoChartsError
 from charm.lib.generic.highway import Highway
 from charm.lib.generic.song import Chart, Event, Metadata, Note, Seconds, Song

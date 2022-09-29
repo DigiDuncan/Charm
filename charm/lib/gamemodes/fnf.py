@@ -1,11 +1,11 @@
 from __future__ import annotations
-from functools import cache
 
 import importlib.resources as pkg_resources
 import json
 import logging
 import math
 from dataclasses import dataclass
+from functools import cache
 from hashlib import sha1
 from pathlib import Path
 from typing import Optional, TypedDict, cast
