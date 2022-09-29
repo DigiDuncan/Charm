@@ -1,4 +1,5 @@
 import importlib.resources as pkg_resources
+import logging
 
 import arcade
 
@@ -7,6 +8,8 @@ from charm.lib.digiview import DigiView
 from charm.lib.settings import Settings
 
 import charm.data.audio
+
+logger = logging.getLogger("charm")
 
 
 class TemplateView(DigiView):
