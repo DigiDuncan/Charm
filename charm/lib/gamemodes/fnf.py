@@ -484,7 +484,7 @@ class FNFLongNoteSprite(FNFNoteSprite):
 
         color = NoteColor.from_note(self.note)
         self.trail = NoteTrail(self.id, self.position, self.note.time, self.note.length, self.highway.px_per_s,
-        color, width = self.highway.note_size, upscroll = True, fill_color = color + (60,))
+        color, width = self.highway.note_size, upscroll = True, fill_color = color + (60,), resolution = 100)
 
     def update_animation(self, delta_time: float):
         self.trail.set_position(*self.position)

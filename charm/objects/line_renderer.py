@@ -136,44 +136,53 @@ class NoteTrail(MultiLineRenderer):
     def __init__(self, note_id: Hashable, note_center: Point, time_start: Seconds, length: Seconds,
                  px_per_s: float, color: arcade.Color, point_depth: float = 50, width: float = 100,
                  *, resolution: int = 5, thickness: int = 3, upscroll = False,
-                 fill_color: arcade.Color | None = None):
+                 fill_color: arcade.Color | None = None, simple = True):
 
         self.note_center = note_center
         self.width = width
         self.resolution = resolution
         self.upscroll = upscroll
+        self.fill_color = fill_color
+        self.simple = simple
 
         points1: list[tuple[Point, float]] = []
         points2: list[tuple[Point, float]] = []
 
-        trail_length = (length * px_per_s) - point_depth
+        self._trail_length = (length * px_per_s) - point_depth
         time_end = time_start + length
         trail_time_end = time_end - (point_depth / px_per_s)
 
         start_y = note_center[1]
-        left_x = note_center[0] - (width / 2)
-        right_x = note_center[0] + (width / 2)
+        self.left_x = note_center[0] - (width / 2)
+        self.right_x = note_center[0] + (width / 2)
 
         if upscroll:
-            end = start_y - trail_length
-            point_tip = end - point_depth
+            self._trail_end = start_y - self._trail_length
+            self._point_tip = self._trail_end - point_depth
             resolution = -resolution
         else:
-            end = start_y + trail_length
-            point_tip = end + point_depth
+            self._trail_end = start_y + self._trail_length
+            self._point_tip = self._trail_end + point_depth
 
-        for i in range(int(start_y), int(end), resolution):
-            time = scale_float(time_start, trail_time_end, i, start_y, end)
-            points1.append(((left_x, i), time))
-            points2.append(((right_x, i), time))
-        points1.append(((note_center[0], point_tip), time_end))
-        points2.append(((note_center[0], point_tip), time_end))
+        if simple:
+            # top of line
+            points1.append(((self.left_x, start_y), time_start))
+            points2.append(((self.right_x, start_y), time_start))
+            # bottom of line
+            points1.append(((self.left_x, self._trail_end), trail_time_end))
+            points2.append(((self.right_x, self._trail_end), trail_time_end))
+        else:
+            for i in range(int(start_y), int(self._trail_end), resolution):
+                time = scale_float(time_start, trail_time_end, i, start_y, self._trail_end)
+                points1.append(((self.left_x, i), time))
+                points2.append(((self.right_x, i), time))
+        points1.append(((self.note_center[0], self._point_tip), time_end))
+        points2.append(((self.note_center[0], self._point_tip), time_end))
 
         self.line_renderer1 = LineRenderer([TimePoint(*p) for p in points1], color, thickness)
         self.line_renderer2 = LineRenderer([TimePoint(*p) for p in points2], color, thickness)
 
         self.rectangles = arcade.ShapeElementList()
-        self.fill_color = fill_color
 
         if self.fill_color:
             self.generate_fill()
@@ -186,16 +195,26 @@ class NoteTrail(MultiLineRenderer):
         self.rectangles = arcade.ShapeElementList()
         if self.fill_color is None:
             return
-        for (point1, point2) in zip(self.line_renderer1.point_tuples[:-1], self.line_renderer2.point_tuples[:-1]):
-            mid_point_x = (point1[0] + point2[0]) / 2
-            mid_point_y = (point1[1] + point2[1]) / 2
-            rect = arcade.create_rectangle_filled(mid_point_x, mid_point_y, self.width, self.resolution, self.fill_color)
+        if self.simple:
+            mid_point_x = (self.left_x + self.right_x) / 2
+            mid_point_y = (self.note_center[1] + self._trail_end) / 2
+            rect = arcade.create_rectangle_filled(mid_point_x, mid_point_y, self.width, self._trail_length, self.fill_color)
             self.rectangles.append(rect)
-        tri_offset = self.resolution / 2
-        tri_left = (self.line_renderer1.point_tuples[-2][0], self.line_renderer1.point_tuples[-2][1] - tri_offset) if self.upscroll else (self.line_renderer1.point_tuples[-2][0], self.line_renderer1.point_tuples[-2][1] + tri_offset)
-        tri_right = (self.line_renderer2.point_tuples[-2][0], self.line_renderer2.point_tuples[-2][1] - tri_offset) if self.upscroll else (self.line_renderer2.point_tuples[-2][0], self.line_renderer2.point_tuples[-2][1] + tri_offset)
-        tri_bottom = self.line_renderer2.point_tuples[-1]
-        self.rectangles.append(arcade.create_polygon([tri_left, tri_right, tri_bottom], self.fill_color))
+            tri_left = (self.left_x, self._trail_end)
+            tri_right = (self.right_x, self._trail_end)
+            tri_bottom = (self.note_center[0], self._point_tip)
+            self.rectangles.append(arcade.create_polygon([tri_left, tri_right, tri_bottom], self.fill_color))
+        else:
+            for (point1, point2) in zip(self.line_renderer1.point_tuples[:-1], self.line_renderer2.point_tuples[:-1]):
+                mid_point_x = (point1[0] + point2[0]) / 2
+                mid_point_y = (point1[1] + point2[1]) / 2
+                rect = arcade.create_rectangle_filled(mid_point_x, mid_point_y, self.width, self.resolution, self.fill_color)
+                self.rectangles.append(rect)
+            tri_offset = self.resolution / 2
+            tri_left = (self.line_renderer1.point_tuples[-2][0], self.line_renderer1.point_tuples[-2][1] - tri_offset) if self.upscroll else (self.line_renderer1.point_tuples[-2][0], self.line_renderer1.point_tuples[-2][1] + tri_offset)
+            tri_right = (self.line_renderer2.point_tuples[-2][0], self.line_renderer2.point_tuples[-2][1] - tri_offset) if self.upscroll else (self.line_renderer2.point_tuples[-2][0], self.line_renderer2.point_tuples[-2][1] + tri_offset)
+            tri_bottom = self.line_renderer2.point_tuples[-1]
+            self.rectangles.append(arcade.create_polygon([tri_left, tri_right, tri_bottom], self.fill_color))
 
     def move(self, x: float, y: float):
         for lr in self.line_renderers.values():
