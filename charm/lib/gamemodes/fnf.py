@@ -278,7 +278,12 @@ class FNFSong(Song):
                     unknown_lanes.append(lane)
                     continue
 
-                note_player = focused if note_data[0] == 0 else unfocused
+                if note_data[0] == 0:
+                    note_player = focused
+                elif note_data[0] == 1:
+                    note_player = unfocused
+                else:
+                    note_player = note_data[0]
                 chart_lane = note_data[1]
                 note_type = note_data[2]
 
