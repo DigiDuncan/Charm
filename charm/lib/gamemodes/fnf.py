@@ -286,10 +286,8 @@ class FNFSong(Song):
                 thisnote.extra_data = extra
                 if thisnote.type in [NoteType.BOMB, NoteType.DEATH, NoteType.HEAL, NoteType.CAUTION]:
                     thisnote.length = 0  # why do these ever have length?
-                elif note.length < 1:
-                    note.length = 0
-                else:
-                    note.length = round(note.length, 2)
+                if thisnote.length < 1:
+                    thisnote.length = 0
                 charts[note_player].notes.append(thisnote)
 
                 # TODO: Fake sustains (change this?)
