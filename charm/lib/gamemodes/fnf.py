@@ -12,7 +12,6 @@ from typing import Optional, TypedDict, cast
 
 import arcade
 import PIL, PIL.ImageFilter
-import toml
 
 from charm.lib.adobexml import AdobeSprite
 from charm.lib.charm import load_missing_texture
@@ -291,7 +290,7 @@ class FNFSong(Song):
                 thisnote.extra_data = extra
                 if thisnote.type in [NoteType.BOMB, NoteType.DEATH, NoteType.HEAL, NoteType.CAUTION]:
                     thisnote.length = 0  # why do these ever have length?
-                if thisnote.length < 1:
+                if thisnote.length < 0.001:
                     thisnote.length = 0
                 charts[note_player].notes.append(thisnote)
 
@@ -530,6 +529,7 @@ class FNFHighway(Highway):
             sprite.left = self.lane_x(note.lane)
             note.sprite = sprite
             self.sprite_buckets.append(sprite, note.time, note.length)
+        print(len([s for s in self.sprite_buckets.sprites if isinstance(s, FNFLongNoteSprite)]))
 
         self.strikeline = arcade.SpriteList()
         for i in [0, 1, 2, 3]:
