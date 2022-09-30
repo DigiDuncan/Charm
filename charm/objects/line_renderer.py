@@ -136,7 +136,7 @@ class NoteTrail(MultiLineRenderer):
     def __init__(self, note_id: Hashable, note_center: Point, time_start: Seconds, length: Seconds,
                  px_per_s: float, color: arcade.Color, point_depth: float = 50, width: float = 100,
                  *, resolution: int = 5, thickness: int = 3, upscroll = False,
-                 fill_color: arcade.Color | None = None, simple = True):
+                 fill_color: arcade.Color | None = None, simple = True, curve = False):
 
         self.note_center = note_center
         self.width = width
@@ -176,8 +176,9 @@ class NoteTrail(MultiLineRenderer):
                 time = scale_float(time_start, trail_time_end, i, start_y, self._trail_end)
                 points1.append(((self.left_x, i), time))
                 points2.append(((self.right_x, i), time))
-        points1.append(((self.note_center[0], self._point_tip), time_end))
-        points2.append(((self.note_center[0], self._point_tip), time_end))
+        if not curve:
+            points1.append(((self.note_center[0], self._point_tip), time_end))
+            points2.append(((self.note_center[0], self._point_tip), time_end))
 
         self.line_renderer1 = LineRenderer([TimePoint(*p) for p in points1], color, thickness)
         self.line_renderer2 = LineRenderer([TimePoint(*p) for p in points2], color, thickness)

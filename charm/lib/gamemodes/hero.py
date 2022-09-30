@@ -20,6 +20,7 @@ from charm.lib.spritebucket import SpriteBucketCollection
 from charm.lib.utils import img_from_resource
 
 import charm.data.images.skins.hero as heroskin
+from charm.objects.line_renderer import NoteTrail
 
 logger = logging.getLogger("charm")
 
@@ -113,6 +114,32 @@ def tick_to_seconds(current_tick: Ticks, sync_track: list[RawBPMEvent], resoluti
     bps = last_bpm_event.mbpm / 1000 / 60
     seconds = tick_delta / (resolution * bps)
     return seconds + offset
+
+class NoteColor:
+    GREEN = arcade.color.LIME_GREEN
+    RED = arcade.color.RED
+    YELLOW = arcade.color.YELLOW
+    BLUE = arcade.color.BLUE
+    ORANGE = arcade.color.ORANGE
+    PURPLE = arcade.color.PURPLE
+
+    @classmethod
+    def from_note(cls, note: "HeroNote"):
+        match note.lane:
+            case 0:
+                return cls.GREEN
+            case 1:
+                return cls.RED
+            case 2:
+                return cls.YELLOW
+            case 3:
+                return cls.BLUE
+            case 4:
+                return cls.ORANGE
+            case 7:
+                return cls.PURPLE
+            case _:
+                return arcade.color.BLACK
 
 @dataclass
 class HeroNote(Note):
@@ -473,6 +500,22 @@ class HeroNoteSprite(arcade.Sprite):
         elif self.note.hit:
             self.alpha = 0
 
+class HeroLongNoteSprite(HeroNoteSprite):
+    id = 0
+    def __init__(self, note: HeroNote, highway: "HeroHighway", height=128, *args, **kwargs):
+        super().__init__(note, highway, height, *args, **kwargs)
+        self.id += 1
+
+        color = NoteColor.from_note(self.note)
+        width = self.highway.note_size * 3 if note.lane == 7 else self.highway.note_size
+        self.trail = NoteTrail(self.id, self.position, self.note.time, self.note.length, self.highway.px_per_s,
+        color, width = width, upscroll = False, fill_color = color + (60,), resolution = 100, point_depth = 25)
+
+    def update_animation(self, delta_time: float):
+        self.trail.set_position(*self.position)
+        self.trail.update(delta_time)
+        return super().update_animation(delta_time)
+
 class HeroHighway(Highway):
     def __init__(self, chart: HeroChart, pos: tuple[int, int], size: tuple[int, int] = None, gap: int = 5, auto = False, show_flags = False):
         if size is None:
@@ -490,7 +533,7 @@ class HeroHighway(Highway):
 
         self.sprite_buckets = SpriteBucketCollection()
         for note in self.notes:
-            sprite = HeroNoteSprite(note, self, self.note_size)
+            sprite = HeroNoteSprite(note, self, self.note_size) if note.length == 0 else HeroLongNoteSprite(note, self, self.note_size)
             sprite.top = self.note_y(note.time)
             sprite.left = self.lane_x(note.lane)
             if note.lane in [5, 6]:  # flags
@@ -560,6 +603,11 @@ class HeroHighway(Highway):
             self.pixel_offset,
             self.pixel_offset + height
         )
+        b = self.sprite_buckets.calc_bucket(self.song_time)
+        for bucket in self.sprite_buckets.buckets[b:b+2] + [self.sprite_buckets.overbucket]:
+            for note in bucket.sprite_list:
+                if isinstance(note, HeroLongNoteSprite):
+                    note.trail.draw()
         self.sprite_buckets.draw(self.song_time)
         _cam.use()
 
