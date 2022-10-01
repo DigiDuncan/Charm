@@ -144,11 +144,15 @@ class NoteTrail(MultiLineRenderer):
         self.upscroll = upscroll
         self.fill_color = fill_color
         self.simple = simple
+        self.point_depth = point_depth
+        self.color = color
+        self.thickness = thickness
+        self.curve = curve
 
         points1: list[tuple[Point, float]] = []
         points2: list[tuple[Point, float]] = []
 
-        self._trail_length = (length * px_per_s) - point_depth
+        self._trail_length = (length * px_per_s) - self.point_depth
         time_end = time_start + length
         trail_time_end = time_end - (point_depth / px_per_s)
 
@@ -158,11 +162,11 @@ class NoteTrail(MultiLineRenderer):
 
         if upscroll:
             self._trail_end = start_y - self._trail_length
-            self._point_tip = self._trail_end - point_depth
+            self._point_tip = self._trail_end - self.point_depth
             resolution = -resolution
         else:
             self._trail_end = start_y + self._trail_length
-            self._point_tip = self._trail_end + point_depth
+            self._point_tip = self._trail_end + self.point_depth
 
         if simple:
             # top of line
@@ -176,12 +180,12 @@ class NoteTrail(MultiLineRenderer):
                 time = scale_float(time_start, trail_time_end, i, start_y, self._trail_end)
                 points1.append(((self.left_x, i), time))
                 points2.append(((self.right_x, i), time))
-        if not curve:
+        if not self.curve:
             points1.append(((self.note_center[0], self._point_tip), time_end))
             points2.append(((self.note_center[0], self._point_tip), time_end))
 
-        self.line_renderer1 = LineRenderer([TimePoint(*p) for p in points1], color, thickness)
-        self.line_renderer2 = LineRenderer([TimePoint(*p) for p in points2], color, thickness)
+        self.line_renderer1 = LineRenderer([TimePoint(*p) for p in points1], self.color, self.thickness)
+        self.line_renderer2 = LineRenderer([TimePoint(*p) for p in points2], self.color, self.thickness)
 
         self.rectangles = arcade.ShapeElementList()
 
@@ -201,20 +205,16 @@ class NoteTrail(MultiLineRenderer):
             mid_point_y = (self.note_center[1] + self._trail_end) / 2
             rect = arcade.create_rectangle_filled(mid_point_x, mid_point_y, self.width, self._trail_length, self.fill_color)
             self.rectangles.append(rect)
-            tri_left = (self.left_x, self._trail_end)
-            tri_right = (self.right_x, self._trail_end)
-            tri_bottom = (self.note_center[0], self._point_tip)
-            self.rectangles.append(arcade.create_polygon([tri_left, tri_right, tri_bottom], self.fill_color))
         else:
             for (point1, point2) in zip(self.line_renderer1.point_tuples[:-1], self.line_renderer2.point_tuples[:-1]):
                 mid_point_x = (point1[0] + point2[0]) / 2
                 mid_point_y = (point1[1] + point2[1]) / 2
                 rect = arcade.create_rectangle_filled(mid_point_x, mid_point_y, self.width, self.resolution, self.fill_color)
                 self.rectangles.append(rect)
-            tri_offset = self.resolution / 2
-            tri_left = (self.line_renderer1.point_tuples[-2][0], self.line_renderer1.point_tuples[-2][1] - tri_offset) if self.upscroll else (self.line_renderer1.point_tuples[-2][0], self.line_renderer1.point_tuples[-2][1] + tri_offset)
-            tri_right = (self.line_renderer2.point_tuples[-2][0], self.line_renderer2.point_tuples[-2][1] - tri_offset) if self.upscroll else (self.line_renderer2.point_tuples[-2][0], self.line_renderer2.point_tuples[-2][1] + tri_offset)
-            tri_bottom = self.line_renderer2.point_tuples[-1]
+        if not self.curve:
+            tri_left = (self.left_x, self._trail_end)
+            tri_right = (self.right_x, self._trail_end)
+            tri_bottom = (self.note_center[0], self._point_tip)
             self.rectangles.append(arcade.create_polygon([tri_left, tri_right, tri_bottom], self.fill_color))
 
     def move(self, x: float, y: float):
@@ -244,6 +244,12 @@ class NoteTrail(MultiLineRenderer):
             self.rectangles.draw()
         for lr in self.line_renderers.values():
             lr.draw()
+        if self.curve:
+            if self.fill_color:
+                arcade.draw_arc_filled(self.note_center[0], self._trail_end + self.note_center[1], self.width,
+                                       self.point_depth, self.fill_color, 0, 180, self.thickness)
+            arcade.draw_arc_outline(self.note_center[0], self._trail_end + self.note_center[1], self.width,
+                                    self.point_depth, self.color, 0, 180, self.thickness)
 
     def draw_points_past_time(self, time: float):
         if self.rectangles:
