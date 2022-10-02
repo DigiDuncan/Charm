@@ -512,11 +512,10 @@ class HeroLongNoteSprite(HeroNoteSprite):
         color = NoteColor.from_note(self.note)
         width = self.highway.note_size * 3 if note.lane == 7 else self.highway.note_size
         self.trail = NoteTrail(self.id, self.position, self.note.time, self.note.length, self.highway.px_per_s,
-        color, width = width, upscroll = False, fill_color = color + (60,), simple = True, curve = True)
+        color, width = width, upscroll = False, fill_color = color + (60,), curve = True)
 
     def update_animation(self, delta_time: float):
         self.trail.set_position(*self.position)
-        self.trail.update(delta_time)
         return super().update_animation(delta_time)
 
 class HeroHighway(Highway):

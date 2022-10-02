@@ -507,7 +507,6 @@ class FNFLongNoteSprite(FNFNoteSprite):
 
     def update_animation(self, delta_time: float):
         self.trail.set_position(*self.position)
-        self.trail.update(delta_time)
         return super().update_animation(delta_time)
 
 
