@@ -24,6 +24,8 @@ from charm.objects.line_renderer import NoteTrail
 
 logger = logging.getLogger("charm")
 
+note_id = -1
+
 RE_HEADER = r"\[(.+)\]"
 RE_DATA = r"([^\s]+)\s*=\s*\"?([^\"]+)\"?"
 
@@ -501,15 +503,16 @@ class HeroNoteSprite(arcade.Sprite):
             self.alpha = 0
 
 class HeroLongNoteSprite(HeroNoteSprite):
-    id = 0
     def __init__(self, note: HeroNote, highway: "HeroHighway", height=128, *args, **kwargs):
         super().__init__(note, highway, height, *args, **kwargs)
-        self.id += 1
+        global note_id
+        note_id += 1
+        self.id = note_id
 
         color = NoteColor.from_note(self.note)
         width = self.highway.note_size * 3 if note.lane == 7 else self.highway.note_size
         self.trail = NoteTrail(self.id, self.position, self.note.time, self.note.length, self.highway.px_per_s,
-        color, width = width, upscroll = False, fill_color = color + (60,), curve = True)
+        color, width = width, upscroll = False, fill_color = color + (60,), simple = True, curve = True)
 
     def update_animation(self, delta_time: float):
         self.trail.set_position(*self.position)

@@ -1,5 +1,6 @@
 from functools import total_ordering
 from typing import Hashable
+import PIL.Image
 
 import arcade
 from nindex import Index
@@ -138,6 +139,7 @@ class NoteTrail(MultiLineRenderer):
                  *, resolution: int = 5, thickness: int = 3, upscroll = False,
                  fill_color: arcade.Color | None = None, simple = True, curve = False):
 
+        self.note_id = note_id
         self.note_center = note_center
         self.width = width
         self.resolution = resolution
@@ -163,10 +165,12 @@ class NoteTrail(MultiLineRenderer):
         if upscroll:
             self._trail_end = start_y - self._trail_length
             self._point_tip = self._trail_end - self.point_depth
+            self.end_y = -(length * px_per_s)
             resolution = -resolution
         else:
             self._trail_end = start_y + self._trail_length
             self._point_tip = self._trail_end + self.point_depth
+            self.end_y = (length * px_per_s)
 
         if simple:
             # top of line
@@ -188,9 +192,16 @@ class NoteTrail(MultiLineRenderer):
         self.line_renderer2 = LineRenderer([TimePoint(*p) for p in points2], self.color, self.thickness)
 
         self.rectangles = arcade.ShapeElementList()
-
-        if self.fill_color:
-            self.generate_fill()
+        self.curve_cap = None
+        self.texture = None
+        self.sprite = None
+        if self.curve:
+            self.texture = arcade.Texture.create_empty(f"_line_renderer_{self.color}_{self.fill_color}_{self.width}_{self.point_depth}", (self.width, self.point_depth))
+            self.sprite = arcade.Sprite(texture = self.texture)
+            self.sprite.set_position(self.note_center[0], self._trail_end)
+            self.curve_cap = arcade.SpriteList()
+            self.curve_cap.append(self.sprite)
+        self.generate_fill()
 
         nid = str(note_id)
 
@@ -198,29 +209,38 @@ class NoteTrail(MultiLineRenderer):
 
     def generate_fill(self):
         self.rectangles = arcade.ShapeElementList()
-        if self.fill_color is None:
-            return
-        if self.simple:
-            mid_point_x = (self.left_x + self.right_x) / 2
-            mid_point_y = (self.note_center[1] + self._trail_end) / 2
-            rect = arcade.create_rectangle_filled(mid_point_x, mid_point_y, self.width, self._trail_length, self.fill_color)
-            self.rectangles.append(rect)
-        else:
-            for (point1, point2) in zip(self.line_renderer1.point_tuples[:-1], self.line_renderer2.point_tuples[:-1]):
-                mid_point_x = (point1[0] + point2[0]) / 2
-                mid_point_y = (point1[1] + point2[1]) / 2
-                rect = arcade.create_rectangle_filled(mid_point_x, mid_point_y, self.width, self.resolution, self.fill_color)
+        if self.fill_color:
+            if self.simple:
+                mid_point_x = (self.left_x + self.right_x) / 2
+                mid_point_y = (self.note_center[1] + self._trail_end) / 2
+                rect = arcade.create_rectangle_filled(mid_point_x, mid_point_y, self.width, self._trail_length, self.fill_color)
                 self.rectangles.append(rect)
-        if not self.curve:
-            tri_left = (self.left_x, self._trail_end)
-            tri_right = (self.right_x, self._trail_end)
-            tri_bottom = (self.note_center[0], self._point_tip)
-            self.rectangles.append(arcade.create_polygon([tri_left, tri_right, tri_bottom], self.fill_color))
+            else:
+                for (point1, point2) in zip(self.line_renderer1.point_tuples[:-1], self.line_renderer2.point_tuples[:-1]):
+                    mid_point_x = (point1[0] + point2[0]) / 2
+                    mid_point_y = (point1[1] + point2[1]) / 2
+                    rect = arcade.create_rectangle_filled(mid_point_x, mid_point_y, self.width, self.resolution, self.fill_color)
+                    self.rectangles.append(rect)
+            if not self.curve:
+                tri_left = (self.left_x, self._trail_end)
+                tri_right = (self.right_x, self._trail_end)
+                tri_bottom = (self.note_center[0], self._point_tip)
+                self.rectangles.append(arcade.create_polygon([tri_left, tri_right, tri_bottom], self.fill_color))
+        if self.curve:
+            with self.curve_cap.atlas.render_into(self.texture) as fbo:
+                fbo.clear()
+                if self.fill_color:
+                    arcade.draw_arc_filled(self.width / 2, self.point_depth / 2, self.width,
+                                           self.point_depth, self.fill_color, 0, 180)
+                arcade.draw_arc_outline(self.width / 2, self.point_depth / 2, self.width,
+                                        self.point_depth, self.color, 0, 180, self.thickness)
 
     def move(self, x: float, y: float):
         for lr in self.line_renderers.values():
             lr.move(x, y)
         self.rectangles.move(x, y)
+        if self.curve_cap:
+            self.curve_cap.move(x, y)
         self.note_center = (self.note_center[0] + x, self.note_center[1] + y)
 
     def set_position(self, x: float, y: float):
@@ -244,12 +264,8 @@ class NoteTrail(MultiLineRenderer):
             self.rectangles.draw()
         for lr in self.line_renderers.values():
             lr.draw()
-        if self.curve:
-            if self.fill_color:
-                arcade.draw_arc_filled(self.note_center[0], self._trail_end + self.note_center[1], self.width,
-                                       self.point_depth, self.fill_color, 0, 180, self.thickness)
-            arcade.draw_arc_outline(self.note_center[0], self._trail_end + self.note_center[1], self.width,
-                                    self.point_depth, self.color, 0, 180, self.thickness)
+        if self.curve_cap:
+            self.curve_cap.draw()
 
     def draw_points_past_time(self, time: float):
         if self.rectangles:
