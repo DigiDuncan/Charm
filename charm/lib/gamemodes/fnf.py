@@ -491,7 +491,7 @@ class FNFNoteSprite(arcade.Sprite):
                 self.note.hit = True
         # if self.note.hit and self.highway.song_time >= self.note.time:
         #     self.alpha = 0
-        elif self.note.hit:
+        if self.note.hit:
             self.alpha = 0
 
 
