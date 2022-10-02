@@ -59,7 +59,8 @@ class TitleView(DigiView):
                           anchor_x='center', anchor_y='top',
                           color=arcade.color.RED + (0xFF,))
         else:
-            self.splash_text = random.choice(pkg_resources.read_text(charm.data, "splashes.txt").splitlines())
+            splashes = pkg_resources.read_text(charm.data, "splashes.txt").splitlines()
+            self.splash_text = random.choice(splashes)
             self.splash_label = arcade.pyglet.text.Label("",
                             font_name='bananaslip plus plus',
                             font_size=24,
