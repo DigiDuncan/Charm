@@ -53,6 +53,7 @@ class IndexDict(TypedDict):
     bpm: Index
     time_sig: Index
     section: Index
+    beat: Index
 
 @dataclass
 class TickEvent(Event):
@@ -95,6 +96,11 @@ class SoloEvent(TickEvent):
 @dataclass
 class BPMChangeTickEvent(TickEvent):
     new_bpm: float
+
+@dataclass
+class BeatEvent(TickEvent):
+    id: int
+    major: bool = True
 
 @dataclass
 class RawBPMEvent:
@@ -191,6 +197,7 @@ class HeroChord:
 class HeroChart(Chart):
     def __init__(self, song: 'Song', difficulty: str, instrument: str, lanes: int, hash: str) -> None:
         super().__init__(song, "hero", difficulty, instrument, lanes, hash)
+        self.song: HeroSong = self.song
         self.chords: list[HeroChord] = None
 
     def finalize(self):
@@ -454,9 +461,30 @@ class HeroSong(Song):
             chart.song = song
             chart.finalize()
             song.charts.append(chart)
+        song.calculate_beats()
+        song.events.sort()
+        song.index()  # oh god help
         song.resolution = resolution
         song.metadata = metadata
         return song
+
+    def calculate_beats(self):
+        beats = []
+        current_time = 0
+        last_note = max([c.notes[-1] for c in self.charts])
+        bpm_events = self.events_by_type(BPMChangeTickEvent)
+        bpm_events.append(BPMChangeTickEvent(last_note.time, last_note.tick, bpm_events[-1].new_bpm))
+        current_id = 0
+        for current_bpm_event, next_bpm_event in zip(bpm_events[:-1], bpm_events[1:]):
+            cb = 0
+            ts: TSEvent = [t for t in self.events_by_type(TSEvent) if t.time >= current_time][-1]
+            n, d = ts.numerator, ts.denominator
+            spb = (1 / (current_bpm_event.new_bpm / 60)) / d
+            while current_time < next_bpm_event.time:
+                beats.append(BeatEvent(current_time, current_id, current_id, True if cb % n == 0 else False))
+                current_time += spb
+                cb += 1
+        self.events.extend(beats)
 
     def index(self):
         """Save indexes of important look-up events."""
@@ -467,6 +495,7 @@ class HeroSong(Song):
         self.indexes_by_time["bpm"] = Index(self.events_by_type(BPMChangeTickEvent), "time")
         self.indexes_by_time["time_sig"] = Index(self.events_by_type(TSEvent), "time")
         self.indexes_by_time["section"] = Index(self.events_by_type(SectionEvent), "time")
+        self.indexes_by_time["beat"] = Index(self.events_by_type(BeatEvent), "time")
 
 @cache
 def load_note_texture(note_type, note_lane, height):
@@ -524,6 +553,8 @@ class HeroHighway(Highway):
             size = int(Settings.width / (1280 / 400)), Settings.height
 
         super().__init__(chart, pos, size, gap, downscroll = True)
+
+        self.chart: HeroChart = self.chart
 
         self.viewport = 0.75  # TODO: Set dynamically.
 
@@ -596,6 +627,11 @@ class HeroHighway(Highway):
         arcade.draw_lrtb_rectangle_filled(self.x, self.x + self.w,
                                           self.y + self.h, self.y,
                                           self.color)
+        current_beat_idx = self.chart.song.indexes_by_time["beat"].lteq_index(self.song_time)
+        last_beat_idx = self.chart.song.indexes_by_time["beat"].lteq_index(self.song_time + self.viewport)
+        for beat in self.chart.song.events_by_type(BeatEvent)[current_beat_idx:last_beat_idx + 1]:
+            px = self.note_y(beat.time) - (self.note_size / 2)
+            arcade.draw_line(self.x, px, self.x + self.w, px, arcade.color.BLACK, 3 if beat.major else 1)
         self.strikeline.draw()
         vp = arcade.get_viewport()
         height = vp[3] - vp[2]

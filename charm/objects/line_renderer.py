@@ -115,11 +115,11 @@ class NoteTrail(MultiLineRenderer):
             self.end_y = (length * px_per_s)
 
         # top of line
-        points1.append((self.left_x, start_y))
-        points2.append((self.right_x, start_y))
+        points1.append((self.left_x + self.thickness, start_y))
+        points2.append((self.right_x - self.thickness, start_y))
         # bottom of line
-        points1.append((self.left_x, self._trail_end))
-        points2.append((self.right_x, self._trail_end))
+        points1.append((self.left_x + self.thickness, self._trail_end))
+        points2.append((self.right_x - self.thickness, self._trail_end))
         if not self.curve:
             points1.append((self.note_center[0], self._point_tip))
             points2.append((self.note_center[0], self._point_tip))
@@ -148,11 +148,11 @@ class NoteTrail(MultiLineRenderer):
         if self.fill_color:
             mid_point_x = (self.left_x + self.right_x) / 2
             mid_point_y = (self.note_center[1] + self._trail_end) / 2
-            rect = arcade.create_rectangle_filled(mid_point_x, mid_point_y, self.width, self._trail_length, self.fill_color)
+            rect = arcade.create_rectangle_filled(mid_point_x, mid_point_y, self.width - self.thickness, self._trail_length, self.fill_color)
             self.rectangles.append(rect)
             if not self.curve:
-                tri_left = (self.left_x, self._trail_end)
-                tri_right = (self.right_x, self._trail_end)
+                tri_left = (self.left_x + self.thickness, self._trail_end)
+                tri_right = (self.right_x - self.thickness, self._trail_end)
                 tri_bottom = (self.note_center[0], self._point_tip)
                 self.rectangles.append(arcade.create_polygon([tri_left, tri_right, tri_bottom], self.fill_color))
         if self.curve:
@@ -162,10 +162,10 @@ class NoteTrail(MultiLineRenderer):
             with self.curve_cap.atlas.render_into(self.texture) as fbo:
                 fbo.clear()
                 if self.fill_color:
-                    arcade.draw_arc_filled(self.width / 2, self.point_depth / 2, self.width,
-                                           self.point_depth, self.fill_color, 0, 180)
-                arcade.draw_arc_outline(self.width / 2, self.point_depth / 2, self.width,
-                                        self.point_depth, self.color, 0, 180, self.thickness * 2)
+                    arcade.draw_arc_filled(self.width / 2, self.point_depth / 2, self.width - self.thickness * 2,
+                                           self.point_depth - self.thickness, self.fill_color, 0, 180)
+                arcade.draw_arc_outline(self.width / 2, self.point_depth / 2, self.width - self.thickness * 2,
+                                        self.point_depth - self.thickness, self.color, 0, 180, self.thickness * 2)
             ctx.blend_func = ctx.BLEND_DEFAULT
 
     def move(self, x: float, y: float):
