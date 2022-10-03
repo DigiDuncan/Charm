@@ -646,7 +646,7 @@ class HeroHighway(Highway):
         b = self.sprite_buckets.calc_bucket(self.song_time)
         for bucket in self.sprite_buckets.buckets[b:b+2] + [self.sprite_buckets.overbucket]:
             for note in bucket.sprite_list:
-                if isinstance(note, HeroLongNoteSprite):
+                if isinstance(note, HeroLongNoteSprite) and note.note.time < self.song_time + self.viewport:
                     note.trail.draw()
         self.sprite_buckets.draw(self.song_time)
         _cam.use()
