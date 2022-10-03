@@ -640,7 +640,7 @@ class FNFSceneManager:
             self.spectator_sprite = self.load_asset("characters", self.chart.spectator, "girlfriend")
             self.enemy_sprite = self.load_asset("characters", self.chart.player2, "dad")
 
-            self.stage = self.load_asset("stages", self.chart.stage, "stage")
+            self.stage = self.load_asset("stages", self.chart.stage)
 
             # Categories
             self.characters = [self.player_sprite, self.spectator_sprite, self.enemy_sprite]
