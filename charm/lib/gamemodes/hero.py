@@ -1,5 +1,6 @@
 from collections import defaultdict
 from functools import cache
+import math
 from typing import cast, TypedDict
 from dataclasses import dataclass
 from pathlib import Path
@@ -13,6 +14,7 @@ import arcade
 
 from charm.lib.charm import load_missing_texture
 from charm.lib.errors import ChartParseError, ChartPostReadParseError, NoChartsError
+from charm.lib.generic.engine import Engine, Judgement, Key
 from charm.lib.generic.highway import Highway
 from charm.lib.generic.song import Chart, Event, Metadata, Note, Seconds, Song
 from charm.lib.settings import Settings
@@ -669,3 +671,11 @@ class HeroHighway(Highway):
             for sprite in self.sprite_buckets.sprites:
                 if sprite.note.lane in [5, 6]:
                     sprite.alpha = 0
+
+class HeroEngine(Engine):
+    def __init__(self, chart: Chart, offset: Seconds = 0):
+        mapping = [arcade.key.KEY_1, arcade.key.KEY_2, arcade.key.KEY_3, arcade.key.KEY_4, arcade.key.KEY_5,
+            arcade.key.RIGHT, arcade.key.LEFT]
+        hit_window = 0.050  # 50ms +/-
+        judgements = [Judgement("pass", 50, 100, 1, 1), Judgement("miss", math.inf, 0, -1, -1)]
+        super().__init__(chart, mapping, hit_window, judgements, offset)
