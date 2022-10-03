@@ -44,6 +44,10 @@ class HeroTestView(DigiView):
                 arcade.play_sound(self.window.sounds["back"])
             case arcade.key.F:
                 self.highway.show_flags = not self.highway.show_flags
+            case arcade.key.SPACE:
+                self.song.pause() if self.song.playing else self.song.play()
+            case arcade.key.KEY_0:
+                self.song.seek(0)
 
         return super().on_key_press(symbol, modifiers)
 

@@ -6,7 +6,7 @@ class TransparencyWindow(arcade.Window):
 
         self.show_bar = False
 
-        SOLID_COLOR = (255, 0, 0, 255)
+        SOLID_COLOR = (255, 0, 0)
         TRANSPARENT_COLOR = (255, 0, 0, 128)
 
         # No transparency
