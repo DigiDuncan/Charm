@@ -1,10 +1,6 @@
-from functools import total_ordering
 from typing import Hashable
 
 import arcade
-from nindex import Index
-
-from charm.lib.utils import scale_float
 
 TuplePoint = tuple[int | float, int | float]
 Seconds = float
@@ -98,7 +94,7 @@ class NoteTrail(MultiLineRenderer):
         points1: list[TuplePoint] = []
         points2: list[TuplePoint] = []
 
-        self._trail_length = (length * px_per_s) - self.point_depth
+        self._trail_length = int(length * px_per_s) - self.point_depth
 
         start_y = note_center[1]
         self.left_x = note_center[0] - (width / 2)
@@ -107,12 +103,12 @@ class NoteTrail(MultiLineRenderer):
         if upscroll:
             self._trail_end = start_y - self._trail_length
             self._point_tip = self._trail_end - self.point_depth
-            self.end_y = -(length * px_per_s)
+            self.end_y = int(-(length * px_per_s))
             resolution = -resolution
         else:
             self._trail_end = start_y + self._trail_length
             self._point_tip = self._trail_end + self.point_depth
-            self.end_y = (length * px_per_s)
+            self.end_y = int(length * px_per_s)
 
         # top of line
         points1.append((self.left_x + self.thickness, start_y))
@@ -134,7 +130,8 @@ class NoteTrail(MultiLineRenderer):
         if self.curve:
             self.texture = arcade.Texture.create_empty(f"_line_renderer_{self.color}_{self.fill_color}_{self.width}_{self.point_depth}", (self.width, self.point_depth))
             self.sprite = arcade.Sprite(texture = self.texture)
-            self.sprite.set_position(self.note_center[0], self._trail_end)
+            offset = -self.point_depth / 2 if self.upscroll else self.point_depth / 2
+            self.sprite.set_position(self.note_center[0], self._trail_end + offset)
             self.curve_cap = arcade.SpriteList()
             self.curve_cap.append(self.sprite)
         self.generate_fill()
@@ -162,9 +159,9 @@ class NoteTrail(MultiLineRenderer):
             with self.curve_cap.atlas.render_into(self.texture) as fbo:
                 fbo.clear()
                 if self.fill_color:
-                    arcade.draw_arc_filled(self.width / 2, self.point_depth / 2, self.width - self.thickness * 2,
+                    arcade.draw_arc_filled(self.width / 2, 0, self.width - self.thickness * 2,
                                            self.point_depth - self.thickness, self.fill_color, 0, 180)
-                arcade.draw_arc_outline(self.width / 2, self.point_depth / 2, self.width - self.thickness * 2,
+                arcade.draw_arc_outline(self.width / 2, 0, self.width - self.thickness * 2,
                                         self.point_depth - self.thickness, self.color, 0, 180, self.thickness * 2)
             ctx.blend_func = ctx.BLEND_DEFAULT
 

@@ -399,7 +399,6 @@ class HeroSong(Song):
             elif last_header == "Events":
                 # Section events
                 if m := re.match(RE_SECTION, line):
-                    logger.debug(f"Added section {line}")
                     tick, name = m.groups()
                     tick = int(tick)
                     seconds = tick_to_seconds(tick, sync_track, resolution, offset)
@@ -536,12 +535,12 @@ class HeroNoteSprite(arcade.Sprite):
 class HeroLongNoteSprite(HeroNoteSprite):
     def __init__(self, note: HeroNote, highway: "HeroHighway", height=128, *args, **kwargs):
         super().__init__(note, highway, height, *args, **kwargs)
-        global note_id
+        global note_id  # TODO: globals suck, is there a way to store this on the class?
         note_id += 1
         self.id = note_id
 
         color = NoteColor.from_note(self.note)
-        width = self.highway.note_size * 3 if note.lane == 7 else self.highway.note_size
+        width = self.highway.note_size * 3 if note.lane == 7 else self.highway.note_size  # open notes LARG
         self.trail = NoteTrail(self.id, self.position, self.note.time, self.note.length, self.highway.px_per_s,
         color, width = width, upscroll = False, fill_color = color + (60,), curve = True, point_depth = self.highway.note_size)
 
@@ -564,7 +563,7 @@ class HeroHighway(Highway):
 
         self._show_flags = show_flags
 
-        self.color = (0, 0, 0, 128)
+        self.color = (0, 0, 0, 128)  # TODO: eventually this will be a scrolling image.
 
         self.sprite_buckets = SpriteBucketCollection()
         for note in self.notes:
@@ -633,7 +632,7 @@ class HeroHighway(Highway):
         last_beat_idx = self.chart.song.indexes_by_time["beat"].lteq_index(self.song_time + self.viewport)
         for beat in self.chart.song.events_by_type(BeatEvent)[current_beat_idx:last_beat_idx + 1]:
             px = self.note_y(beat.time) - (self.note_size / 2)
-            arcade.draw_line(self.x, px, self.x + self.w, px, arcade.color.BLACK, 3 if beat.major else 1)
+            arcade.draw_line(self.x, px, self.x + self.w, px, arcade.color.DARK_GRAY, 3 if beat.major else 1)
         self.strikeline.draw()
         vp = arcade.get_viewport()
         height = vp[3] - vp[2]
