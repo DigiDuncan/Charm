@@ -543,10 +543,16 @@ class HeroLongNoteSprite(HeroNoteSprite):
         width = self.highway.note_size * 3 if note.lane == 7 else self.highway.note_size  # open notes LARG
         self.trail = NoteTrail(self.id, self.position, self.note.time, self.note.length, self.highway.px_per_s,
         color, width = width, upscroll = False, fill_color = color + (60,), curve = True, point_depth = self.highway.note_size)
+        self.dead_trail = NoteTrail(self.id, self.position, self.note.time, self.note.length, self.highway.px_per_s,
+        arcade.color.GRAY, width = width, upscroll = False, fill_color = arcade.color.GRAY + (60,), curve = True, point_depth = self.highway.note_size)
 
     def update_animation(self, delta_time: float):
         self.trail.set_position(*self.position)
+        self.dead_trail.set_position(*self.position)
         return super().update_animation(delta_time)
+
+    def draw_trail(self):
+        self.dead_trail.draw() if self.note.missed else self.trail.draw()
 
 class HeroHighway(Highway):
     def __init__(self, chart: HeroChart, pos: tuple[int, int], size: tuple[int, int] = None, gap: int = 5, auto = False, show_flags = False):
@@ -646,7 +652,7 @@ class HeroHighway(Highway):
         for bucket in self.sprite_buckets.buckets[b:b+2] + [self.sprite_buckets.overbucket]:
             for note in bucket.sprite_list:
                 if isinstance(note, HeroLongNoteSprite) and note.note.time < self.song_time + self.viewport:
-                    note.trail.draw()
+                    note.draw_trail()
         self.sprite_buckets.draw(self.song_time)
         _cam.use()
 

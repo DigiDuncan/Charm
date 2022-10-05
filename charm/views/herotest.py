@@ -48,6 +48,10 @@ class HeroTestView(DigiView):
                 self.song.pause() if self.song.playing else self.song.play()
             case arcade.key.KEY_0:
                 self.song.seek(0)
+            case arcade.key.MINUS:
+                self.song.seek(self.song.time - 5)
+            case arcade.key.EQUAL:
+                self.song.seek(self.song.time + 5)
 
         return super().on_key_press(symbol, modifiers)
 
