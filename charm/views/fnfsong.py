@@ -310,7 +310,8 @@ class FNFSongView(DigiView):
         self.small_logos_forward.draw()
         self.small_logos_backward.draw()
 
-        self.scene.stage.draw()
+        # TODO: Disabled for now.
+        # self.scene.stage.draw()
 
         self.player_sprite.draw()
 
