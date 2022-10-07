@@ -1,11 +1,11 @@
 from collections import defaultdict
 from functools import cache
-import math
 from typing import cast, TypedDict
 from dataclasses import dataclass
 from pathlib import Path
 import itertools
 import logging
+import math
 import re
 
 from nindex import Index
@@ -14,15 +14,15 @@ import arcade
 
 from charm.lib.charm import load_missing_texture
 from charm.lib.errors import ChartParseError, ChartPostReadParseError, NoChartsError
-from charm.lib.generic.engine import Engine, Judgement, Key
+from charm.lib.generic.engine import Engine, Judgement
 from charm.lib.generic.highway import Highway
 from charm.lib.generic.song import Chart, Event, Metadata, Note, Seconds, Song
 from charm.lib.settings import Settings
 from charm.lib.spritebucket import SpriteBucketCollection
 from charm.lib.utils import img_from_resource
 
-import charm.data.images.skins.hero as heroskin
 from charm.objects.line_renderer import NoteTrail
+import charm.data.images.skins.hero as heroskin
 
 logger = logging.getLogger("charm")
 
