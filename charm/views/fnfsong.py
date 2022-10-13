@@ -24,10 +24,18 @@ class TrackCollection:
     def time(self):
         return self.tracks[0].time
 
+    @property
+    def playing(self):
+        return self.tracks[0].playing
+
     def seek(self, time):
-        pass
-        # for t in self.tracks:
-        #     t.seek(time)
+        playing = self.playing
+        if playing:
+            self.pause()
+        for t in self.tracks:
+            t.seek(time)
+        if playing:
+            self.play()
 
     def play(self):
         self.sync()
@@ -270,8 +278,8 @@ class FNFSongView(DigiView):
 
     def get_spotlight_position(self, song_time: float):
         focus_pos = {
-            1: Settings.width // 2,
-            0: 0
+            1: 0,
+            0: Settings.width // 2
         }
         cameraevents = [e for e in self.songdata.charts[0].events if isinstance(e, CameraFocusEvent) and e.time < self.tracks.time + 0.25]
         if cameraevents:
@@ -297,7 +305,11 @@ class FNFSongView(DigiView):
 
     def spotlight_draw(self):
         arcade.draw_lrtb_rectangle_filled(
-            self.spotlight_position, self.spotlight_position + Settings.width // 2, Settings.height, 0,
+            self.spotlight_position - Settings.width / 2, self.spotlight_position, Settings.height, 0,
+            arcade.color.BLACK + (127,)
+        )
+        arcade.draw_lrtb_rectangle_filled(
+            self.spotlight_position + Settings.width / 2, self.spotlight_position + Settings.width, Settings.height, 0,
             arcade.color.BLACK + (127,)
         )
 
