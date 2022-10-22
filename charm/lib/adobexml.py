@@ -32,7 +32,8 @@ def strint(i: int | str | None) -> int | None:
 
 class Subtexture:
     def __init__(self, name: str, x: int | str, y: int | str, width: int | str, height: int | str,
-                 frame_x: int | str = None, frame_y: int | str = None, frame_width: int | str = None, frame_height: int | str = None):
+                 frame_x: int | str = None, frame_y: int | str = None, frame_width: int | str = None, frame_height: int | str = None,
+                 offset_x: int | str = None, offset_y: int | str = None):
         self._name = name
         name_re = subtexture_name.match(self._name)
         if name_re is None:
@@ -48,6 +49,8 @@ class Subtexture:
         self.frame_y = strint(frame_y)
         self.frame_width = strint(frame_width)
         self.frame_height = strint(frame_height)
+        self.offset_x = strint(offset_x)
+        self.offset_y = strint(offset_y)
 
     def __str__(self):
         return f"<Subtexture {self._name}>"
@@ -70,10 +73,11 @@ class AdobeTextureAtlas:
         return max([st.frame_height for st in self.subtextures if st.frame_height is not None] + [st.height for st in self.subtextures if st.height is not None])
 
     @classmethod
-    def parse(cls, s: str) -> "AdobeTextureAtlas":
+    def parse(cls, s: str, offsets: str = "") -> "AdobeTextureAtlas":
         tree = ET.ElementTree(ET.fromstring(s))
         root = tree.getroot()
         image_path = root.attrib["imagePath"]
+        offsets = offsets.splitlines() if offsets else None
 
         subtextures: list[Subtexture] = []
         for subtexture in root.iter("SubTexture"):
@@ -87,8 +91,14 @@ class AdobeTextureAtlas:
             frame_y = st.get("frameY", None)
             frame_width = st.get("frameWidth", None)
             frame_height = st.get("frameHeight", None)
+            ox = None
+            oy = None
+            if offsets:
+                for offset in offsets:
+                    if offset.startswith(name):
+                        n, ox, oy = offset.split()
             subtextures.append(Subtexture(
-                name, x, y, width, height, frame_x, frame_y, frame_width, frame_height
+                name, x, y, width, height, frame_x, frame_y, frame_width, frame_height, ox, oy
             ))
 
         return cls(image_path, subtextures)
@@ -99,9 +109,14 @@ class AdobeSprite(Sprite):
         self.folder = Path(folder_path)
         self._xml_path = self.folder / f"{name}.xml"
         self._image_path = self.folder / f"{name}.png"
+        self._offset_path = self.folder / f"{name}.offsets"
         with open(self._xml_path, "r", encoding="utf-8") as f:
             self._xml = f.read()
-        self._ata = AdobeTextureAtlas.parse(self._xml)
+        self._offsets = ""
+        if self._offset_path.exists():
+            with open(self._offset_path, "r", encoding="utf-8") as f:
+                self._offsets = f.read()
+        self._ata = AdobeTextureAtlas.parse(self._xml, offsets=self._offsets)
         self.texture_map: dict[Subtexture, int] = {}
         textures = []
         for n, st in enumerate(self._ata.subtextures):
