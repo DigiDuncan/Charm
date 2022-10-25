@@ -47,26 +47,9 @@ class TitleView(DigiView):
 
         self.main_sprites.append(self.logo)
 
+        self.splashes = pkg_resources.read_text(charm.data, "splashes.txt").splitlines()
         self.egg_roll = random.randint(1, 1000)
-
-        if self.egg_roll == 666:
-            # it's tricky
-            self.splash_text = ""
-            self.splash_label = arcade.Text("CLOWN KILLS YOU",
-                          font_name='Impact',
-                          font_size=48,
-                          start_x=self.window.width // 2 + 100, start_y=self.window.height // 2,
-                          anchor_x='center', anchor_y='top',
-                          color=arcade.color.RED + (0xFF,))
-        else:
-            splashes = pkg_resources.read_text(charm.data, "splashes.txt").splitlines()
-            self.splash_text = random.choice(splashes)
-            self.splash_label = arcade.pyglet.text.Label("",
-                            font_name='bananaslip plus plus',
-                            font_size=24,
-                            x=self.window.width // 2, y=self.window.height // 2,
-                            anchor_x='left', anchor_y='top',
-                            color=CharmColors.PURPLE + (0xFF,))
+        self.generate_splash()
 
         # Generate "gum wrapper" background
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
@@ -97,6 +80,25 @@ class TitleView(DigiView):
                           start_x=self.window.width // 2, start_y=6,
                           anchor_x='center', anchor_y='bottom',
                           color=(0, 0, 0) + (0xFF,))
+    
+    def generate_splash(self):
+        if self.egg_roll == 666:
+            # it's tricky
+            self.splash_text = ""
+            self.splash_label = arcade.Text("CLOWN KILLS YOU",
+                          font_name='Impact',
+                          font_size=48,
+                          start_x=self.window.width // 2 + 100, start_y=self.window.height // 2,
+                          anchor_x='center', anchor_y='top',
+                          color=arcade.color.RED + (0xFF,))
+        else:
+            self.splash_text = random.choice(self.splashes)
+            self.splash_label = arcade.pyglet.text.Label("",
+                            font_name='bananaslip plus plus',
+                            font_size=24,
+                            x=self.window.width // 2, y=self.window.height // 2,
+                            anchor_x='left', anchor_y='top',
+                            color=CharmColors.PURPLE + (0xFF,))
 
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:
@@ -106,6 +108,13 @@ class TitleView(DigiView):
             case arcade.key.KEY_0:
                 self.window.theme_song.seek(3)
                 self.setup()
+        if self.window.debug:
+            match symbol:
+                case arcade.key.S:
+                    self.splash_text = random.choice(self.splashes)
+                case arcade.key.T:
+                    self.egg_roll = 666 if self.egg_roll != 666 else 0
+                    self.generate_splash()
 
         return super().on_key_press(symbol, modifiers)
 
@@ -124,6 +133,7 @@ class TitleView(DigiView):
         if self.egg_roll == 666:
             self.splash_label.rotation = (random.random() * 10) - 5
         else:
+            self.splash_label.rotation = 0
             self.splash_label.text = self.splash_text[:max(0, int((self.local_time - 3) * 20))]
 
         # Song name in and out
