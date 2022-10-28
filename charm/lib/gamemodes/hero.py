@@ -308,7 +308,7 @@ class HeroSong(Song):
             raise NoChartsError(folder.stem)
         with open(folder / "notes.chart", encoding = "utf-8") as f:
             chartfile = f.readlines()
-        
+
         resolution: Ticks = 192
         offset: Seconds = 0
         metadata = Metadata("Unknown Title")

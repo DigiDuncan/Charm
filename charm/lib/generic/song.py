@@ -98,7 +98,7 @@ class Note:
 @total_ordering
 class Event:
     """A very basic event that happens at a time.
-    
+
     * `time: float`: event start in seconds."""
     time: Seconds
 
