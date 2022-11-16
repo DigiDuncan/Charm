@@ -1,12 +1,8 @@
-import simfile
-from simfile.notes import NoteData
-from simfile.sm import SMChart
+import importlib.resources as pkg_resources
 
-with open("./charm/data/tests/discord/discord.sm") as f:
-    simfile = simfile.load(f)
+from charm.lib.gamemodes.four_key import FourKeySong
+import charm.data.tests
 
-chart: SMChart = simfile.charts[-1]
-
-notes = NoteData(chart)
-
-chart
+def test_4k():
+    song = FourKeySong.parse(pkg_resources.path(charm.data.tests, "discord"))
+    assert song.charts is not []

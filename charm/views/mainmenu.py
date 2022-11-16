@@ -8,6 +8,7 @@ from charm.objects.menu import MainMenu, MainMenuItem
 from charm.views.fnfsongmenu import FNFSongMenuView
 from charm.views.herotest import HeroTestView
 from charm.views.parallaxtest import ParallaxView
+from charm.views.smtest import SMTestView
 from charm.views.spritetest import SpriteTestView
 from charm.views.subtitletest import SubtitleView
 from charm.views.visualizer import VisualizerView
@@ -32,7 +33,8 @@ class MainMenuView(DigiView):
                 MainMenuItem("Lyric Test", "test", SubtitleView(back=self)),
                 MainMenuItem("Parallax Test", "test", ParallaxView(back=self)),
                 MainMenuItem("Visualizer Test", "test", VisualizerView(back=self)),
-                MainMenuItem("Hero Test", "test", HeroTestView(back=self))
+                MainMenuItem("Hero Test", "test", HeroTestView(back=self)),
+                MainMenuItem("SM Test", "test", SMTestView(back=self))
             ]
         )
 
