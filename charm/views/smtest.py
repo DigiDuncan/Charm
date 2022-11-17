@@ -3,9 +3,11 @@ import logging
 import arcade
 
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
-from charm.lib.digiview import DigiView
-from charm.lib.gamemodes.four_key import FourKeySong, FourKeyHighway
+from charm.lib.digiview import DigiView, shows_errors
+from charm.lib.gamemodes.four_key import FourKeySong, FourKeyHighway, FourKeyEngine
+from charm.lib.logsection import LogSection
 from charm.lib.paths import songspath
+from charm.lib.trackcollection import TrackCollection
 
 logger = logging.getLogger("charm")
 
@@ -13,48 +15,95 @@ logger = logging.getLogger("charm")
 class SMTestView(DigiView):
     def __init__(self, *args, **kwargs):
         super().__init__(fade_in=1, bg_color=CharmColors.FADED_GREEN, *args, **kwargs)
-        self.song = None
-        self.highway = None
+        self.tracks: TrackCollection = None
+        self.highway: FourKeyHighway = None
+        self.engine: FourKeyEngine = None
         self.volume = 0.25
 
     def setup(self):
         super().setup()
 
-        self._song = arcade.load_sound(songspath / "sm" / "discord" / "discord.mp3")
-        self.sm_song = FourKeySong.parse(songspath / "sm" / "discord")
+        song_path = songspath / "sm" / "discord"
+        audio_paths = [a for a in song_path.glob("*.mp3")] + [a for a in song_path.glob("*.wav")] + [a for a in song_path.glob("*.ogg")]
+        self.tracks = TrackCollection([arcade.load_sound(s) for s in audio_paths])
+        self.sm_song = FourKeySong.parse(song_path)
         self.chart = self.sm_song.get_chart("Challenge")
-        self.highway = FourKeyHighway(self.chart, (0, 0), auto=True)
-        self.highway.x += self.window.width // 2 - self.highway.w // 2
+        self.highway = FourKeyHighway(self.chart, (0, 0))
+        self.highway.x += self.window.width // 2 - self.highway.w // 2  # center the highway
+
+        self.engine = FourKeyEngine(self.chart)
+        self.key_state = [False] * 4
+
+        self.text = arcade.Text("[LOADING]", -5, self.window.height - 5, color = arcade.color.BLACK, font_size = 24, align = "right", anchor_y="top", font_name = "bananaslip plus plus", width = self.window.width)
 
         # Generate "gum wrapper" background
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
+        self.success = True
 
+    @shows_errors
     def on_show_view(self):
         self.window.theme_song.volume = 0
-        self.song = arcade.play_sound(self._song, self.volume, looping=False)
+        if self.success is False:
+            self.window.show_view(self.back)
+            self.window.theme_song.volume = 0.25
+        self.tracks.play()
+        super().on_show()
 
+    @shows_errors
+    def on_key_something(self, symbol: int, modifiers: int, press: bool):
+        if symbol in self.engine.mapping:
+            i = self.engine.mapping.index(symbol)
+            self.key_state[i] = press
+            self.highway.strikeline[i].alpha = 255 if press else 64
+        self.engine.process_keystate(self.key_state)
+
+    def generate_data_string(self):
+        return (f"Time: {int(self.tracks.time // 60)}:{int(self.tracks.time % 60):02}\n"
+                f"Score: {self.engine.score}")
+         
+    @shows_errors
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:
             case arcade.key.BACKSPACE:
-                self.song.delete()
+                self.tracks.close()
                 self.back.setup()
                 self.window.show_view(self.back)
                 arcade.play_sound(self.window.sounds["back"])
             case arcade.key.SPACE:
-                self.song.pause() if self.song.playing else self.song.play()
+                self.tracks.pause() if self.tracks.playing else self.stracks.play()
             case arcade.key.KEY_0:
-                self.song.seek(0)
+                self.tracks.seek(0)
             case arcade.key.MINUS:
-                self.song.seek(self.song.time - 5)
+                self.tracks.seek(self.tracks.time - 5)
             case arcade.key.EQUAL:
-                self.song.seek(self.song.time + 5)
+                self.tracks.seek(self.tracks.time + 5)
 
+        self.on_key_something(symbol, modifiers, True)
         return super().on_key_press(symbol, modifiers)
+
+    @shows_errors
+    def on_key_release(self, symbol: int, modifiers: int):
+        self.on_key_something(symbol, modifiers, False)
+        return super().on_key_release(symbol, modifiers)
 
     def on_update(self, delta_time):
         super().on_update(delta_time)
 
-        self.highway.update(self.song.time)
+        if not self.tracks.loaded:
+            return
+
+        self.highway.update(self.tracks.time)
+        self.engine.update(self.tracks.time)
+
+        # TODO: Lag? Maybe not calculate this every tick?
+        # The only way to solve this I think is to create something like an
+        # on_note_valid and on_note_expired event, which you can do with
+        # Arcade.schedule() if we need to look into that.
+        self.engine.calculate_score()
+
+        data_string = self.generate_data_string()
+        if self.text.text != data_string:
+            self.text.text = data_string
 
         move_gum_wrapper(self.logo_width, self.small_logos_forward, self.small_logos_backward, delta_time)
 
@@ -67,5 +116,7 @@ class SMTestView(DigiView):
         self.small_logos_backward.draw()
 
         self.highway.draw()
+
+        self.text.draw()
 
         super().on_draw()

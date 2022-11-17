@@ -5,7 +5,6 @@ from charm.lib.generic.song import Chart, Note, Seconds
 KeyStates = list[bool]
 Key = int
 
-
 @dataclass
 class Judgement:
     name: str

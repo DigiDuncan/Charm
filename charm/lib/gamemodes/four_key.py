@@ -3,9 +3,11 @@ from functools import cache
 
 import logging
 from dataclasses import dataclass
+import math
 from pathlib import Path
 
-import PIL, PIL.ImageFilter
+import PIL
+import PIL.ImageFilter
 
 import simfile
 from simfile.sm import SMChart
@@ -17,12 +19,12 @@ from simfile.timing.engine import TimingEngine
 
 import arcade
 from charm.lib.charm import load_missing_texture
-
+from charm.lib.generic.engine import DigitalKeyEvent, Engine, Judgement, KeyStates
 from charm.lib.generic.highway import Highway
-from charm.lib.generic.song import Note, Chart, Song, BPMChangeEvent
+from charm.lib.generic.song import Note, Chart, Seconds, Song, BPMChangeEvent
 from charm.lib.settings import Settings
 from charm.lib.spritebucket import SpriteBucketCollection
-from charm.lib.utils import img_from_resource
+from charm.lib.utils import img_from_resource, clamp
 from charm.objects.line_renderer import NoteTrail
 import charm.data.images.skins.fnf as fnfskin
 
@@ -34,6 +36,7 @@ class NoteType:
     DEATH = "death"
     HEAL = "heal"
     CAUTION = "caution"
+
 
 sm_to_fnf_name_map = {
     "TAP": NoteType.NORMAL,
@@ -122,7 +125,7 @@ class FourKeySong(Song):
 
             # Use simfile to make our life so much easier.
             notedata = NoteData(c)
-            grouped_notes = group_notes(notedata, join_heads_to_tails = True)
+            grouped_notes = group_notes(notedata, join_heads_to_tails=True)
             timing = TimingData(sm, c)
             timing_engine = TimingEngine(timing)
 
@@ -146,7 +149,7 @@ class FourKeySong(Song):
         return song
 
 class FourKeyNoteSprite(arcade.Sprite):
-    def __init__(self, note: FourKeyNote, highway: FourKeyHighway, height = 128, *args, **kwargs):
+    def __init__(self, note: FourKeyNote, highway: FourKeyHighway, height=128, *args, **kwargs):
         self.note: FourKeyNote = note
         self.note.sprite = self
         self.highway: FourKeyHighway = highway
@@ -170,6 +173,7 @@ class FourKeyNoteSprite(arcade.Sprite):
 
 class FourKeyLongNoteSprite(FourKeyNoteSprite):
     id = 0
+
     def __init__(self, note: FourKeyNote, highway: FourKeyHighway, height=128, *args, **kwargs):
         super().__init__(note, highway, height, *args, **kwargs)
         self.id += 1
@@ -177,9 +181,9 @@ class FourKeyLongNoteSprite(FourKeyNoteSprite):
 
         color = NoteColor.from_note(self.note)
         self.trail = NoteTrail(self.id, self.position, self.note.time, self.note.length, self.highway.px_per_s,
-        color, width = self.highway.note_size, upscroll = True, fill_color = color + (60,), resolution = 100)
+        color, width=self.highway.note_size, upscroll=True, fill_color=color + (60,), resolution=100)
         self.dead_trail = NoteTrail(self.id, self.position, self.note.time, self.note.length, self.highway.px_per_s,
-        arcade.color.GRAY, width = self.highway.note_size, upscroll = True, fill_color = arcade.color.GRAY + (60,), resolution = 100)
+        arcade.color.GRAY, width=self.highway.note_size, upscroll=True, fill_color=arcade.color.GRAY + (60,), resolution=100)
 
     def update_animation(self, delta_time: float):
         self.trail.set_position(*self.position)
@@ -191,13 +195,13 @@ class FourKeyLongNoteSprite(FourKeyNoteSprite):
 
 
 class FourKeyHighway(Highway):
-    def __init__(self, chart: FourKeyChart, pos: tuple[int, int], size: tuple[int, int] = None, gap: int = 5, auto = False):
+    def __init__(self, chart: FourKeyChart, pos: tuple[int, int], size: tuple[int, int] = None, gap: int = 5, auto=False):
         if size is None:
             size = int(Settings.width / (1280 / 400)), Settings.height
 
         super().__init__(chart, pos, size, gap)
 
-        self.viewport = 1  # TODO: BPM scaling?
+        self.viewport = 0.5  # TODO: BPM scaling?
 
         self.auto = auto
 
@@ -275,3 +279,120 @@ class FourKeyHighway(Highway):
                     note.draw_trail()
         self.sprite_buckets.draw(self.song_time)
         _cam.use()
+
+
+class FourKeyJudgement(Judgement):
+    pass
+
+
+class FourKeyEngine(Engine):
+    def __init__(self, chart: FourKeyChart, offset: Seconds = 0.025):
+        hit_window: Seconds = 0.075
+        mapping = [arcade.key.D, arcade.key.F, arcade.key.J, arcade.key.K]
+        judgements = [
+            #               ("name",            ms, score,  acc, hp=0)
+            FourKeyJudgement("supercharming",   10,  1000,    1, 0.04),
+            FourKeyJudgement("charming",        25,  1000, 0.75, 0.04),
+            FourKeyJudgement("excellent",       35,   800,  0.5, 0.03),
+            FourKeyJudgement("great",           45,   600, 0.25, 0.02),
+            FourKeyJudgement("good",            60,   400,    0, 0.01),
+            FourKeyJudgement("ok",              75,   200,   -1,    0),
+            FourKeyJudgement("miss",      math.inf,     0,   -1, -0.1)
+        ]
+        super().__init__(chart, mapping, hit_window, judgements, offset)
+
+        self.min_hp = 0
+        self.hp = 1
+        self.max_hp = 2
+        self.bomb_hp = 0.5
+
+        self.has_died = False
+
+        self.latest_judgement = ""
+        self.latest_judgement_time = 0
+        self.all_judgements: list[tuple[Seconds, Seconds, Judgement]] = []
+
+        self.current_notes: list[FourKeyNote] = self.chart.notes.copy()
+        self.current_events: list[DigitalKeyEvent] = []
+
+        self.last_p1_note = None
+        self.last_note_missed = False
+
+    def process_keystate(self, key_states: KeyStates):
+        last_state = self.key_state
+        if self.last_p1_note in (0, 1, 2, 3) and key_states[self.last_p1_note] is False:
+            self.last_p1_note = None
+        # ignore spam during front/back porch
+        if (self.chart_time < self.chart.notes[0].time - self.hit_window
+           or self.chart_time > self.chart.notes[-1].time + self.hit_window):
+            return
+        for n in range(len(key_states)):
+            if key_states[n] is True and last_state[n] is False:
+                e = DigitalKeyEvent(self.chart_time, n, "down")
+                self.current_events.append(e)
+            elif key_states[n] is False and last_state[n] is True:
+                e = DigitalKeyEvent(self.chart_time, n, "up")
+                self.current_events.append(e)
+        self.key_state = key_states.copy()
+
+    def calculate_score(self):
+        # Get all non-scored notes within the current window
+        for note in [n for n in self.current_notes if n.time <= self.chart_time + self.hit_window]:
+            # Missed notes (current time is higher than max allowed time for note)
+            if self.chart_time > note.time + self.hit_window:
+                note.missed = True
+                note.hit_time = math.inf  # how smart is this? :thinking:
+                self.score_note(note)
+                self.current_notes.remove(note)
+            else:
+                # Check non-used events to see if one matches our note
+                for event in [e for e in self.current_events if e.new_state == "down"]:
+                    # We've determined the note was hit
+                    if event.key == note.lane and abs(event.time - note.time) <= self.hit_window:
+                        note.hit = True
+                        note.hit_time = event.time
+                        self.score_note(note)
+                        try:
+                            self.current_notes.remove(note)
+                        except ValueError:
+                            logger.info("Note removal failed!")
+                        self.current_events.remove(event)
+                        break
+
+        # Make sure we can't go below min_hp or above max_hp
+        self.hp = clamp(self.min_hp, self.hp, self.max_hp)
+        if self.hp == self.min_hp:
+            self.has_died = True
+
+    def score_note(self, note: FourKeyNote):
+        # Ignore notes we haven't done anything with yet
+        if not (note.hit or note.missed):
+            return
+
+        # Sustains aaaaaaaaaaaaaaaaaaaaa
+
+        # Bomb notes penalize HP when hit
+        if note.type == "bomb":
+            if note.hit:
+                self.hp -= self.bomb_hp
+            return
+
+        # Score the note
+        j = self.get_note_judgement(note)
+        self.score += j.score
+        self.weighted_hit_notes += j.accuracy_weight
+
+        # Judge the player
+        rt = abs(note.hit_time - note.time)
+        self.latest_judgement = j.name
+        self.latest_judgement_time = self.chart_time
+        self.all_judgements.append((self.latest_judgement_time, rt, self.latest_judgement))
+
+        # Animation and hit/miss tracking
+        self.last_p1_note = note.lane
+        if note.hit:
+            self.hits += 1
+            self.last_note_missed = False
+        elif note.missed:
+            self.misses += 1
+            self.last_note_missed = True
