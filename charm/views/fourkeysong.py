@@ -36,14 +36,16 @@ class FourKeySongView(DigiView):
         with LogSection(logger, "loading song data"):
             self.sm_song = FourKeySong.parse(song_path)
             self.chart = self.sm_song.get_chart("Challenge")
-        
-        with LogSection(logger, "loading highway"):
-            self.highway = FourKeyHighway(self.chart, (0, 0))
-            self.highway.x += self.window.width // 2 - self.highway.w // 2  # center the highway
 
         with LogSection(logger, "loading engine"):
             self.engine = FourKeyEngine(self.chart)
             self.key_state = [False] * 4
+
+        with LogSection(logger, "loading highway"):
+            self.highway = FourKeyHighway(self.chart, (0, 0))
+            self.highway.x += self.window.width // 2 - self.highway.w // 2  # center the highway
+            self.highway.hit_window_top = self.highway.note_y(-self.engine.judgements[-2].seconds)
+            self.highway.hit_window_bottom = self.highway.note_y(self.engine.judgements[-2].seconds)
 
         self.text = arcade.Text("[LOADING]", -5, self.window.height - 5, color = arcade.color.BLACK, font_size = 24, align = "right", anchor_y="top", font_name = "bananaslip plus plus", width = self.window.width)
         self.countdown_text = arcade.Text("0", self.window.width / 2, self.window.height / 2, arcade.color.BLACK, 72, align="center", anchor_x="center", anchor_y="center", font_name = "bananaslip plus plus", width = 100)
@@ -93,6 +95,11 @@ class FourKeySongView(DigiView):
                 self.tracks.seek(self.tracks.time - 5)
             case arcade.key.EQUAL:
                 self.tracks.seek(self.tracks.time + 5)
+        if self.window.debug:
+            if modifiers & arcade.key.MOD_SHIFT:
+                match symbol:
+                    case arcade.key.H:
+                        self.highway.show_hit_window = not self.highway.show_hit_window
 
         self.on_key_something(symbol, modifiers, True)
         return super().on_key_press(symbol, modifiers)

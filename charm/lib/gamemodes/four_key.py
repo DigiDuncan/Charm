@@ -206,6 +206,8 @@ class FourKeyHighway(Highway):
 
         self.auto = auto
 
+        self.show_hit_window = False
+
         self.sprite_buckets = SpriteBucketCollection()
         for note in self.notes:
             sprite = FourKeyNoteSprite(note, self, self.note_size) if note.length == 0 else FourKeyLongNoteSprite(note, self, self.note_size)
@@ -223,7 +225,10 @@ class FourKeyHighway(Highway):
             sprite.alpha = 64
             self.strikeline.append(sprite)
 
-        logger.debug(f"Generated highway for chart {chart.instrument}.")
+        self.hit_window_top = self.note_y(-0.075)
+        self.hit_window_bottom = self.note_y(0.075)
+
+        logger.debug(f"Generated highway for chart {chart.instrument}/{chart.difficulty}.")
 
         # TODO: Replace with better pixel_offset calculation
         self.last_update_time = 0
@@ -263,6 +268,10 @@ class FourKeyHighway(Highway):
         arcade.draw_lrtb_rectangle_filled(self.x, self.x + self.w,
                                           self.y + self.h, self.y,
                                           (0, 0, 0, 128))
+        if self.show_hit_window:
+            arcade.draw_lrtb_rectangle_filled(self.x, self.x + self.w,
+                                              self.hit_window_top, self.hit_window_bottom,
+                                              (255, 0, 0, 128))
         self.strikeline.draw()
         vp = arcade.get_viewport()
         height = vp[3] - vp[2]
@@ -293,12 +302,12 @@ class FourKeyEngine(Engine):
         judgements = [
             #               ("name",            ms, score,  acc, hp=0)
             FourKeyJudgement("supercharming",   10,  1000,    1, 0.04),
-            FourKeyJudgement("charming",        25,  1000,  0.8, 0.04),
-            FourKeyJudgement("excellent",       35,   800,  0.6, 0.03),
-            FourKeyJudgement("great",           45,   600,  0.4, 0.02),
-            FourKeyJudgement("good",            60,   400,  0.2, 0.01),
-            FourKeyJudgement("ok",              75,   200,    0,    0),
-            FourKeyJudgement("miss",      math.inf,     0,   -1, -0.1)
+            FourKeyJudgement("charming",        25,  1000,  0.9, 0.04),
+            FourKeyJudgement("excellent",       35,   800,  0.8, 0.03),
+            FourKeyJudgement("great",           45,   600,  0.7, 0.02),
+            FourKeyJudgement("good",            60,   400,  0.6, 0.01),
+            FourKeyJudgement("ok",              75,   200,  0.5,    0),
+            FourKeyJudgement("miss",      math.inf,     0,    0, -0.1)
         ]
         super().__init__(chart, mapping, hit_window, judgements, offset)
 
