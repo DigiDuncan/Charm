@@ -215,7 +215,7 @@ class FourKeyHighway(Highway):
             sprite.left = self.lane_x(note.lane)
             note.sprite = sprite
             self.sprite_buckets.append(sprite, note.time, note.length)
-        print(len([s for s in self.sprite_buckets.sprites if isinstance(s, FourKeyLongNoteSprite)]))
+        logger.debug(f"Sustains: {len([s for s in self.sprite_buckets.sprites if isinstance(s, FourKeyLongNoteSprite)])}")
 
         self.strikeline = arcade.SpriteList()
         for i in [0, 1, 2, 3]:
@@ -296,7 +296,7 @@ class FourKeyJudgement(Judgement):
 
 
 class FourKeyEngine(Engine):
-    def __init__(self, chart: FourKeyChart, offset: Seconds = 0):
+    def __init__(self, chart: FourKeyChart, offset: Seconds = -0.025):
         hit_window: Seconds = 0.075
         mapping = [arcade.key.D, arcade.key.F, arcade.key.J, arcade.key.K]
         judgements = [

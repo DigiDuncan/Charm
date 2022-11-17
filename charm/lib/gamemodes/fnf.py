@@ -189,7 +189,6 @@ class FNFSong(Song):
         if override_path.exists() and override_path.is_file():
             with open(override_path) as f:
                 fnf_overrides = json.load(f)
-        print(fnf_overrides)
         hash = sha1(bytes(json.dumps(j), encoding="utf-8")).hexdigest()
         difficulty = file_path.stem.rsplit("-", 1)[1] if "-" in file_path.stem else "normal"
         songdata = j["song"]
@@ -542,7 +541,7 @@ class FNFHighway(Highway):
             sprite.left = self.lane_x(note.lane)
             note.sprite = sprite
             self.sprite_buckets.append(sprite, note.time, note.length)
-        print(len([s for s in self.sprite_buckets.sprites if isinstance(s, FNFLongNoteSprite)]))
+        logger.debug(f"Sustains: {len([s for s in self.sprite_buckets.sprites if isinstance(s, FNFLongNoteSprite)])}")
 
         self.strikeline = arcade.SpriteList()
         for i in [0, 1, 2, 3]:

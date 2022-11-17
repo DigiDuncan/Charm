@@ -88,7 +88,8 @@ class FourKeySongView(DigiView):
                 self.window.show_view(self.back)
                 arcade.play_sound(self.window.sounds["back"])
             case arcade.key.SPACE:
-                self.tracks.pause() if self.tracks.playing else self.tracks.play()
+                if self.countdown <= 0:
+                    self.tracks.pause() if self.tracks.playing else self.tracks.play()
             case arcade.key.KEY_0:
                 self.tracks.seek(0)
             case arcade.key.MINUS:
