@@ -65,7 +65,7 @@ class Engine:
     def accuracy(self) -> float | None:
         if self.hits or self.misses:
             return self.weighted_hit_notes / (self.hits + self.misses)
-        return None
+        return 0
 
     @property
     def grade(self) -> str:

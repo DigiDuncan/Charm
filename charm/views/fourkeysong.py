@@ -1,7 +1,9 @@
 import logging
+from math import ceil
 
 import arcade
 
+from charm.lib.anim import ease_linear
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView, shows_errors
 from charm.lib.gamemodes.four_key import FourKeySong, FourKeyHighway, FourKeyEngine
@@ -19,6 +21,8 @@ class FourKeySongView(DigiView):
         self.highway: FourKeyHighway = None
         self.engine: FourKeyEngine = None
         self.volume = 0.25
+        self.countdown: float = 3
+        self.countdown_over = False
 
     def setup(self):
         super().setup()
@@ -42,6 +46,7 @@ class FourKeySongView(DigiView):
             self.key_state = [False] * 4
 
         self.text = arcade.Text("[LOADING]", -5, self.window.height - 5, color = arcade.color.BLACK, font_size = 24, align = "right", anchor_y="top", font_name = "bananaslip plus plus", width = self.window.width)
+        self.countdown_text = arcade.Text("0", self.window.width / 2, self.window.height / 2, arcade.color.BLACK, 72, align="center", anchor_x="center", anchor_y="center", font_name = "bananaslip plus plus", width = 100)
 
         # Generate "gum wrapper" background
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
@@ -53,7 +58,7 @@ class FourKeySongView(DigiView):
         if self.success is False:
             self.window.show_view(self.back)
             self.window.theme_song.volume = 0.25
-        self.tracks.play()
+        self.countdown = 3
         super().on_show()
 
     @shows_errors
@@ -66,7 +71,11 @@ class FourKeySongView(DigiView):
 
     def generate_data_string(self):
         return (f"Time: {int(self.tracks.time // 60)}:{int(self.tracks.time % 60):02}\n"
-                f"Score: {self.engine.score}")
+                f"Score: {self.engine.score}\n"
+                f"Acc: {self.engine.accuracy:.2%} ({self.engine.grade})\n"
+                f"Avg. DT: {self.engine.average_acc * 1000:.2f}ms\n"
+                f"{self.engine.fc_type}\n"
+                f"Streak: {self.engine.streak}")
          
     @shows_errors
     def on_key_press(self, symbol: int, modifiers: int):
@@ -77,7 +86,7 @@ class FourKeySongView(DigiView):
                 self.window.show_view(self.back)
                 arcade.play_sound(self.window.sounds["back"])
             case arcade.key.SPACE:
-                self.tracks.pause() if self.tracks.playing else self.stracks.play()
+                self.tracks.pause() if self.tracks.playing else self.tracks.play()
             case arcade.key.KEY_0:
                 self.tracks.seek(0)
             case arcade.key.MINUS:
@@ -99,7 +108,7 @@ class FourKeySongView(DigiView):
         if not self.tracks.loaded:
             return
 
-        self.highway.update(self.tracks.time)
+        self.highway.update(0 if not self.countdown_over else self.tracks.time)
         self.engine.update(self.tracks.time)
 
         # TODO: Lag? Maybe not calculate this every tick?
@@ -111,6 +120,19 @@ class FourKeySongView(DigiView):
         data_string = self.generate_data_string()
         if self.text.text != data_string:
             self.text.text = data_string
+
+        if self.countdown > 0:
+            self.countdown -= delta_time
+            if self.countdown < 0:
+                self.countdown = 0
+
+        if self.countdown > 0:
+            self.countdown_text.text = str(ceil(self.countdown))
+            for n in self.highway.visible_notes:
+                n.sprite.alpha = ease_linear(0, 255, 1, 2.5, self.local_time)
+        if self.countdown <= 0 and not self.countdown_over:
+            self.tracks.play()
+            self.countdown_over = True
 
         move_gum_wrapper(self.logo_width, self.small_logos_forward, self.small_logos_backward, delta_time)
 
@@ -125,5 +147,8 @@ class FourKeySongView(DigiView):
         self.highway.draw()
 
         self.text.draw()
+
+        if self.countdown > 0:
+            self.countdown_text.draw()
 
         super().on_draw()

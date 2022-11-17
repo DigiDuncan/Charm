@@ -5,6 +5,7 @@ import logging
 from dataclasses import dataclass
 import math
 from pathlib import Path
+from statistics import mean
 
 import PIL
 import PIL.ImageFilter
@@ -286,17 +287,17 @@ class FourKeyJudgement(Judgement):
 
 
 class FourKeyEngine(Engine):
-    def __init__(self, chart: FourKeyChart, offset: Seconds = 0.025):
+    def __init__(self, chart: FourKeyChart, offset: Seconds = 0):
         hit_window: Seconds = 0.075
         mapping = [arcade.key.D, arcade.key.F, arcade.key.J, arcade.key.K]
         judgements = [
             #               ("name",            ms, score,  acc, hp=0)
             FourKeyJudgement("supercharming",   10,  1000,    1, 0.04),
-            FourKeyJudgement("charming",        25,  1000, 0.75, 0.04),
-            FourKeyJudgement("excellent",       35,   800,  0.5, 0.03),
-            FourKeyJudgement("great",           45,   600, 0.25, 0.02),
-            FourKeyJudgement("good",            60,   400,    0, 0.01),
-            FourKeyJudgement("ok",              75,   200,   -1,    0),
+            FourKeyJudgement("charming",        25,  1000,  0.8, 0.04),
+            FourKeyJudgement("excellent",       35,   800,  0.6, 0.03),
+            FourKeyJudgement("great",           45,   600,  0.4, 0.02),
+            FourKeyJudgement("good",            60,   400,  0.2, 0.01),
+            FourKeyJudgement("ok",              75,   200,    0,    0),
             FourKeyJudgement("miss",      math.inf,     0,   -1, -0.1)
         ]
         super().__init__(chart, mapping, hit_window, judgements, offset)
@@ -317,6 +318,7 @@ class FourKeyEngine(Engine):
 
         self.last_p1_note = None
         self.last_note_missed = False
+        self.streak = 0
 
     def process_keystate(self, key_states: KeyStates):
         last_state = self.key_state
@@ -334,6 +336,11 @@ class FourKeyEngine(Engine):
                 e = DigitalKeyEvent(self.chart_time, n, "up")
                 self.current_events.append(e)
         self.key_state = key_states.copy()
+
+    @property
+    def average_acc(self) -> float:
+        j = [j[1] for j in self.all_judgements if j[1] is not math.inf]
+        return mean(j) if j else 0
 
     def calculate_score(self):
         # Get all non-scored notes within the current window
@@ -383,7 +390,7 @@ class FourKeyEngine(Engine):
         self.weighted_hit_notes += j.accuracy_weight
 
         # Judge the player
-        rt = abs(note.hit_time - note.time)
+        rt = note.hit_time - note.time if note.hit_time is not math.inf else math.inf
         self.latest_judgement = j.name
         self.latest_judgement_time = self.chart_time
         self.all_judgements.append((self.latest_judgement_time, rt, self.latest_judgement))
@@ -392,7 +399,9 @@ class FourKeyEngine(Engine):
         self.last_p1_note = note.lane
         if note.hit:
             self.hits += 1
+            self.streak += 1
             self.last_note_missed = False
         elif note.missed:
             self.misses += 1
+            self.streak = 0
             self.last_note_missed = True
