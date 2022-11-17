@@ -12,7 +12,7 @@ from charm.lib.trackcollection import TrackCollection
 logger = logging.getLogger("charm")
 
 
-class SMTestView(DigiView):
+class FourKeySongView(DigiView):
     def __init__(self, *args, **kwargs):
         super().__init__(fade_in=1, bg_color=CharmColors.FADED_GREEN, *args, **kwargs)
         self.tracks: TrackCollection = None
@@ -24,15 +24,22 @@ class SMTestView(DigiView):
         super().setup()
 
         song_path = songspath / "sm" / "discord"
-        audio_paths = [a for a in song_path.glob("*.mp3")] + [a for a in song_path.glob("*.wav")] + [a for a in song_path.glob("*.ogg")]
-        self.tracks = TrackCollection([arcade.load_sound(s) for s in audio_paths])
-        self.sm_song = FourKeySong.parse(song_path)
-        self.chart = self.sm_song.get_chart("Challenge")
-        self.highway = FourKeyHighway(self.chart, (0, 0))
-        self.highway.x += self.window.width // 2 - self.highway.w // 2  # center the highway
 
-        self.engine = FourKeyEngine(self.chart)
-        self.key_state = [False] * 4
+        with LogSection(logger, "loading audio"):
+            audio_paths = [a for a in song_path.glob("*.mp3")] + [a for a in song_path.glob("*.wav")] + [a for a in song_path.glob("*.ogg")]
+            self.tracks = TrackCollection([arcade.load_sound(s) for s in audio_paths])
+
+        with LogSection(logger, "loading song data"):
+            self.sm_song = FourKeySong.parse(song_path)
+            self.chart = self.sm_song.get_chart("Challenge")
+        
+        with LogSection(logger, "loading highway"):
+            self.highway = FourKeyHighway(self.chart, (0, 0))
+            self.highway.x += self.window.width // 2 - self.highway.w // 2  # center the highway
+
+        with LogSection(logger, "loading engine"):
+            self.engine = FourKeyEngine(self.chart)
+            self.key_state = [False] * 4
 
         self.text = arcade.Text("[LOADING]", -5, self.window.height - 5, color = arcade.color.BLACK, font_size = 24, align = "right", anchor_y="top", font_name = "bananaslip plus plus", width = self.window.width)
 
