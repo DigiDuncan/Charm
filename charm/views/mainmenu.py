@@ -4,6 +4,7 @@ from charm.lib.anim import ease_quartout
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView, shows_errors
 from charm.lib.errors import TestError
+from charm.lib.paths import songspath
 from charm.objects.menu import MainMenu, MainMenuItem
 from charm.views.fnfsongmenu import FNFSongMenuView
 from charm.views.herotest import HeroTestView
@@ -34,7 +35,7 @@ class MainMenuView(DigiView):
                 MainMenuItem("Parallax Test", "test", ParallaxView(back=self)),
                 MainMenuItem("Visualizer Test", "test", VisualizerView(back=self)),
                 MainMenuItem("Hero Test", "test", HeroTestView(back=self)),
-                MainMenuItem("4K Test", "test", FourKeySongView(back=self))
+                MainMenuItem("4K Test", "test", FourKeySongView(songspath / "sm" / "discord", back=self))
             ]
         )
 

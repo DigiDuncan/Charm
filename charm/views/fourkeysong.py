@@ -1,5 +1,6 @@
 import logging
 from math import ceil
+from pathlib import Path
 
 import arcade
 
@@ -8,15 +9,15 @@ from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView, shows_errors
 from charm.lib.gamemodes.four_key import FourKeySong, FourKeyHighway, FourKeyEngine
 from charm.lib.logsection import LogSection
-from charm.lib.paths import songspath
 from charm.lib.trackcollection import TrackCollection
 
 logger = logging.getLogger("charm")
 
 
 class FourKeySongView(DigiView):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, path: Path, *args, **kwargs):
         super().__init__(fade_in=1, bg_color=CharmColors.FADED_GREEN, *args, **kwargs)
+        self.song_path = path
         self.tracks: TrackCollection = None
         self.highway: FourKeyHighway = None
         self.engine: FourKeyEngine = None
@@ -27,14 +28,12 @@ class FourKeySongView(DigiView):
     def setup(self):
         super().setup()
 
-        song_path = songspath / "sm" / "discord"
-
         with LogSection(logger, "loading audio"):
-            audio_paths = [a for a in song_path.glob("*.mp3")] + [a for a in song_path.glob("*.wav")] + [a for a in song_path.glob("*.ogg")]
+            audio_paths = [a for a in self.song_path.glob("*.mp3")] + [a for a in self.song_path.glob("*.wav")] + [a for a in self.song_path.glob("*.ogg")]
             self.tracks = TrackCollection([arcade.load_sound(s) for s in audio_paths])
 
         with LogSection(logger, "loading song data"):
-            self.sm_song = FourKeySong.parse(song_path)
+            self.sm_song = FourKeySong.parse(self.song_path)
             self.chart = self.sm_song.get_chart("Challenge")
 
         with LogSection(logger, "loading engine"):
