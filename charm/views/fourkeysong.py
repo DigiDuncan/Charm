@@ -115,7 +115,7 @@ class FourKeySongView(DigiView):
         if not self.tracks.loaded:
             return
 
-        self.highway.update(0 if not self.countdown_over else self.tracks.time)
+        self.highway.update(0 - self.countdown if not self.countdown_over else self.tracks.time)
         self.engine.update(self.tracks.time)
 
         # TODO: Lag? Maybe not calculate this every tick?
@@ -133,10 +133,6 @@ class FourKeySongView(DigiView):
             if self.countdown < 0:
                 self.countdown = 0
 
-        if self.countdown > 0:
-            self.countdown_text.text = str(ceil(self.countdown))
-            for n in self.highway.visible_notes:
-                n.sprite.alpha = ease_linear(0, 255, 1, 2.5, self.local_time)
         if self.countdown <= 0 and not self.countdown_over:
             self.tracks.play()
             self.countdown_over = True
