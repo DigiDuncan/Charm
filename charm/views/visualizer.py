@@ -61,6 +61,7 @@ class VisualizerView(DigiView):
                 self._song = arcade.load_sound(p)
                 load = librosa.load(p, mono=True)
             self.waveform: ndarray[float] = load[0]
+            logger.info(f"Samples loaded: {len(self.waveform)} ({(self.waveform.size * self.waveform.itemsize) / 1000000:.2f}MB)")
             self.sample_rate: int = load[1]
 
         # Create an index of samples
