@@ -75,6 +75,8 @@ class FourKeySongView(DigiView):
 
     @shows_errors
     def on_key_something(self, symbol: int, modifiers: int, press: bool):
+        if not self.tracks.playing:
+            return
         if symbol in self.engine.mapping:
             i = self.engine.mapping.index(symbol)
             self.key_state[i] = press
