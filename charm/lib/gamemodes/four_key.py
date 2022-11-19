@@ -1,12 +1,14 @@
 from __future__ import annotations
-from functools import cache
 
+import importlib.resources as pkg_resources
 import logging
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
+from functools import cache
 from pathlib import Path
 from statistics import mean
 
+import arcade
 import PIL
 import PIL.ImageFilter
 
@@ -18,7 +20,8 @@ from simfile.notes.group import group_notes, NoteWithTail
 from simfile.timing import TimingData, BeatValue
 from simfile.timing.engine import TimingEngine
 
-import arcade
+import charm.data.images.skins.fnf as fnfskin
+import charm.data.images.skins.base as baseskin
 from charm.lib.charm import load_missing_texture
 from charm.lib.generic.engine import DigitalKeyEvent, Engine, Judgement, KeyStates
 from charm.lib.generic.highway import Highway
@@ -27,7 +30,6 @@ from charm.lib.settings import Settings
 from charm.lib.spritebucket import SpriteBucketCollection
 from charm.lib.utils import img_from_resource, clamp
 from charm.objects.line_renderer import NoteTrail
-import charm.data.images.skins.fnf as fnfskin
 
 logger = logging.getLogger("charm")
 
@@ -292,7 +294,10 @@ class FourKeyHighway(Highway):
 
 
 class FourKeyJudgement(Judgement):
-    pass
+    def get_texture(self) -> arcade.Texture:
+        image_path = pkg_resources.path(baseskin, f"judgement-{self.name}.png")
+        tex = arcade.load_texture(image_path, hit_box_algorithm = "None")
+        return tex
 
 
 class FourKeyEngine(Engine):
@@ -318,8 +323,8 @@ class FourKeyEngine(Engine):
 
         self.has_died = False
 
-        self.latest_judgement = ""
-        self.latest_judgement_time = 0
+        self.latest_judgement = None
+        self.latest_judgement_time = None
         self.all_judgements: list[tuple[Seconds, Seconds, Judgement]] = []
 
         self.current_notes: list[FourKeyNote] = self.chart.notes.copy()
@@ -400,7 +405,7 @@ class FourKeyEngine(Engine):
 
         # Judge the player
         rt = note.hit_time - note.time if note.hit_time is not math.inf else math.inf
-        self.latest_judgement = j.name
+        self.latest_judgement = j
         self.latest_judgement_time = self.chart_time
         self.all_judgements.append((self.latest_judgement_time, rt, self.latest_judgement))
 

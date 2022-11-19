@@ -4,7 +4,7 @@ from pathlib import Path
 
 import arcade
 
-from charm.lib.anim import ease_linear
+from charm.lib.anim import ease_linear, ease_circout
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView, shows_errors
 from charm.lib.gamemodes.four_key import FourKeySong, FourKeyHighway, FourKeyEngine
@@ -48,6 +48,17 @@ class FourKeySongView(DigiView):
 
         self.text = arcade.Text("[LOADING]", -5, self.window.height - 5, color = arcade.color.BLACK, font_size = 24, align = "right", anchor_y="top", font_name = "bananaslip plus plus", width = self.window.width)
         self.countdown_text = arcade.Text("0", self.window.width / 2, self.window.height / 2, arcade.color.BLACK, 72, align="center", anchor_x="center", anchor_y="center", font_name = "bananaslip plus plus", width = 100)
+
+        with LogSection(logger, "loading judgements"):
+            judgement_textures: list[arcade.Texture] = [j.get_texture() for j in self.engine.judgements]
+            self.judgement_sprite = arcade.Sprite(texture = judgement_textures[0])
+            self.judgement_sprite.textures = judgement_textures
+            self.judgement_sprite.scale = (self.highway.w * 0.8) / self.judgement_sprite.width
+            self.judgement_sprite.center_x = self.window.width / 2
+            self.judgement_sprite.center_y = self.window.height / 4
+            self.judgement_jump_pos = self.judgement_sprite.center_y + 25
+            self.judgement_land_pos = self.judgement_sprite.center_y
+            self.judgement_sprite.alpha = 0
 
         # Generate "gum wrapper" background
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
@@ -124,6 +135,14 @@ class FourKeySongView(DigiView):
         # Arcade.schedule() if we need to look into that.
         self.engine.calculate_score()
 
+        # Judgement
+        judgement_index = self.engine.judgements.index(self.engine.latest_judgement) if self.engine.latest_judgement else 0
+        judgement_time = self.engine.latest_judgement_time
+        if judgement_time:
+            self.judgement_sprite.center_y = ease_circout(self.judgement_jump_pos, self.judgement_land_pos, judgement_time, judgement_time + 0.25, self.tracks.time)
+            self.judgement_sprite.alpha = ease_circout(255, 0, judgement_time + 0.5, judgement_time + 1, self.tracks.time)
+            self.judgement_sprite.set_texture(judgement_index)
+
         data_string = self.generate_data_string()
         if self.text.text != data_string:
             self.text.text = data_string
@@ -132,6 +151,7 @@ class FourKeySongView(DigiView):
             self.countdown -= delta_time
             if self.countdown < 0:
                 self.countdown = 0
+            self.countdown_text.text = str(ceil(self.countdown))
 
         if self.countdown <= 0 and not self.countdown_over:
             self.tracks.play()
@@ -148,6 +168,7 @@ class FourKeySongView(DigiView):
         self.small_logos_backward.draw()
 
         self.highway.draw()
+        self.judgement_sprite.draw()
 
         self.text.draw()
 
