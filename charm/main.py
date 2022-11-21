@@ -56,11 +56,14 @@ class CharmGame(DigiWindow):
         icon = pyglet_img_from_resource(charm.data.images, "charm-icon32t.png")
         self.set_icon(icon)
 
+        sfx = ["back", "select", "valid"]
+        err = ["error", "warning", "info"]
+
         # Menu sounds
-        for soundname in ["back", "select", "valid"]:
+        for soundname in sfx:
             with pkg_resources.path(charm.data.audio, f"sfx-{soundname}.wav") as p:
                 self.sounds[soundname] = arcade.load_sound(p)
-        for soundname in ["error", "warning", "info"]:
+        for soundname in err:
             with pkg_resources.path(charm.data.audio, f"error-{soundname}.wav") as p:
                 self.sounds["error-" + soundname] = arcade.load_sound(p)
 
