@@ -3,9 +3,10 @@ import logging
 import traceback
 
 import arcade
-from arcade import View, Window
+from arcade import View
 
 from charm.lib.anim import ease_linear
+from charm.lib.digiwindow import DigiWindow
 from charm.lib.errors import CharmException, GenericError
 from charm.lib.settings import Settings
 
@@ -36,7 +37,7 @@ def shows_errors(fn):
 
 
 class DigiView(View):
-    def __init__(self, window: Window = None, *, back: View = None,
+    def __init__(self, window: DigiWindow = None, *, back: View = None,
                  fade_in: float = 0, bg_color = (0, 0, 0)):
         super().__init__(window)
         self.back = back
@@ -49,7 +50,7 @@ class DigiView(View):
         self.debug_options = {
             "camera_scale": 1,
             "box": False}
-        self._errors: list[list[CharmException, float]] = []
+        self._errors: list[list[CharmException, float]] = []  # [error, seconds to show]
 
     def on_error(self, error: CharmException):
         offset = len(self._errors) * 4
