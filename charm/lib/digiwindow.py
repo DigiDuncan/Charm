@@ -27,7 +27,7 @@ class DigiWindow(arcade.Window):
 
         self.fps_averages = []
 
-        arcade.draw_text("abc", 0, 0)  # force font init (fixes lag on first text draw)
+        arcade.draw_text(" ", 0, 0)  # force font init (fixes lag on first text draw)
 
         self.debug_camera = arcade.Camera(size[0], size[1])
         self.fps_label = pyglet.text.Label("???.? FPS",

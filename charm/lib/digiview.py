@@ -40,6 +40,7 @@ class DigiView(View):
     def __init__(self, window: DigiWindow = None, *, back: View = None,
                  fade_in: float = 0, bg_color = (0, 0, 0)):
         super().__init__(window)
+        self.window: DigiWindow = self.window  # This is stupid.
         self.back = back
         self.shown = False
         self.size = self.window.get_size()
