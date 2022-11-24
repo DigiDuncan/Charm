@@ -115,5 +115,5 @@ class Engine:
                 return j
         return self.judgements[-1]
 
-    def generate_results(self) -> Results:
+    def generate_results(self) -> "Results":
         raise NotImplementedError

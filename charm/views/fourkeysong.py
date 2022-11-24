@@ -10,6 +10,7 @@ from charm.lib.digiview import DigiView, shows_errors
 from charm.lib.gamemodes.four_key import FourKeySong, FourKeyHighway, FourKeyEngine
 from charm.lib.logsection import LogSection
 from charm.lib.trackcollection import TrackCollection
+from charm.views.resultsview import ResultsView
 
 logger = logging.getLogger("charm")
 
@@ -75,13 +76,12 @@ class FourKeySongView(DigiView):
 
     @shows_errors
     def on_key_something(self, symbol: int, modifiers: int, press: bool):
-        if not self.tracks.playing:
-            return
         if symbol in self.engine.mapping:
             i = self.engine.mapping.index(symbol)
-            self.key_state[i] = press
             self.highway.strikeline[i].alpha = 255 if press else 64
-        self.engine.process_keystate(self.key_state)
+            if self.tracks.playing:
+                self.key_state[i] = press
+                self.engine.process_keystate(self.key_state)
 
     def generate_data_string(self):
         return (f"Time: {int(self.tracks.time // 60)}:{int(self.tracks.time % 60):02}\n"
@@ -113,6 +113,11 @@ class FourKeySongView(DigiView):
                 match symbol:
                     case arcade.key.H:
                         self.highway.show_hit_window = not self.highway.show_hit_window
+                    case arcade.key.R:
+                        self.tracks.close()
+                        results_view = ResultsView(self.engine.generate_results(), back = self.back)
+                        results_view.setup()
+                        self.window.show_view(results_view)
 
         self.on_key_something(symbol, modifiers, True)
         return super().on_key_press(symbol, modifiers)

@@ -25,6 +25,7 @@ import charm.data.images.skins.base as baseskin
 from charm.lib.charm import load_missing_texture
 from charm.lib.generic.engine import DigitalKeyEvent, Engine, Judgement, KeyStates
 from charm.lib.generic.highway import Highway
+from charm.lib.generic.results import Results
 from charm.lib.generic.song import Note, Chart, Seconds, Song, BPMChangeEvent
 from charm.lib.settings import Settings
 from charm.lib.spritebucket import SpriteBucketCollection
@@ -419,3 +420,17 @@ class FourKeyEngine(Engine):
             self.misses += 1
             self.streak = 0
             self.last_note_missed = True
+
+    def generate_results(self) -> Results:
+        return Results(
+            self.hit_window,
+            self.judgements,
+            self.all_judgements,
+            self.score,
+            self.hits,
+            self.misses,
+            self.accuracy,
+            self.grade,
+            self.fc_type,
+            self.streak
+        )
