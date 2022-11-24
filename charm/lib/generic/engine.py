@@ -1,6 +1,8 @@
 from dataclasses import dataclass
-from typing import Literal
+from typing import Literal, TYPE_CHECKING
 from charm.lib.generic.song import Chart, Note, Seconds
+if TYPE_CHECKING:
+    from charm.lib.generic.results import Results
 
 KeyStates = list[bool]
 Key = int
@@ -113,17 +115,5 @@ class Engine:
                 return j
         return self.judgements[-1]
 
-    # def get_hittable_notes(self, current_time: Seconds) -> Iterable[Note]:
-    #     n = 0
-    #     while n < len(self.active_notes):
-    #         note = self.active_notes[n]
-    #         is_expired = note.time < current_time - (self.hit_window / 2)
-    #         is_waiting = note.time > current_time + (self.hit_window / 2)
-    #         if is_expired:
-    #             del self.active_notes[n]
-    #             n -= 1
-    #         elif is_waiting:
-    #             break
-    #         else:
-    #             yield note
-    #         n += 1
+    def generate_results(self) -> Results:
+        raise NotImplementedError

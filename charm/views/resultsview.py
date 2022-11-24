@@ -5,7 +5,7 @@ import arcade
 
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView
-from charm.lib.settings import Settings
+from charm.lib.generic.results import Results
 
 import charm.data.audio
 
@@ -13,10 +13,11 @@ logger = logging.getLogger("charm")
 
 
 class ResultsView(DigiView):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, results: Results, *args, **kwargs):
         super().__init__(fade_in=1, bg_color=CharmColors.FADED_GREEN, *args, **kwargs)
         self.song = None
         self.volume = 1
+        self.results = results
 
     def setup(self):
         super().setup()
