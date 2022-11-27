@@ -17,7 +17,7 @@ class TrackCollection:
 
     @property
     def duration(self):
-        return max([t.source.duration for t in self.tracks])
+        return max([t.source.duration if t.source else 0 for t in self.tracks])
 
     @property
     def playing(self):
