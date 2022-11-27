@@ -13,7 +13,7 @@ def time_to_zero_one_ramp(start: float, end: float, time: float) -> float:
     return clamp(0, y, 1)
 
 
-def zero_one_to_range(start: float, end: float, i: float) -> float:
+def lerp(start: float, end: float, i: float) -> float:
     """Convert a number between 0 and 1 to be the progress within a range start -> end."""
     return start + (i * (end - start))
 
@@ -30,7 +30,7 @@ def ease_linear(minimum: float, maximum: float, start: float, end: float, x: flo
        * `end: float`: the end of the transition, often a time
        * `x: float`: the current x, often a time"""
     x = time_to_zero_one_ramp(start, end, x)
-    return zero_one_to_range(minimum, maximum, x)
+    return lerp(minimum, maximum, x)
 
 
 def ease_quadinout(minimum: float, maximum: float, start: float, end: float, x: float) -> float:
@@ -40,18 +40,18 @@ def ease_quadinout(minimum: float, maximum: float, start: float, end: float, x: 
         zo = 2 * x * x
     else:
         zo = 1 - math.pow(-2 * x + 2, 2) / 2
-    return zero_one_to_range(minimum, maximum, zo)
+    return lerp(minimum, maximum, zo)
 
 
 def ease_quartout(minimum: float, maximum: float, start: float, end: float, x: float) -> float:
     """https://easings.net/#easeOutQuart"""
     x = time_to_zero_one_ramp(start, end, x)
     zo = 1 - math.pow(1 - x, 4)
-    return zero_one_to_range(minimum, maximum, zo)
+    return lerp(minimum, maximum, zo)
 
 
 def ease_circout(minimum: float, maximum: float, start: float, end: float, x: float) -> float:
     """https://easings.net/#easeOutCirc"""
     x = time_to_zero_one_ramp(start, end, x)
     zo = math.sqrt(1 - math.pow(x - 1, 2))
-    return zero_one_to_range(minimum, maximum, zo)
+    return lerp(minimum, maximum, zo)
