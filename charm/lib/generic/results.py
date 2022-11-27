@@ -22,7 +22,7 @@ class Results:
     max_streak: int
 
 class Heatmap(arcade.Sprite):
-    def __init__(self, judgements: list[Judgement], all_judgements: list[tuple[Seconds, Seconds, Judgement]], height: int = 100):
+    def __init__(self, judgements: list[Judgement], all_judgements: list[tuple[Seconds, Seconds, Judgement]], height: int = 75):
         self.judgements = judgements
         self.all_judgements = all_judgements
 
@@ -50,7 +50,8 @@ class Heatmap(arcade.Sprite):
             max_hits = max(hits.values())
 
             for ms, count in hits.items():
-                perc = (ms / hit_window)
-                h = (count / max_hits) * (height /  2)
+                perc = abs(ms / hit_window)
+                m = (height * 0.75)
+                h = ((count / max_hits) * m) / 2
                 color = (lerp(0, 255, perc), lerp(255, 0, perc), 0, 255)
-                arcade.draw_line(center + ms, height / 2 + (h / 2), center + ms, height / 2 - (h / 2), color)
+                arcade.draw_line(center + ms, (height / 2) + h, center + ms, (height / 2) - h, color)
