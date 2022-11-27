@@ -48,6 +48,7 @@ class Heatmap(arcade.Sprite):
                 hits[ms] += 1
 
             max_hits = max(hits.values())
+            avg_ms = sum([k * v for k, v in hits.items()]) / sum(hits.values())
 
             for ms, count in hits.items():
                 perc = abs(ms / hit_window)
@@ -55,3 +56,11 @@ class Heatmap(arcade.Sprite):
                 h = ((count / max_hits) * m) / 2
                 color = (lerp(0, 255, perc), lerp(255, 0, perc), 0, 255)
                 arcade.draw_line(center + ms, (height / 2) + h, center + ms, (height / 2) - h, color)
+
+            avg_ms_pos = center + avg_ms
+            e = (height * 0.05)
+            tip = (avg_ms_pos, height * 0.85)
+            left = (avg_ms_pos - e, height * 0.95)
+            right = (avg_ms_pos + e, height * 0.95)
+            arcade.draw_polygon_filled((left, right, tip), arcade.color.WHITE)
+            arcade.draw_polygon_outline((left, right, tip), arcade.color.BLACK)
