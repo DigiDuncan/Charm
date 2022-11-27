@@ -296,24 +296,24 @@ class FourKeyHighway(Highway):
 
 class FourKeyJudgement(Judgement):
     def get_texture(self) -> arcade.Texture:
-        image_path = pkg_resources.path(baseskin, f"judgement-{self.name}.png")
+        image_path = pkg_resources.path(baseskin, f"judgement-{self.key}.png")
         tex = arcade.load_texture(image_path, hit_box_algorithm = "None")
         return tex
 
 
 class FourKeyEngine(Engine):
-    def __init__(self, chart: FourKeyChart, offset: Seconds = -0.025):
+    def __init__(self, chart: FourKeyChart, offset: Seconds = -0.025):  # TODO: Set this dynamically
         hit_window: Seconds = 0.075
         mapping = [arcade.key.D, arcade.key.F, arcade.key.J, arcade.key.K]
         judgements = [
-            #               ("name",            ms, score,  acc, hp=0)
-            FourKeyJudgement("supercharming",   10,  1000,    1, 0.04),
-            FourKeyJudgement("charming",        25,  1000,  0.9, 0.04),
-            FourKeyJudgement("excellent",       35,   800,  0.8, 0.03),
-            FourKeyJudgement("great",           45,   600,  0.7, 0.02),
-            FourKeyJudgement("good",            60,   400,  0.6, 0.01),
-            FourKeyJudgement("ok",              75,   200,  0.5,    0),
-            FourKeyJudgement("miss",      math.inf,     0,    0, -0.1)
+            #               ("name",           "key"             ms, score,  acc, hp=0)
+            FourKeyJudgement("Super Charming", "supercharming",  10,  1000,    1, 0.04),
+            FourKeyJudgement("Charming",       "charming",       25,  1000,  0.9, 0.04),
+            FourKeyJudgement("Excellent",      "excellent",      35,   800,  0.8, 0.03),
+            FourKeyJudgement("Great",          "great",          45,   600,  0.7, 0.02),
+            FourKeyJudgement("Good",           "good",           60,   400,  0.6, 0.01),
+            FourKeyJudgement("OK",             "ok",             75,   200,  0.5,    0),
+            FourKeyJudgement("Miss",           "miss",     math.inf,     0,    0, -0.1)
         ]
         super().__init__(chart, mapping, hit_window, judgements, offset)
 
@@ -334,6 +334,7 @@ class FourKeyEngine(Engine):
         self.last_p1_note = None
         self.last_note_missed = False
         self.streak = 0
+        self.max_streak = 0
 
     def process_keystate(self, key_states: KeyStates):
         last_state = self.key_state
@@ -415,6 +416,7 @@ class FourKeyEngine(Engine):
         if note.hit:
             self.hits += 1
             self.streak += 1
+            self.max_streak = max(self.streak, self.max_streak)
             self.last_note_missed = False
         elif note.missed:
             self.misses += 1
@@ -432,5 +434,6 @@ class FourKeyEngine(Engine):
             self.accuracy,
             self.grade,
             self.fc_type,
-            self.streak
+            self.streak,
+            self.max_streak
         )

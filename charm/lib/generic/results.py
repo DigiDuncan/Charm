@@ -15,3 +15,4 @@ class Results:
     grade: str
     fc_type: str
     streak: int
+    max_streak: int

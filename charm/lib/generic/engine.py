@@ -10,6 +10,7 @@ Key = int
 @dataclass
 class Judgement:
     name: str
+    key: str
     ms: int  # maximum
     score: int
     accuracy_weight: float

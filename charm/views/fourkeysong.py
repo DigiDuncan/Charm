@@ -71,7 +71,7 @@ class FourKeySongView(DigiView):
         if self.success is False:
             self.window.show_view(self.back)
             self.window.theme_song.volume = 0.25
-        self.countdown = 3
+        self.countdown = 4
         super().on_show()
 
     @shows_errors
@@ -114,10 +114,7 @@ class FourKeySongView(DigiView):
                     case arcade.key.H:
                         self.highway.show_hit_window = not self.highway.show_hit_window
                     case arcade.key.R:
-                        self.tracks.close()
-                        results_view = ResultsView(self.engine.generate_results(), back = self.back)
-                        results_view.setup()
-                        self.window.show_view(results_view)
+                        self.show_results()
 
         self.on_key_something(symbol, modifiers, True)
         return super().on_key_press(symbol, modifiers)
@@ -126,6 +123,12 @@ class FourKeySongView(DigiView):
     def on_key_release(self, symbol: int, modifiers: int):
         self.on_key_something(symbol, modifiers, False)
         return super().on_key_release(symbol, modifiers)
+
+    def show_results(self):
+        self.tracks.close()
+        results_view = ResultsView(self.engine.generate_results(), back = self.back)
+        results_view.setup()
+        self.window.show_view(results_view)
 
     def on_update(self, delta_time):
         super().on_update(delta_time)
@@ -163,6 +166,9 @@ class FourKeySongView(DigiView):
         if self.countdown <= 0 and not self.countdown_over:
             self.tracks.play()
             self.countdown_over = True
+
+        if self.tracks.time >= self.tracks.duration:
+            self.show_results()
 
         move_gum_wrapper(self.logo_width, self.small_logos_forward, self.small_logos_backward, delta_time)
 

@@ -328,12 +328,12 @@ class FNFEngine(Engine):
         hit_window = 0.166
         mapping = [arcade.key.D, arcade.key.F, arcade.key.J, arcade.key.K]
         judgements = [
-            #           ("name",  ms,       score, acc,   hp=0)
-            FNFJudgement("sick",  45,       350,   1,     0.04),
-            FNFJudgement("good",  90,       200,   0.75),
-            FNFJudgement("bad",   135,      100,   0.5,  -0.03),
-            FNFJudgement("awful", 166,      50,    -1,   -0.06),  # I'm not calling this "s***", it's not funny.
-            FNFJudgement("miss",  math.inf, 0,     -1,   -0.1)
+            #           ("name",  "key"    ms,       score, acc,   hp=0)
+            FNFJudgement("sick",  "sick",  45,       350,   1,     0.04),
+            FNFJudgement("good",  "good",  90,       200,   0.75),
+            FNFJudgement("bad",   "bad",   135,      100,   0.5,  -0.03),
+            FNFJudgement("awful", "awful", 166,      50,    -1,   -0.06),  # I'm not calling this "s***", it's not funny.
+            FNFJudgement("miss",  "miss",  math.inf, 0,     -1,   -0.1)
         ]
         super().__init__(chart, mapping, hit_window, judgements, offset)
 
