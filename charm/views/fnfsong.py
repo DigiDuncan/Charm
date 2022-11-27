@@ -239,8 +239,8 @@ class FNFSongView(DigiView):
     def hp_draw(self):
         hp_min = self.size[0] // 2 - self.hp_bar_length // 2
         hp_max = self.size[0] // 2 + self.hp_bar_length // 2
-        hp_normalized = anim.time_to_zero_one_ramp(self.engine.min_hp, self.engine.max_hp, self.engine.hp)
-        hp = anim.zero_one_to_range(hp_min, hp_max, hp_normalized)
+        hp_normalized = anim.lerp(self.engine.min_hp, self.engine.max_hp, self.engine.hp)
+        hp = anim.lerp(hp_min, hp_max, hp_normalized)
         arcade.draw_lrtb_rectangle_filled(
             hp_min, hp_max,
             self.size[1] - 100, self.size[1] - 110,

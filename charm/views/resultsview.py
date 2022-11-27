@@ -5,13 +5,12 @@ import arcade
 
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView
-from charm.lib.generic.results import Results
+from charm.lib.generic.results import Results, Heatmap
 
 import charm.data.audio
 import charm.data.images.skins
 
 logger = logging.getLogger("charm")
-
 
 class ResultsView(DigiView):
     def __init__(self, results: Results, *args, **kwargs):
@@ -46,6 +45,11 @@ class ResultsView(DigiView):
 
         for j in self.results.judgements:
             self.judgements_text.value += f"{j.name}: {len([i for i in self.results.all_judgements if i[2] == j])}\n"
+
+        self.heatmap = Heatmap(self.results.judgements, self.results.all_judgements)
+        self.heatmap.scale = 2
+        self.heatmap.bottom = 10
+        self.heatmap.right = self.window.width - 10
 
         # Generate "gum wrapper" background
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
@@ -82,5 +86,6 @@ class ResultsView(DigiView):
         self.score_text.draw()
         self.data_text.draw()
         self.judgements_text.draw()
+        self.heatmap.draw()
 
         super().on_draw()
