@@ -5,7 +5,7 @@ import PIL.Image
 import arcade
 from nindex import Index
 
-from charm.lib.utils import scale_float
+from charm.lib.utils import map_range
 
 Point = tuple[int | float, int | float]
 Seconds = float
@@ -181,7 +181,7 @@ class NoteTrail(MultiLineRenderer):
             points2.append(((self.right_x, self._trail_end), trail_time_end))
         else:
             for i in range(int(start_y), int(self._trail_end), resolution):
-                time = scale_float(time_start, trail_time_end, i, start_y, self._trail_end)
+                time = map_range(i, start_y, self._trail_end, time_start, trail_time_end)
                 points1.append(((self.left_x, i), time))
                 points2.append(((self.right_x, i), time))
         if not self.curve:

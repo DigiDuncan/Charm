@@ -36,15 +36,15 @@ def pyglet_img_from_resource(package: pkg_resources.Package, resource: pkg_resou
         image = arcade.pyglet.image.load("icon.png", file=f)
     return image
 
-def scale_float(nn: float, nm: float, x: float, on: float = -1.0, om: float = 1.0) -> float:
-    """Scale a float `x` that is currently somewhere between `on` and `om` to now be in an
-    equivalent position between `nn` and `nm`."""
+def map_range(x: float, n1: float, m1: float, n2: float = -1, m2: float = 1) -> float:
+    """Scale a float `x` that is currently somewhere between `n1` and `m1` to now be in an
+    equivalent position between `n2` and `m2`."""
     # Make the range start at 0.
-    old_max = om - on  # 16k
-    old_x = x - on  # x + 8k
-    percentage = old_x / old_max  # 0 - 1
+    old_max = m1 - n1
+    old_x = x - n1
+    percentage = old_x / old_max
 
-    new_max = nm - nn  # 2
+    new_max = m2 - n2
     new_pos = new_max * percentage
-    ans = new_pos + nn
+    ans = new_pos + n2
     return ans
