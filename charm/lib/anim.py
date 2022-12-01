@@ -3,13 +3,13 @@ import math
 from .utils import clamp
 
 
-def find_percent(start: float, end: float, time: float) -> float:
+def find_percent(start: float, end: float, x: float) -> float:
     """Convert a number to its progress through the range start -> end, from 0 to 1.
 
     https://www.desmos.com/calculator/d2qdk3lceh"""
     if end - start == 0:
         return 1
-    y = ((1 / (end - start)) * time) - (start / (end - start))
+    y = ((1 / (end - start)) * x) - (start / (end - start))
     return clamp(0, y, 1)
 
 
