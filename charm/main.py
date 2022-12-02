@@ -20,33 +20,38 @@ SCREEN_HEIGHT = Settings.height
 FPS_CAP = Settings.fps
 SCREEN_TITLE = "Charm"
 
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-dfhandler = digilogger.DigiFormatterHandler()
-dfhandlersource = digilogger.DigiFormatterHandler(showsource=True)
-phandler = PygletHandler()
-phandlersource = PygletHandler(showsource=True)
-
-logger = logging.getLogger("charm")
-logger.setLevel(logging.DEBUG)
-logger.handlers = []
-logger.propagate = False
-logger.addHandler(dfhandler)
-logger.addHandler(phandler)
-
-arcadelogger = logging.getLogger("arcade")
-arcadelogger.setLevel(logging.WARN)
-arcadelogger.handlers = []
-arcadelogger.propagate = False
-arcadelogger.addHandler(dfhandlersource)
-arcadelogger.addHandler(phandlersource)
-
 # Fix font lag
 pyglet.options["advanced_font_features"] = True
 arcade.pyglet.options["advanced_font_features"] = True
 
 with pkg_resources.path(charm.data.fonts, "bananaslipplus.otf") as p:
     arcade.text_pyglet.load_font(str(p))
+
+# Set up logging
+logger: logging.Logger = None
+arcadelogger: logging.Logger = None
+
+def setup_logging():
+    global logger, arcadelogger
+    logging.basicConfig(level=logging.INFO)
+    dfhandler = digilogger.DigiFormatterHandler()
+    dfhandlersource = digilogger.DigiFormatterHandler(showsource=True)
+    phandler = PygletHandler()
+    phandlersource = PygletHandler(showsource=True)
+
+    logger = logging.getLogger("charm")
+    logger.setLevel(logging.DEBUG)
+    logger.handlers = []
+    logger.propagate = False
+    logger.addHandler(dfhandler)
+    logger.addHandler(phandler)
+
+    arcadelogger = logging.getLogger("arcade")
+    arcadelogger.setLevel(logging.WARN)
+    arcadelogger.handlers = []
+    arcadelogger.propagate = False
+    arcadelogger.addHandler(dfhandlersource)
+    arcadelogger.addHandler(phandlersource)
 
 
 class CharmGame(DigiWindow):
@@ -71,6 +76,7 @@ class CharmGame(DigiWindow):
 
 
 def main():
+    setup_logging()
     window = CharmGame()
     window.setup()
     arcade.run()
