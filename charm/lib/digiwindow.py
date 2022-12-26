@@ -3,8 +3,11 @@ import typing
 
 import arcade
 import pyglet
+from pypresence import Presence
 
 from charm.objects.debug_log import DebugLog
+
+rpc_client_id = "1056710104348639305"
 
 if typing.TYPE_CHECKING:
     from charm.lib.digiview import DigiView
@@ -24,6 +27,12 @@ class DigiWindow(arcade.Window):
         self.show_log = False
         self.sounds: dict[str, arcade.Sound] = {}
         self.theme_song: pyglet.media.Player = None
+
+        #Discord RP
+        self.rpc = Presence(rpc_client_id)
+        self.last_rp_time = 0
+        self.current_rp_state = ":jiggycat:"
+        self.rpc.connect()
 
         self.fps_averages = []
 
@@ -65,10 +74,17 @@ class DigiWindow(arcade.Window):
     def setup(self):
         self.initial_view.setup()
         self.show_view(self.initial_view)
+        self.update_rp()
 
     def update(self, delta_time: float):
         self.delta_time = delta_time
         self.time += delta_time
+
+    def update_rp(self):
+        if self.last_rp_time + 15 > self.time:
+            self.rpc.update(state=self.current_rp_state,
+            large_image="charm-icon-square", large_text="Charm Logo")
+            self.last_rp_time = self.time
 
     def debug_draw(self):
         self.fps_checks += 1
