@@ -4,11 +4,12 @@ from dataclasses import dataclass
 import arcade
 
 from charm.lib.anim import lerp
-from charm.lib.generic.engine import Judgement
+from charm.lib.generic.engine import Judgement, Chart
 from charm.lib.generic.song import Seconds
 
 @dataclass
 class Results:
+    chart: Chart
     hit_window: Seconds
     judgements: list[Judgement]
     all_judgements: list[tuple[Seconds, Seconds, Judgement]]

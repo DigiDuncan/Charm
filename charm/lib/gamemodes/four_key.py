@@ -26,7 +26,7 @@ from charm.lib.charm import load_missing_texture
 from charm.lib.generic.engine import DigitalKeyEvent, Engine, Judgement, KeyStates
 from charm.lib.generic.highway import Highway
 from charm.lib.generic.results import Results
-from charm.lib.generic.song import Note, Chart, Seconds, Song, BPMChangeEvent
+from charm.lib.generic.song import Metadata, Note, Chart, Seconds, Song, BPMChangeEvent
 from charm.lib.settings import Settings
 from charm.lib.spritebucket import SpriteBucketCollection
 from charm.lib.utils import img_from_resource, clamp
@@ -152,6 +152,9 @@ class FourKeySong(Song):
 
         return song
 
+    def get_metadata(self) -> Metadata:
+        pass
+
 class FourKeyNoteSprite(arcade.Sprite):
     def __init__(self, note: FourKeyNote, highway: FourKeyHighway, height=128, *args, **kwargs):
         self.note: FourKeyNote = note
@@ -174,7 +177,6 @@ class FourKeyNoteSprite(arcade.Sprite):
         if self.note.hit:
             self.alpha = 0
 
-
 class FourKeyLongNoteSprite(FourKeyNoteSprite):
     id = 0
 
@@ -196,7 +198,6 @@ class FourKeyLongNoteSprite(FourKeyNoteSprite):
 
     def draw_trail(self):
         self.dead_trail.draw() if self.dead else self.trail.draw()
-
 
 class FourKeyHighway(Highway):
     def __init__(self, chart: FourKeyChart, pos: tuple[int, int], size: tuple[int, int] = None, gap: int = 5, auto=False):
@@ -293,13 +294,11 @@ class FourKeyHighway(Highway):
         self.sprite_buckets.draw(self.song_time)
         _cam.use()
 
-
 class FourKeyJudgement(Judgement):
     def get_texture(self) -> arcade.Texture:
         image_path = pkg_resources.path(baseskin, f"judgement-{self.key}.png")
         tex = arcade.load_texture(image_path, hit_box_algorithm = "None")
         return tex
-
 
 class FourKeyEngine(Engine):
     def __init__(self, chart: FourKeyChart, offset: Seconds = -0.025):  # TODO: Set this dynamically
@@ -425,6 +424,7 @@ class FourKeyEngine(Engine):
 
     def generate_results(self) -> Results:
         return Results(
+            self.chart,
             self.hit_window,
             self.judgements,
             self.all_judgements,
