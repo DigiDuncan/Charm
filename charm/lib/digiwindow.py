@@ -32,6 +32,7 @@ class DigiWindow(arcade.Window):
         self.rpc = Presence(rpc_client_id)
         self.last_rp_time = 0
         self.current_rp_state = ":jiggycat:"
+        self._rp_stale = True
         self.rpc.connect()
 
         self.fps_averages = []
@@ -79,12 +80,17 @@ class DigiWindow(arcade.Window):
     def update(self, delta_time: float):
         self.delta_time = delta_time
         self.time += delta_time
+        self.update_rp()
 
-    def update_rp(self):
-        if self.last_rp_time + 15 > self.time:
+    def update_rp(self, new_state: str = None):
+        if new_state:
+            self.current_rp_state = new_state
+            self._rp_stale = True
+        if self.last_rp_time + 15 > self.time and self._rp_stale:
             self.rpc.update(state=self.current_rp_state,
             large_image="charm-icon-square", large_text="Charm Logo")
             self.last_rp_time = self.time
+            self._rp_stale = False
 
     def debug_draw(self):
         self.fps_checks += 1

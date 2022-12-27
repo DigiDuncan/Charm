@@ -123,6 +123,9 @@ class FNFSongView(DigiView):
 
             self.paused = False
             self.show_text = True
+
+            self.window.update_rp(f"Playing {self.songdata.metadata.title}")
+
             self.success = True
 
     @shows_errors

@@ -39,6 +39,9 @@ class MainMenuView(DigiView):
             ]
         )
 
+        self.window.current_rp_state = "In Menus"
+        self.window.update_rp("In Menus")
+
     @shows_errors
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:

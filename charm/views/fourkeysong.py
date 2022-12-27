@@ -61,6 +61,8 @@ class FourKeySongView(DigiView):
             self.judgement_land_pos = self.judgement_sprite.center_y
             self.judgement_sprite.alpha = 0
 
+        self.window.update_rp("Playing 4K")
+
         # Generate "gum wrapper" background
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
         self.success = True

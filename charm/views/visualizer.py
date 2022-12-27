@@ -149,6 +149,8 @@ class VisualizerView(DigiView):
             self.last_player_note: FNFNote = None
             self.did_harcode = False
 
+            self.window.update_rp("Vs. Scott Cawthon (demo)")
+
     def on_show(self):
         self.window.theme_song.volume = 0
         self.song = arcade.play_sound(self._song, 1, looping=False)
