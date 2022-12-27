@@ -11,6 +11,7 @@ from charm.lib.logsection import LogSection
 from charm.lib.paths import songspath
 from charm.lib.settings import Settings
 from charm.lib.trackcollection import TrackCollection
+from charm.lib.utils import map_range
 
 logger = logging.getLogger("charm")
 
@@ -242,7 +243,7 @@ class FNFSongView(DigiView):
     def hp_draw(self):
         hp_min = self.size[0] // 2 - self.hp_bar_length // 2
         hp_max = self.size[0] // 2 + self.hp_bar_length // 2
-        hp_normalized = anim.lerp(self.engine.min_hp, self.engine.max_hp, self.engine.hp)
+        hp_normalized = map_range(self.engine.hp, self.engine.min_hp, self.engine.max_hp, 0, 1)
         hp = anim.lerp(hp_min, hp_max, hp_normalized)
         arcade.draw_lrtb_rectangle_filled(
             hp_min, hp_max,
