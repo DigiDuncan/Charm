@@ -21,7 +21,7 @@ class Point:
     def y(self) -> float:
         return self._point[1]
 
-    @x.setter
+    @y.setter
     def y(self, val: float):
         self._point = (self._point[0], val)
 

@@ -50,5 +50,6 @@ class TransparencyWindow(arcade.Window):
 def main():
     TransparencyWindow().run()
 
+
 if __name__ == "__main__":
     main()

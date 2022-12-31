@@ -1,4 +1,3 @@
-from math import sqrt
 import arcade
 from pyglet.math import Vec2
 

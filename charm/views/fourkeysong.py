@@ -4,7 +4,7 @@ from pathlib import Path
 
 import arcade
 
-from charm.lib.anim import ease_linear, ease_circout
+from charm.lib.anim import ease_circout
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView, shows_errors
 from charm.lib.gamemodes.four_key import FourKeySong, FourKeyHighway, FourKeyEngine
@@ -92,7 +92,7 @@ class FourKeySongView(DigiView):
                 f"Avg. DT: {self.engine.average_acc * 1000:.2f}ms\n"
                 f"{self.engine.fc_type}\n"
                 f"Streak: {self.engine.streak}")
-         
+
     @shows_errors
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:

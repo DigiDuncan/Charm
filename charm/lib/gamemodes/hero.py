@@ -316,7 +316,7 @@ class HeroSong(Song):
         events: list[Event] = []
 
         line_num = 0
-        last_line_type = None  # unused
+        last_line_type = None  # noqa: F841 (unused)
         last_header = None
         sync_track: list[RawBPMEvent] = []
 
@@ -334,7 +334,6 @@ class HeroSong(Song):
                     raise ChartParseError(line_num, f"{header} is not a valid header.")
                 if last_header is None and header != "Song":
                     raise ChartParseError(line_num, "First header must be Song.")
-                last_line_type = "header"
                 last_header = header
             # Parse metadata
             elif last_header == "Song":
@@ -478,7 +477,7 @@ class HeroSong(Song):
         current_id = 0
         for current_bpm_event, next_bpm_event in zip(bpm_events[:-1], bpm_events[1:]):
             cb = 0
-            ts: TSEvent = [t for t in self.events_by_type(TSEvent) if t.time >= current_time][-1]
+            ts: TSEvent = [t for t in self.events_by_type(TSEvent) if t.time <= current_time][-1]
             n, d = ts.numerator, ts.denominator
             spb = (1 / (current_bpm_event.new_bpm / 60)) / d
             while current_time < next_bpm_event.time:

@@ -7,7 +7,7 @@ class LogSection:
         self.name = name
         logger.debug(f"Starting {name}")
         self.start_time = time()
-    
+
     def done(self):
         duration = int((time() - self.start_time) * 1000)
         self.logger.debug(f"Done {self.name} ({duration}ms)")

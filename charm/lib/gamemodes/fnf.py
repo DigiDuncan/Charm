@@ -503,6 +503,7 @@ class FNFNoteSprite(arcade.Sprite):
 
 class FNFLongNoteSprite(FNFNoteSprite):
     id = 0
+
     def __init__(self, note: FNFNote, highway: FNFHighway, height=128, *args, **kwargs):
         super().__init__(note, highway, height, *args, **kwargs)
         self.id += 1

@@ -1,7 +1,6 @@
 import logging
 
 import arcade
-import pyglet.media as media
 
 from charm.lib import anim
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper

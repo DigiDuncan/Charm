@@ -58,7 +58,7 @@ class Highway:
     @property
     def h(self) -> int:
         return self.size[1]
-    
+
     @h.setter
     def h(self, i: int):
         self.size = (self.size[0], i)

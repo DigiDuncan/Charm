@@ -212,7 +212,7 @@ class AdobeSprite(Sprite):
                 else:
                     self._current_animation_index -= 1
                 self._current_animation_index %= len(self._current_animation_override)
-                
+
                 self.set_texture(self._current_animation_override[self._current_animation_index])
                 self.hit_box = self.texture.hit_box_points
                 self._animation_time = 0
@@ -223,7 +223,7 @@ class AdobeSprite(Sprite):
                 else:
                     self._current_animation_index -= 1
                 self._current_animation_index %= len(self._current_animation)
-                
+
                 self.set_texture(self._current_animation[self._current_animation_index])
                 self.hit_box = self.texture.hit_box_points
                 self._animation_time = 0

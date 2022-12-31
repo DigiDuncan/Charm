@@ -4,7 +4,6 @@ from dataclasses import dataclass
 import dataclasses
 from functools import cache, total_ordering
 from pathlib import Path
-from time import time
 from typing import Optional
 
 
@@ -109,7 +108,7 @@ class Event:
 @dataclass
 class BPMChangeEvent(Event):
     """Event indicating the song's BPM has changed.
-    
+
     * `new_bpm: float`: the new BPM going forward.
     * `time: float`: event start in seconds."""
     new_bpm: float

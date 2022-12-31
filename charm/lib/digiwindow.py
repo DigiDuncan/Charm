@@ -28,7 +28,7 @@ class DigiWindow(arcade.Window):
         self.sounds: dict[str, arcade.Sound] = {}
         self.theme_song: pyglet.media.Player = None
 
-        #Discord RP
+        # Discord RP
         self.rpc = Presence(rpc_client_id)
         self.last_rp_time = 0
         self.current_rp_state = ":jiggycat:"

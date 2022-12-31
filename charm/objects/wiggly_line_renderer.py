@@ -1,6 +1,5 @@
 from functools import total_ordering
 from typing import Hashable
-import PIL.Image
 
 import arcade
 from nindex import Index
@@ -29,7 +28,7 @@ class TimePoint:
     def y(self) -> float:
         return self.point[1]
 
-    @x.setter
+    @y.setter
     def y(self, val: float):
         self.point = (self.point[0], val)
 
