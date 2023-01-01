@@ -12,6 +12,7 @@ from nindex import Index
 import PIL.Image
 import arcade
 
+from charm.lib.anim import ease_linear
 from charm.lib.charm import load_missing_texture
 from charm.lib.errors import ChartParseError, ChartPostReadParseError, NoChartsError
 from charm.lib.generic.engine import Engine, Judgement
@@ -570,6 +571,7 @@ class HeroHighway(Highway):
 
         self.color = (0, 0, 0, 128)  # TODO: eventually this will be a scrolling image.
 
+        self.note_sprites: list[HeroNoteSprite] = []
         self.sprite_buckets = SpriteBucketCollection()
         for note in self.notes:
             sprite = HeroNoteSprite(note, self, self.note_size) if note.length == 0 else HeroLongNoteSprite(note, self, self.note_size)
@@ -583,6 +585,7 @@ class HeroHighway(Highway):
                 sprite.center_x = self.w / 2
             note.sprite = sprite
             self.sprite_buckets.append(sprite, note.time, note.length)
+            self.note_sprites.append(sprite)
 
         self.strikeline = arcade.SpriteList()
         # TODO: Is this dumb?
@@ -592,6 +595,11 @@ class HeroHighway(Highway):
             sprite.left = self.lane_x(sprite.note.lane)
             sprite.alpha = 128
             self.strikeline.append(sprite)
+
+        self._last_strikeline_note: list[HeroNote] = [None] * 5
+
+        for spritelist in self.sprite_buckets.buckets:
+            spritelist.reverse()
 
         logger.debug(f"Generated highway for chart {chart.instrument}.")
 
@@ -606,6 +614,22 @@ class HeroHighway(Highway):
         delta_draw_time = self.song_time - self.last_update_time
         self._pixel_offset += (self.px_per_s * delta_draw_time)
         self.last_update_time = self.song_time
+
+        if self.auto:
+            # Fancy strikeline
+            for note_sprite in self.note_sprites:
+                if self.song_time - 0.050 < note_sprite.note.time < self.song_time + 0.050:
+                    if note_sprite.note.lane < 5:
+                        self._last_strikeline_note[note_sprite.note.lane] = note_sprite.note
+                    if self.song_time > note_sprite.note.time:
+                        note_sprite.alpha = 0
+                if note_sprite.note.time > self.song_time + 0.050:
+                    break
+            for n, note in enumerate(self._last_strikeline_note):
+                if note is None:
+                    self.strikeline[n].alpha = 64
+                else:
+                    self.strikeline[n].alpha = ease_linear(255, 64, note.end, note.end + 0.5, self.song_time)
 
     @property
     def pos(self) -> tuple[int, int]:

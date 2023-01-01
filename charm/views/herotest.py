@@ -23,7 +23,7 @@ class HeroTestView(DigiView):
         self._song = arcade.load_sound(songspath / "ch" / "soulless5" / "song.ogg")
         self.hero_song = HeroSong.parse(songspath / "ch" / "soulless5")
         self.chart = self.hero_song.get_chart("Expert", "Single")
-        self.highway = HeroHighway(self.chart, (0, 0))
+        self.highway = HeroHighway(self.chart, (0, 0), auto = True)
         self.highway.x += self.window.width // 2 - self.highway.w // 2
 
         self.section_text = arcade.Text("", self.window.width - 5, 5, arcade.color.BLACK, 16, align = "right", anchor_x = "right", font_name = "bananaslip plus plus", width=self.window.width)
