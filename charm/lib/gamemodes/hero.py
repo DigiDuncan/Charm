@@ -112,18 +112,18 @@ class RawBPMEvent:
 
 # ---
 
-def tick_to_seconds(current_tick: Ticks, sync_track: list[RawBPMEvent], resolution: int = 192, offset = 0) -> Seconds:
+def tick_to_seconds(current_tick: Ticks, sync_track: list[BPMChangeTickEvent], resolution: int = 192, offset = 0) -> Seconds:
     """Takes a tick (and an associated sync_track,) and returns its position in seconds as a float."""
     current_tick = int(current_tick)  # you should really just be passing ints in here anyway but eh
     if current_tick == 0:
         return 0
-    bpm_events = [b for b in sync_track if b.ticks <= current_tick]
-    bpm_events.sort(key=lambda x: x.ticks)
+    bpm_events = [b for b in sync_track if b.tick <= current_tick]
+    bpm_events.sort(key=lambda x: x.tick)
     last_bpm_event = bpm_events[-1]
-    tick_delta = current_tick - last_bpm_event.ticks
-    bps = last_bpm_event.mbpm / 1000 / 60
+    tick_delta = current_tick - last_bpm_event.tick
+    bps = last_bpm_event.new_bpm / 60
     seconds = tick_delta / (resolution * bps)
-    return seconds + offset
+    return seconds + offset + last_bpm_event.time
 
 class NoteColor:
     GREEN = arcade.color.LIME_GREEN
@@ -318,7 +318,7 @@ class HeroSong(Song):
         line_num = 0
         last_line_type = None  # noqa: F841 (unused)
         last_header = None
-        sync_track: list[RawBPMEvent] = []
+        sync_track: list[BPMChangeTickEvent] = []
 
         for line in chartfile:
             line = line.strip().strip("\uffef")  # god dang ffef
@@ -380,11 +380,11 @@ class HeroSong(Song):
                         raise ChartParseError(line_num, "Chart has no BPM event at tick 0.")
                     elif not sync_track:
                         events.append(BPMChangeTickEvent(0, tick, mbpm / 1000))
-                        sync_track.append(RawBPMEvent(0, mbpm))
+                        sync_track.append(BPMChangeTickEvent(0, tick, mbpm / 1000))
                     else:
                         seconds = tick_to_seconds(tick, sync_track, resolution, offset)
                         events.append(BPMChangeTickEvent(seconds, tick, mbpm / 1000))
-                        sync_track.append(RawBPMEvent(tick, mbpm))
+                        sync_track.append(BPMChangeTickEvent(seconds, tick, mbpm / 1000))
                 # Time Sig events
                 elif m := re.match(RE_TS, line):
                     tick, num, denom = m.groups()
