@@ -28,6 +28,9 @@ class Point:
     def move(self, x: float, y: float):
         self._point = (self._point[0] + x, self._point[1] + y)
 
+    def __str__(self) -> str:
+        return f"Point({self.x}, {self.y})"
+
 class LineRenderer:
     def __init__(self, points: list[Point], color: arcade.Color, width: float):
         self.points: list[Point] = points
