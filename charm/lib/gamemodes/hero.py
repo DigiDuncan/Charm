@@ -250,7 +250,7 @@ class HeroChart(Chart):
 
             ticks_per_quarternote = self.song.resolution
             ticks_per_wholenote = ticks_per_quarternote * 4
-            beats_per_wholenote = timesig.denominator
+            beats_per_wholenote = timesig.denominator if timesig.denominator != 0 else 1
             ticks_per_beat = ticks_per_wholenote / beats_per_wholenote
 
             chord_distance = current_chord.tick - last_chord.tick
@@ -323,7 +323,7 @@ class HeroSong(Song):
         sync_track: list[BPMChangeTickEvent] = []
 
         for line in chartfile:
-            line = line.strip().strip("\uffef")  # god dang ffef
+            line = line.strip().strip("\uffef").strip("\ufeff")  # god dang ffef
             line_num += 1
 
             # Screw curly braces
@@ -391,7 +391,7 @@ class HeroSong(Song):
                 elif m := re.match(RE_TS, line):
                     tick, num, denom = m.groups()
                     tick = int(tick)
-                    denom = 4 if denom is None else denom ** 2
+                    denom = 4 if denom is None else int(denom) ** 2
                     seconds = tick_to_seconds(tick, sync_track, resolution, offset)
                     events.append(TSEvent(seconds, tick, int(num), int(denom)))
                 else:
