@@ -27,6 +27,8 @@ class HeroTestView(DigiView):
         self.highway.x += self.window.width // 2 - self.highway.w // 2
 
         self.section_text = arcade.Text("", self.window.width - 5, 5, arcade.color.BLACK, 16, align = "right", anchor_x = "right", font_name = "bananaslip plus plus", width=self.window.width)
+        self.time_text = arcade.Text("0:00", self.window.width - 5, 35, arcade.color.BLACK, 16, align = "right", anchor_x = "right", font_name = "bananaslip plus plus", width=self.window.width)
+
 
         # Generate "gum wrapper" background
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
@@ -67,6 +69,10 @@ class HeroTestView(DigiView):
             logger.debug(f"Section name is now {current_section.name} ({self.song.time})")
             self.section_text.text = current_section.name
 
+        time_string = f"{self.song.time // 60:.0f}:{self.song.time % 60:.0f}"
+        if self.time_text.text != time_string:
+            self.time_text.text = time_string
+
         move_gum_wrapper(self.logo_width, self.small_logos_forward, self.small_logos_backward, delta_time)
 
     def on_draw(self):
@@ -79,5 +85,6 @@ class HeroTestView(DigiView):
 
         self.highway.draw()
         self.section_text.draw()
+        self.time_text.draw()
 
         super().on_draw()
