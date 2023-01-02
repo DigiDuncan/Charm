@@ -26,9 +26,10 @@ class HeroTestView(DigiView):
         self.highway = HeroHighway(self.chart, (0, 0), auto = True)
         self.highway.x += self.window.width // 2 - self.highway.w // 2
 
+        metadata_string = f"{self.hero_song.metadata.title}\n{self.hero_song.metadata.artist}\n{self.hero_song.metadata.album}"
+        self.metadata_text = arcade.Text(metadata_string, 5, 5, arcade.color.BLACK, 16, align = "left", anchor_x = "left", anchor_y = "bottom", multiline = True, font_name = "bananaslip plus plus", width=self.window.width)
         self.section_text = arcade.Text("", self.window.width - 5, 5, arcade.color.BLACK, 16, align = "right", anchor_x = "right", font_name = "bananaslip plus plus", width=self.window.width)
         self.time_text = arcade.Text("0:00", self.window.width - 5, 35, arcade.color.BLACK, 16, align = "right", anchor_x = "right", font_name = "bananaslip plus plus", width=self.window.width)
-
 
         # Generate "gum wrapper" background
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
@@ -69,7 +70,7 @@ class HeroTestView(DigiView):
             logger.debug(f"Section name is now {current_section.name} ({self.song.time})")
             self.section_text.text = current_section.name
 
-        time_string = f"{self.song.time // 60:.0f}:{self.song.time % 60:.0f}"
+        time_string = f"{self.song.time // 60:.0f}:{int(self.song.time % 60):02}"
         if self.time_text.text != time_string:
             self.time_text.text = time_string
 
@@ -84,6 +85,7 @@ class HeroTestView(DigiView):
         self.small_logos_backward.draw()
 
         self.highway.draw()
+        self.metadata_text.draw()
         self.section_text.draw()
         self.time_text.draw()
 

@@ -302,6 +302,7 @@ class HeroSong(Song):
         self.indexes_by_tick: IndexDict = {}
         self.indexes_by_time: IndexDict = {}
         self.resolution: int = 192
+        self.metadata = Metadata("Unknown Title")
 
     @classmethod
     def parse(cls, folder: Path) -> "HeroSong":
