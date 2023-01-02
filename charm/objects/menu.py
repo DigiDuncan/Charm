@@ -40,6 +40,10 @@ class MainMenu:
         for item in self.items:
             self.sprite_list.append(item)
 
+        self.loading = False
+        self.loading_label = arcade.Text("LOADING...", 0, 0, arcade.color.BLACK, anchor_x='center', anchor_y="bottom",
+                                 font_name="bananaslip plus plus", font_size=24)
+
         self._selected_id = 0
 
         self.local_time = 0
@@ -82,6 +86,8 @@ class MainMenu:
         current.alpha = ease_circout(self.old_pos[current][2], 255, self.move_start, self.move_end, self.local_time)
         current.label.x = current.center_x
         current.label.y = current.bottom
+        self.loading_label.x = current.center_x
+        self.loading_label.y = current.top
 
         x_bumper = Settings.width // 4
 
@@ -95,7 +101,7 @@ class MainMenu:
             item.label.x = item.center_x
             item.label.y = item.bottom
 
-        JIGGLE_TIME = 0.5
+        JIGGLE_TIME = 0.3
         JIGGLES = 5
         if self.selected.jiggle_start != 0 and self.local_time <= self.selected.jiggle_start + JIGGLE_TIME:
             jiggle_amount = 20 * math.sin(self.local_time * ((JIGGLES * 2) / JIGGLE_TIME))
@@ -106,3 +112,6 @@ class MainMenu:
 
         for i in self.items:
             i.label.draw()
+
+        if self.loading:
+            self.loading_label.draw()

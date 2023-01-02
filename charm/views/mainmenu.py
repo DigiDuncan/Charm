@@ -42,6 +42,13 @@ class MainMenuView(DigiView):
         self.window.current_rp_state = "In Menus"
         self.window.update_rp("In Menus")
 
+        self.load_countdown = None
+
+    def load(self):
+        self.menu.selected.goto.setup()
+        self.window.show_view(self.menu.selected.goto)
+        arcade.play_sound(self.window.sounds["valid"])
+
     @shows_errors
     def on_key_press(self, symbol: int, modifiers: int):
         match symbol:
@@ -55,9 +62,8 @@ class MainMenuView(DigiView):
                 arcade.play_sound(self.window.sounds["back"])
             case arcade.key.ENTER:
                 if self.menu.selected.goto is not None:
-                    self.menu.selected.goto.setup()
-                    self.window.show_view(self.menu.selected.goto)
-                    arcade.play_sound(self.window.sounds["valid"])
+                    self.menu.loading = True
+                    self.load_countdown = 3
                 else:
                     self.menu.selected.jiggle_start = self.local_time
             case arcade.key.E:
@@ -84,6 +90,11 @@ class MainMenuView(DigiView):
 
         move_gum_wrapper(self.logo_width, self.small_logos_forward, self.small_logos_backward, delta_time)
         self.menu.update(self.local_time)
+
+        if self.load_countdown is not None:
+            self.load_countdown -= 1
+        if self.load_countdown == 0:
+            self.load()
 
     @shows_errors
     def on_draw(self):
