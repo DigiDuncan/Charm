@@ -80,10 +80,11 @@ class MainMenuView(DigiView):
         if button == arcade.MOUSE_BUTTON_LEFT:
             for item in self.menu.items:
                 if item.collides_with_point((x, y)):
-                    item.goto.setup()
-                    self.window.show_view(item.goto)
-                    arcade.play_sound(self.window.sounds["valid"])
-                    break
+                    if item.goto is not None:
+                        item.goto.setup()
+                        self.window.show_view(item.goto)
+                        arcade.play_sound(self.window.sounds["valid"])
+                        break
             else:
                 self.menu.selected.jiggle_start = self.local_time
 

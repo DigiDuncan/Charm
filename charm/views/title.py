@@ -118,6 +118,11 @@ class TitleView(DigiView):
 
         return super().on_key_press(symbol, modifiers)
 
+    def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
+        if button == arcade.MOUSE_BUTTON_LEFT:
+            self.hit_start = self.local_time
+            arcade.play_sound(self.window.sounds["valid"])
+
     def on_update(self, delta_time):
         self.local_time += delta_time
 
