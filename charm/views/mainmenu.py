@@ -77,12 +77,15 @@ class MainMenuView(DigiView):
 
     @shows_errors
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
-        if self.menu.selected.goto is not None:
-            self.menu.selected.goto.setup()
-            self.window.show_view(self.menu.selected.goto)
-            arcade.play_sound(self.window.sounds["valid"])
-        else:
-            self.menu.selected.jiggle_start = self.local_time
+        if button == arcade.MOUSE_BUTTON_LEFT:
+            for item in self.menu.items:
+                if item.collides_with_point((x, y)):
+                    item.goto.setup()
+                    self.window.show_view(item.goto)
+                    arcade.play_sound(self.window.sounds["valid"])
+                    break
+            else:
+                self.menu.selected.jiggle_start = self.local_time
 
     @shows_errors
     def on_update(self, delta_time):
