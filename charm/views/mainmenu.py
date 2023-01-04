@@ -63,7 +63,7 @@ class MainMenuView(DigiView):
             case arcade.key.ENTER:
                 if self.menu.selected.goto is not None:
                     self.menu.loading = True
-                    self.load_countdown = 3
+                    self.load_countdown = 3  # Pause for three frames before loading. Ensure the text draws.
                 else:
                     self.menu.selected.jiggle_start = self.local_time
             case arcade.key.E:

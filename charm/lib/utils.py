@@ -1,5 +1,6 @@
 from functools import cache
 from typing import Any
+import collections
 import importlib.resources as pkg_resources
 
 import arcade
@@ -48,3 +49,16 @@ def map_range(x: float, n1: float, m1: float, n2: float = -1, m2: float = 1) -> 
     new_pos = new_max * percentage
     ans = new_pos + n2
     return ans
+
+def flatten(x):
+    if isinstance(x, collections.Iterable):
+        return [a for i in x for a in flatten(i)]
+    else:
+        return [x]
+
+def findone(iterator):
+    try:
+        val = next(iterator)
+    except StopIteration:
+        val = None
+    return val
