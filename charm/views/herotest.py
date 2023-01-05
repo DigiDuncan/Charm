@@ -45,16 +45,18 @@ class HeroTestView(DigiView):
                 self.back.setup()
                 self.window.show_view(self.back)
                 arcade.play_sound(self.window.sounds["back"])
-            case arcade.key.F:
-                self.highway.show_flags = not self.highway.show_flags
             case arcade.key.SPACE:
                 self.song.pause() if self.song.playing else self.song.play()
-            case arcade.key.KEY_0:
-                self.song.seek(0)
-            case arcade.key.MINUS:
-                self.song.seek(self.song.time - 5)
-            case arcade.key.EQUAL:
-                self.song.seek(self.song.time + 5)
+        if self.window.debug:
+            match symbol:
+                case arcade.key.KEY_0:
+                    self.song.seek(0)
+                case arcade.key.MINUS:
+                    self.song.seek(self.song.time - 5)
+                case arcade.key.EQUAL:
+                    self.song.seek(self.song.time + 5)
+                case arcade.key.F:
+                    self.highway.show_flags = not self.highway.show_flags
 
         return super().on_key_press(symbol, modifiers)
 
@@ -68,6 +70,7 @@ class HeroTestView(DigiView):
         current_section: SectionEvent = self.hero_song.indexes_by_time["section"].lteq(self.song.time)
         if current_section and self.section_text.text != current_section.name:
             logger.debug(f"Section name is now {current_section.name} ({self.song.time})")
+            logger.debug(f"Highway camera position is at y={self.highway.camera_viewport[2]}")
             self.section_text.text = current_section.name
 
         time_string = f"{self.song.time // 60:.0f}:{int(self.song.time % 60):02}"

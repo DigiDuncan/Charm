@@ -673,6 +673,7 @@ class HeroHighway(Highway):
             self.pixel_offset,
             self.pixel_offset + height
         )
+        self.camera_viewport = arcade.get_viewport()
         b = self.sprite_buckets.calc_bucket(self.song_time)
         for bucket in self.sprite_buckets.buckets[b:b+2] + [self.sprite_buckets.overbucket]:
             for note in bucket.sprite_list:
