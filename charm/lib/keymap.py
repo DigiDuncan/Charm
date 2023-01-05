@@ -42,10 +42,20 @@ class KeyMap:
             return ValueError(f"{name!r} is not a valid key name!")
         return getattr(self, name)
 
-    def set_key(self, name: str, key: Key):
+    def bind_key(self, name: str, key: Key):
         if name not in self.key_names:
             return ValueError(f"{name!r} is not a valid key name!")
         self.get_keys(name).append(key)
 
     def get_name(self, key: Key) -> str:
         return findone([n for n, i in [(k, getattr(self, k)) for k in self.key_names] if i == key])
+
+    def to_JSON(self) -> dict[str, Keys]:
+        return {k: getattr(self, k) for k in self.key_names}
+
+    @classmethod
+    def from_JSON(cls, jsondata: dict[str, Keys]) -> 'KeyMap':
+        keymap = KeyMap()
+        for k, v in jsondata.items():
+            setattr(keymap, k, v)
+        return keymap
