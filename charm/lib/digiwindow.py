@@ -1,11 +1,14 @@
+import logging
 import statistics
 import typing
 
 import arcade
 import pyglet
-from pypresence import Presence
+import pypresence
 
 from charm.objects.debug_log import DebugLog
+
+logger = logging.getLogger("charm")
 
 rpc_client_id = "1056710104348639305"
 
@@ -19,6 +22,10 @@ class DigiWindow(arcade.Window):
         self.fps_cap = fps_cap
         self.initial_view = initial_view
 
+        self.debug_log = DebugLog()
+        self.log = self.debug_log.layout
+        self.log.position = (5, 5)
+
         self.delta_time = 0.0
         self.time = 0.0
         self.fps_checks = 0
@@ -29,11 +36,16 @@ class DigiWindow(arcade.Window):
         self.theme_song: pyglet.media.Player = None
 
         # Discord RP
-        self.rpc = Presence(rpc_client_id)
+        self.rpc = pypresence.Presence(rpc_client_id)
+        self.rpc_connected = False
         self.last_rp_time = 0
         self.current_rp_state = ":jiggycat:"
         self._rp_stale = True
-        self.rpc.connect()
+        try:
+            self.rpc.connect()
+            self.rpc_connected = True
+        except pypresence.exceptions.DiscordError:
+            logger.warn("Discord could not connect the rich presence.")
 
         self.fps_averages = []
 
@@ -65,10 +77,6 @@ class DigiWindow(arcade.Window):
                           anchor_x='right', anchor_y='bottom',
                           color=(0, 0, 0) + (32,))
 
-        self.debug_log = DebugLog()
-        self.log = self.debug_log.layout
-        self.log.position = (5, 5)
-
         cheats = []
         self.cheats = {c: False for c in cheats}
 
@@ -83,6 +91,8 @@ class DigiWindow(arcade.Window):
         self.update_rp()
 
     def update_rp(self, new_state: str = None):
+        if not self.rpc_connected:
+            return
         if new_state:
             self.current_rp_state = new_state
             self._rp_stale = True
