@@ -27,6 +27,7 @@ from charm.lib.generic.engine import DigitalKeyEvent, Engine, Judgement, KeyStat
 from charm.lib.generic.highway import Highway
 from charm.lib.generic.results import Results
 from charm.lib.generic.song import Metadata, Note, Chart, Seconds, Song, BPMChangeEvent
+from charm.lib.keymap import keymap
 from charm.lib.settings import Settings
 from charm.lib.spritebucket import SpriteBucketCollection
 from charm.lib.utils import img_from_resource, clamp
@@ -303,7 +304,7 @@ class FourKeyJudgement(Judgement):
 class FourKeyEngine(Engine):
     def __init__(self, chart: FourKeyChart, offset: Seconds = -0.025):  # TODO: Set this dynamically
         hit_window: Seconds = 0.075
-        mapping = [arcade.key.D, arcade.key.F, arcade.key.J, arcade.key.K]
+        mapping = keymap.fourkey_mapping
         judgements = [
             #               ("name",           "key"             ms, score,  acc, hp=0)
             FourKeyJudgement("Super Charming", "supercharming",  10,  1000,    1, 0.04),

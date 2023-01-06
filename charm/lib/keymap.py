@@ -23,19 +23,23 @@ class KeyMap:
         self.back: Keys = [ESCAPE, BACKSPACE]
 
         # 4K
-        self.fourkey_1: Keys = [D]
-        self.fourkey_2: Keys = [F]
-        self.fourkey_3: Keys = [J]
-        self.fourkey_4: Keys = [K]
+        self.fourkey_1: Key = D
+        self.fourkey_2: Key = F
+        self.fourkey_3: Key = J
+        self.fourkey_4: Key = K
 
         # Hero
-        self.hero_1: Keys = [KEY_1]
-        self.hero_2: Keys = [KEY_2]
-        self.hero_3: Keys = [KEY_3]
-        self.hero_4: Keys = [KEY_4]
-        self.hero_5: Keys = [KEY_5]
-        self.hero_strum_up: Keys = [UP]
-        self.hero_strum_down: Keys = [DOWN]
+        self.hero_1: Key = KEY_1
+        self.hero_2: Key = KEY_2
+        self.hero_3: Key = KEY_3
+        self.hero_4: Key = KEY_4
+        self.hero_5: Key = KEY_5
+        self.hero_strum_up: Key = UP
+        self.hero_strum_down: Key = DOWN
+
+    @property
+    def fourkey_mapping(self) -> Keys:
+        return [self.fourkey_1, self.fourkey_2, self.fourkey_3, self.fourkey_4]
 
     def get_keys(self, name: str) -> Keys:
         if name not in self.key_names:
@@ -59,3 +63,6 @@ class KeyMap:
         for k, v in jsondata.items():
             setattr(keymap, k, v)
         return keymap
+
+
+keymap = KeyMap()
