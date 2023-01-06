@@ -652,13 +652,13 @@ class FNFSceneManager:
         with LogSection(logger, "loading assets"):
             # Characters
             self.player_sprite = self.load_asset("characters", self.chart.player1, "boyfriend")
-            self.spectator_sprite = self.load_asset("characters", self.chart.spectator, "girlfriend")
-            self.enemy_sprite = self.load_asset("characters", self.chart.player2, "dad")
+            # self.spectator_sprite = self.load_asset("characters", self.chart.spectator, "girlfriend")
+            # self.enemy_sprite = self.load_asset("characters", self.chart.player2, "dad")
 
-            self.stage = self.load_asset("stages", self.chart.stage)
+            # self.stage = self.load_asset("stages", self.chart.stage)
 
             # Categories
-            self.characters = [self.player_sprite, self.spectator_sprite, self.enemy_sprite]
+            self.characters = [self.player_sprite]
 
     def update(self, song_time: Seconds, delta_time: Seconds):
         self.engine.update(song_time)
