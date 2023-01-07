@@ -609,6 +609,8 @@ class HeroHighway(Highway):
         self.last_update_time = 0
         self._pixel_offset = 0
 
+        self.note_index = 0
+
     def update(self, song_time: float):
         super().update(song_time)
         self.sprite_buckets.update_animation(song_time)
@@ -618,15 +620,19 @@ class HeroHighway(Highway):
         self.last_update_time = self.song_time
 
         if self.auto:
+            while self.note_sprites[self.note_index].note.time < self.song_time - 0.050:
+                self.note_index += 1
             # Fancy strikeline
-            for note_sprite in self.note_sprites:
-                if self.song_time - 0.050 < note_sprite.note.time < self.song_time + 0.050:
-                    if note_sprite.note.lane < 5:
-                        self._last_strikeline_note[note_sprite.note.lane] = note_sprite.note
-                    if self.song_time > note_sprite.note.time:
-                        note_sprite.alpha = 0
+            i = self.note_index
+            while True:
+                note_sprite = self.note_sprites[i]
                 if note_sprite.note.time > self.song_time + 0.050:
                     break
+                if note_sprite.note.lane < 5:
+                    self._last_strikeline_note[note_sprite.note.lane] = note_sprite.note
+                if self.song_time > note_sprite.note.time:
+                    note_sprite.alpha = 0
+                i += 1
             for n, note in enumerate(self._last_strikeline_note):
                 if note is None:
                     self.strikeline[n].alpha = 64
