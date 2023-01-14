@@ -158,8 +158,6 @@ class FNFSongView(DigiView):
                 self.tracks.seek(self.tracks.time + 5)
             case arcade.key.MINUS:
                 self.tracks.seek(self.tracks.time - 5)
-            case arcade.key.T:
-                self.show_text = not self.show_text
             case arcade.key.S:
                 self.tracks.log_sync()
 
