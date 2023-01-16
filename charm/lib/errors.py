@@ -75,3 +75,53 @@ class UnknownLanesError(CharmException):
 class AssetNotFoundError(CharmException):
     def __init__(self, asset_name: str, *args: object):
         super().__init__("Asset missing!", f"No asset named '{asset_name}' exists!", "error", *args)
+
+
+class MultipleKeyBindsError(CharmException):
+    def __init__(self, action: str, *args: object):
+        super().__init__("Multiple key binds set!", f"Action '{action}' has multiple key binds!", "error", *args)
+
+
+class ExclusiveKeyBindError(CharmException):
+    def __init__(self, input: str, actions: list[str] = [], *args: object):
+        super().__init__("Key bound to multiple actions!", f"Key '{input}' has multiple actions assigned! ({actions})", "error", *args)
+
+
+class KeyUnboundError(CharmException):
+    def __init__(self, action: str, *args: object):
+        super().__init__("Action unbound!", f"Action '{action}' not bound to a key!", "error", *args)
+
+
+class ActionNameConflictError(CharmException):
+    def __init__(self, action: str, *args: object):
+        super().__init__("Action conflict!", f"Action '{action}' created multiple times!", "error", *args)
+
+
+class ActionNotFoundError(CharmException):
+    def __init__(self, action: str, *args: object):
+        super().__init__("Action not found!", f"Action '{action}' not found!", "error", *args)
+
+
+class SameInputMultipleError(CharmException):
+    def __init__(self, action: str, input: str, *args: object):
+        super().__init__("Input bound multiple times!", f"Input '{input}' bound multiple times on '{action}'!", "error", *args)
+
+
+class SetNotFoundError(CharmException):
+    def __init__(self, set: str, *args: object):
+        super().__init__("Set not found!", f"Action set '{set}' not found!", "error", *args)
+
+
+class KeyNotFoundInActionError(CharmException):
+    def __init__(self, action: str, key: str, *args: object):
+        super().__init__("Key not in action!", f"Key '{key}' not found in action {action}!", "error", *args)
+
+
+class KeyUnrecognizedError(CharmException):
+    def __init__(self, key: str, *args: object):
+        super().__init__("Key unrecognized!", f"Key '{key}' unrecognized!", "error", *args)
+
+
+class ActionNotInSetError(CharmException):
+    def __init__(self, action: str, *args: object):
+        super().__init__("Action not in set!", f"Action {action} not in set!", "error", *args)
