@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 import arcade.key
 from arcade.key import RETURN, ENTER, ESCAPE, BACKSPACE, D, F, J, K, KEY_7, GRAVE, \
     KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, UP, DOWN, RSHIFT
@@ -28,7 +28,7 @@ class Action:
         self.allow_multiple: bool = allow_multiple
         self.exclusive: bool = exclusive
 
-    def __eq__(self, other: Key | 'Action') -> bool:
+    def __eq__(self, other: Union[Key, 'Action']) -> bool:
         return other in self.inputs if isinstance(other, Key) else (self.name, self.inputs) == (other.name, other.inputs)
 
     def __str__(self) -> str:
@@ -38,7 +38,7 @@ class ActionSet:
     def __init__(self, d: dict[str, Action]):
         self._dict = d
 
-    def __getattribute__(self, name: str) -> Action:
+    def __getattr__(self, name: str) -> Action:
         if name not in self._dict:
             raise ActionNotInSetError(name)
         return self._dict[name]
@@ -51,7 +51,7 @@ class KeyMap:
             cls._instance = super(KeyMap, cls).__new__(cls)
         return cls._instance
 
-    def __init__(self) -> None:
+    def __init__(self):
         """Access and set mappings for inputs to actions. Key binding."""
         self.actions: list[Action] = [
             Action('start', [RETURN, ENTER], True, True, True),
@@ -80,24 +80,24 @@ class KeyMap:
         # Create action sets (hardcoded, frozen.)
         self.sets: dict[str, ActionSet] = {
             "fourkey": ActionSet({
-                "key1": self['fourkey_1'],
-                "key2": self['fourkey_2'],
-                "key3": self['fourkey_3'],
-                "key4": self['fourkey_4']
+                "key1": self.fourkey_1,
+                "key2": self.fourkey_2,
+                "key3": self.fourkey_3,
+                "key4": self.fourkey_4
             }),
             "hero": ActionSet({
-                "green": self['hero_1'],
-                "red": self['hero_2'],
-                "yellow": self['hero_3'],
-                "blue": self['hero_4'],
-                "orange": self['hero_5'],
-                "strumup": self['hero_strum_up'],
-                "strumdown": self['hero_strum_down'],
-                "power": self['hero_power']
+                "green": self.hero_1,
+                "red": self.hero_2,
+                "yellow": self.hero_3,
+                "blue": self.hero_4,
+                "orange": self.hero_5,
+                "strumup": self.hero_strum_up,
+                "strumdown": self.hero_strum_down,
+                "power": self.hero_power
             })
         }
 
-    def __getattribute__(self, item: str) -> Optional[Action]:
+    def __getattr__(self, item: str) -> Optional[Action]:
         """Get an action by name."""
         return findone((a for a in self.actions if a.name == item))
 
