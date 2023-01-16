@@ -45,6 +45,12 @@ class ActionSet:
 
 
 class KeyMap:
+    # Singleton BS
+    def __new__(cls):
+        if not hasattr(cls, '_instance'):
+            cls._instance = super(KeyMap, cls).__new__(cls)
+        return cls._instance
+
     def __init__(self) -> None:
         """Access and set mappings for inputs to actions. Key binding."""
         self.actions: list[Action] = [
@@ -91,19 +97,16 @@ class KeyMap:
             })
         }
 
-    def __getitem__(self, item: str) -> Optional[Action]:
+    def __getattribute__(self, item: str) -> Optional[Action]:
         """Get an action by name."""
         return findone((a for a in self.actions if a.name == item))
 
-    def get_set(self, name: str) -> list[Action]:
+    def get_set(self, name: str) -> ActionSet:
         """Get an action set by name."""
         s = self.sets.get(name, None)
         if s is None:
             raise SetNotFoundError(name)
-        return_list = [self[a] for a in s]
-        if None in return_list:
-            raise ActionNotFoundError("")
-        return return_list
+        return s
 
     def bind_key(self, name: str, key: Key):
         """Set `key` as a valid input for the '`name`' action."""
@@ -157,11 +160,12 @@ class KeyMap:
             self.set_defaults(action.name)
 
     def validate(self, name: str) -> bool:
+        """Check the action for errors."""
         action = self[name]
         # Action not found
         if action is None:
             raise ActionNotFoundError(name)
-        # Not allow multiple, but many binds
+        # Action doesn't allow multiple binds, but there are
         if not action.allow_multiple and len(action.inputs) > 1:
             raise MultipleKeyBindsError(name)
         # Unbound
@@ -173,6 +177,13 @@ class KeyMap:
                 key_string = get_arcade_key_name(key)
                 if a.exclusive and key in a.inputs:
                     raise ExclusiveKeyBindError(key_string, [a.name, name])
+        return True
+
+    def validate_all(self) -> bool:
+        """Check all actions for errors."""
+        for action in self.actions:
+            self.validate(action.name)
+        return True
 
     def __str__(self) -> str:
         return f"{[str(i) for i in self.actions]}"
