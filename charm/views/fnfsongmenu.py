@@ -11,6 +11,7 @@ from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView, shows_errors
 from charm.lib.generic.song import Song
 from charm.lib.gamemodes.fnf import FNFSong
+from charm.lib.keymap import KeyMap
 from charm.lib.paths import songspath
 from charm.lib.settings import Settings
 from charm.objects.songmenu import SongMenu
@@ -76,6 +77,7 @@ class FNFSongMenuView(DigiView):
 
     @shows_errors
     def on_key_press(self, symbol: int, modifiers: int):
+        keymap = KeyMap()
         old_id = self.menu.selected_id
         match symbol:
             case arcade.key.UP:
@@ -84,12 +86,12 @@ class FNFSongMenuView(DigiView):
             case arcade.key.DOWN:
                 self.menu.selected_id += 1
                 arcade.play_sound(self.window.sounds["select"])
-            case arcade.key.ENTER:
+            case keymap.start:
                 arcade.play_sound(self.window.sounds["valid"])
                 songview = FNFSongView(self.menu.selected.song.key, back=self)
                 songview.setup()
                 self.window.show_view(songview)
-            case arcade.key.BACKSPACE:
+            case keymap.back:
                 arcade.play_sound(self.window.sounds["back"])
                 self.back.setup()
                 self.window.show_view(self.back)

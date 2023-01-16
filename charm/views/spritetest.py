@@ -4,6 +4,7 @@ from charm.lib.adobexml import sprite_from_adobe
 
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView
+from charm.lib.keymap import KeyMap
 from charm.lib.settings import Settings
 
 
@@ -33,12 +34,13 @@ class SpriteTestView(DigiView):
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
 
     def on_key_press(self, symbol: int, modifiers: int):
+        keymap = KeyMap()
         match symbol:
-            case arcade.key.BACKSPACE:
+            case keymap.back:
                 self.back.setup()
                 self.window.show_view(self.back)
                 arcade.play_sound(self.window.sounds["back"])
-            case arcade.key.ENTER:
+            case keymap.start:
                 a = next(self.anims)
                 self.sprite.set_animation(a)
                 self.anim_label.text = a
@@ -48,7 +50,7 @@ class SpriteTestView(DigiView):
             case arcade.key.EQUAL:
                 self.sprite.fps += 1
                 self.fps = self.sprite.fps
-            case arcade.key.SPACE:
+            case keymap.pause:
                 self.paused = not self.paused
                 if self.paused:
                     self.sprite.fps = 0

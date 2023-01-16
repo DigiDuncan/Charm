@@ -8,6 +8,7 @@ from charm.lib.anim import ease_circout
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView, shows_errors
 from charm.lib.gamemodes.four_key import FourKeySong, FourKeyHighway, FourKeyEngine
+from charm.lib.keymap import KeyMap
 from charm.lib.logsection import LogSection
 from charm.lib.trackcollection import TrackCollection
 from charm.views.resultsview import ResultsView
@@ -95,13 +96,14 @@ class FourKeySongView(DigiView):
 
     @shows_errors
     def on_key_press(self, symbol: int, modifiers: int):
+        keymap = KeyMap()
         match symbol:
-            case arcade.key.BACKSPACE:
+            case keymap.back:
                 self.tracks.close()
                 self.back.setup()
                 self.window.show_view(self.back)
                 arcade.play_sound(self.window.sounds["back"])
-            case arcade.key.SPACE:
+            case keymap.pause:
                 if self.countdown <= 0:
                     self.tracks.pause() if self.tracks.playing else self.tracks.play()
             case arcade.key.KEY_0:

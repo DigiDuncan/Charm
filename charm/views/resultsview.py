@@ -9,6 +9,7 @@ from charm.lib.generic.results import Results, Heatmap
 
 import charm.data.audio
 import charm.data.images.skins
+from charm.lib.keymap import KeyMap
 
 logger = logging.getLogger("charm")
 
@@ -60,8 +61,9 @@ class ResultsView(DigiView):
         self.song = arcade.play_sound(self._song, self.volume, looping=False)
 
     def on_key_press(self, symbol: int, modifiers: int):
+        keymap = KeyMap()
         match symbol:
-            case arcade.key.BACKSPACE:
+            case keymap.back | keymap.start:
                 self.song.volume = 0
                 self.back.setup()
                 self.window.show_view(self.back)

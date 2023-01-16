@@ -4,6 +4,7 @@ import arcade
 
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView
+from charm.lib.keymap import KeyMap
 from charm.lib.settings import Settings
 
 import charm.data.subtitle
@@ -33,8 +34,9 @@ class SubtitleView(DigiView):
         self.song = arcade.play_sound(self._song, self.volume, looping=False)
 
     def on_key_press(self, symbol: int, modifiers: int):
+        keymap = KeyMap()
         match symbol:
-            case arcade.key.BACKSPACE:
+            case keymap.back:
                 self.back.setup()
                 self.window.show_view(self.back)
                 arcade.play_sound(self.window.sounds["back"])

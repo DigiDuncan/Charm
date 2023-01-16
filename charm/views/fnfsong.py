@@ -6,6 +6,7 @@ from charm.lib import anim
 from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView, shows_errors
 from charm.lib.gamemodes.fnf import CameraFocusEvent, FNFEngine, FNFHighway, FNFSceneManager, FNFSong
+from charm.lib.keymap import KeyMap
 from charm.lib.logsection import LogSection
 from charm.lib.paths import songspath
 from charm.lib.settings import Settings
@@ -145,13 +146,14 @@ class FNFSongView(DigiView):
 
     @shows_errors
     def on_key_press(self, symbol: int, modifiers: int):
+        keymap = KeyMap()
         match symbol:
-            case arcade.key.BACKSPACE:
+            case keymap.back:
                 self.back.setup()
                 self.tracks.close()
                 self.window.show_view(self.back)
                 arcade.play_sound(self.window.sounds["back"])
-            case arcade.key.SPACE:
+            case keymap.pause:
                 self.paused = not self.paused
                 self.tracks.pause() if self.paused else self.tracks.play()
             case arcade.key.EQUAL:

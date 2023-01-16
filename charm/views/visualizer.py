@@ -4,6 +4,7 @@ import logging
 from random import randint
 
 import arcade
+from charm.lib.keymap import KeyMap
 import librosa
 import nindex
 from numpy import ndarray
@@ -189,13 +190,14 @@ class VisualizerView(DigiView):
         self.highway.update(self.song.time)
 
     def on_key_press(self, symbol: int, modifiers: int):
+        keymap = KeyMap()
         match symbol:
-            case arcade.key.BACKSPACE:
+            case keymap.back:
                 self.back.setup()
                 self.window.show_view(self.back)
                 self.song.delete()
                 arcade.play_sound(self.window.sounds["back"])
-            case arcade.key.SPACE:
+            case keymap.pause:
                 self.song.pause() if self.song.playing else self.song.play()
             case arcade.key.NUM_0:
                 self.song.seek(0)

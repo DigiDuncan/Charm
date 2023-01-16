@@ -1,4 +1,5 @@
 import arcade
+from charm.lib.keymap import KeyMap
 from pyglet.math import Vec2
 
 from charm.lib.digiview import DigiView
@@ -125,8 +126,9 @@ class ParallaxView(DigiView):
         return super().on_update(delta_time)
 
     def on_key_press(self, symbol: int, modifiers: int):
+        keymap = KeyMap()
         match symbol:
-            case arcade.key.BACKSPACE:
+            case keymap.back:
                 self.back.setup()
                 self.window.show_view(self.back)
                 arcade.play_sound(self.window.sounds["back"])

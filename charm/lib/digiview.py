@@ -8,6 +8,7 @@ from arcade import View
 from charm.lib.anim import ease_linear
 from charm.lib.digiwindow import DigiWindow
 from charm.lib.errors import CharmException, GenericError
+from charm.lib.keymap import KeyMap
 from charm.lib.settings import Settings
 
 logger = logging.getLogger("charm")
@@ -73,7 +74,8 @@ class DigiView(View):
         self.size = (width, height)
 
     def on_key_press(self, symbol: int, modifiers: int):
-        if symbol == arcade.key.KEY_7:
+        keymap = KeyMap()
+        if symbol == keymap.debug:
             self.window.debug = not self.window.debug
             if self.window.debug:
                 self.camera.scale = self.debug_options["camera_scale"]
