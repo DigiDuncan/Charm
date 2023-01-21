@@ -46,6 +46,7 @@ class FNFSongView(DigiView):
         self.logo_width: int = None
         self.small_logos_forward: arcade.SpriteList = None
         self.small_logos_backward: arcade.SpriteList = None
+        self.distractions = True
 
         self.scene: FNFSceneManager = None
         self.success = False
@@ -129,7 +130,6 @@ class FNFSongView(DigiView):
 
             self.success = True
 
-    @shows_errors
     def on_show(self):
         if self.success is False:
             self.window.show_view(self.back)
@@ -162,6 +162,8 @@ class FNFSongView(DigiView):
                 self.tracks.seek(self.tracks.time - 5)
             case arcade.key.S:
                 self.tracks.log_sync()
+            case arcade.key.KEY_8:
+                self.distractions = not self.distractions
 
         self.on_key_something(symbol, modifiers, True)
         return super().on_key_press(symbol, modifiers)
@@ -191,6 +193,7 @@ class FNFSongView(DigiView):
         self.get_spotlight_position(self.tracks.time)
 
         self.judge_text.y = anim.ease_circout((self.size[1] // 2) + 20, self.size[1] // 2, self.engine.latest_judgement_time, self.engine.latest_judgement_time + 0.25, self.engine.chart_time)
+        self.judge_text.color = tuple(self.judge_text.color[0:2]) + (int(anim.ease_circout(255, 0, self.engine.latest_judgement_time - 0.25, self.engine.latest_judgement_time + 0.75, self.engine.chart_time)),)
         if self.engine.accuracy is not None:
             if self.grade_text._label.text != f"{self.engine.fc_type} | {round(self.engine.accuracy * 100, 2)}% ({self.engine.grade})":
                 self.grade_text._label.text = f"{self.engine.fc_type} | {round(self.engine.accuracy * 100, 2)}% ({self.engine.grade})"
@@ -263,17 +266,14 @@ class FNFSongView(DigiView):
 
     @shows_errors
     def on_draw(self):
-        self.clear()
+        self.clear() if self.distractions else self.clear(arcade.color.SLATE_GRAY)
         self.camera.use()
 
         # Charm BG
-        self.small_logos_forward.draw()
-        self.small_logos_backward.draw()
-
-        # TODO: Disabled for now.
-        # self.scene.stage.draw()
-
-        self.player_sprite.draw()
+        if self.distractions:
+            self.small_logos_forward.draw()
+            self.small_logos_backward.draw()
+            self.player_sprite.draw()
 
         if self.show_text:
             self.song_time_text.draw()
@@ -289,7 +289,8 @@ class FNFSongView(DigiView):
         self.hp_draw()
 
         self.highway_2.draw()
-        self.spotlight_draw()
+        if self.distractions:
+            self.spotlight_draw()
         self.highway_1.draw()
 
         super().on_draw()

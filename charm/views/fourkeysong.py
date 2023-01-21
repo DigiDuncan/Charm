@@ -68,7 +68,6 @@ class FourKeySongView(DigiView):
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)
         self.success = True
 
-    @shows_errors
     def on_show_view(self):
         self.window.theme_song.volume = 0
         if self.success is False:
