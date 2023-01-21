@@ -1,17 +1,9 @@
 # TODO
-## Generic
-- [ ] Score saving
-- [ ] Injectors
-  - [ ] Metadata
-  - [ ] Subtitles
-- [ ] Recursive song search
-- [X] Note chunks for drawing
-## FNF
-- [ ] Pre-load screen
-- [ ] Auto-detect mods?
-- [ ] Engine customization
-- [?] Difficulty parsing
-- [ ] Mod folders
-- [ ] Asset replacement animations
-## 4K
-- [ ] Rewrite 4K backend
+[ ] Sustain scoring
+[ ] Port FNF to 4K engine
+[ ] Clone Hero input engine
+[ ] Keybinding GUI
+[ ] Song Menu revamp
+[ ] Song Menu for CH
+[ ] Basic Options Menu
+[ ] Score saving v0
