@@ -36,16 +36,20 @@ class DigiWindow(arcade.Window):
         self.theme_song: pyglet.media.Player = None
 
         # Discord RP
-        self.rpc = pypresence.Presence(rpc_client_id)
+        try:
+            self.rpc = pypresence.Presence(rpc_client_id)
+        except pypresence.DiscordNotFound:
+            self.rpc = None
         self.rpc_connected = False
         self.last_rp_time = 0
         self.current_rp_state = ":jiggycat:"
         self._rp_stale = True
-        try:
-            self.rpc.connect()
-            self.rpc_connected = True
-        except pypresence.exceptions.DiscordError:
-            logger.warn("Discord could not connect the rich presence.")
+        if self.rpc:
+            try:
+                self.rpc.connect()
+                self.rpc_connected = True
+            except pypresence.DiscordError:
+                logger.warn("Discord could not connect the rich presence.")
 
         self.fps_averages = []
 
@@ -93,10 +97,10 @@ class DigiWindow(arcade.Window):
     def update_rp(self, new_state: str = None):
         if not self.rpc_connected:
             return
-        if new_state:
+        if new_state and self.current_rp_state != new_state:
             self.current_rp_state = new_state
             self._rp_stale = True
-        if self.last_rp_time + 15 > self.time and self._rp_stale:
+        if self.last_rp_time + 1 > self.time and self._rp_stale:
             self.rpc.update(state=self.current_rp_state,
             large_image="charm-icon-square", large_text="Charm Logo")
             self.last_rp_time = self.time
