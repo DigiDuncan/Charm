@@ -111,6 +111,8 @@ class FourKeySong(Song):
     def __init__(self, name: str):
         super().__init__(name)
 
+        self.timing_engine: TimingEngine = None
+
     @classmethod
     def parse(cls, folder: Path) -> "FourKeySong":
         # OK, figure out what chart file to use.
@@ -133,6 +135,7 @@ class FourKeySong(Song):
             grouped_notes = group_notes(notedata, join_heads_to_tails=True)
             timing = TimingData(sm, c)
             timing_engine = TimingEngine(timing)
+            song.timing_engine = timing_engine
 
             for notes in grouped_notes:
                 note = notes[0]
@@ -337,6 +340,9 @@ class FourKeyEngine(Engine):
         self.streak = 0
         self.max_streak = 0
 
+        self.active_sustains: list[FourKeyNote] = []
+        self.last_sustain_tick = 0
+
     def process_keystate(self, key_states: KeyStates):
         last_state = self.key_state
         if self.last_p1_note in (0, 1, 2, 3) and key_states[self.last_p1_note] is False:
@@ -362,6 +368,9 @@ class FourKeyEngine(Engine):
     def calculate_score(self):
         # Get all non-scored notes within the current window
         for note in [n for n in self.current_notes if n.time <= self.chart_time + self.hit_window]:
+            # Get sustains in the window and add them to the active sustains list
+            if note.is_sustain and note not in self.active_sustains:
+                self.active_sustains.append(note)
             # Missed notes (current time is higher than max allowed time for note)
             if self.chart_time > note.time + self.hit_window:
                 note.missed = True
@@ -383,17 +392,24 @@ class FourKeyEngine(Engine):
                         self.current_events.remove(event)
                         break
 
+        for sustain in self.active_sustains:
+            if self.chart_time > sustain.end + self.hit_window:
+                self.active_sustains.remove(sustain)
+
+        # Check sustains
+        self.score_sustains()
+
         # Make sure we can't go below min_hp or above max_hp
         self.hp = clamp(self.min_hp, self.hp, self.max_hp)
         if self.hp == self.min_hp:
             self.has_died = True
 
+        self.last_score_check = self.chart_time
+
     def score_note(self, note: FourKeyNote):
         # Ignore notes we haven't done anything with yet
         if not (note.hit or note.missed):
             return
-
-        # Sustains aaaaaaaaaaaaaaaaaaaaa
 
         # Bomb notes penalize HP when hit
         if note.type == "bomb":
@@ -423,6 +439,25 @@ class FourKeyEngine(Engine):
             self.misses += 1
             self.streak = 0
             self.last_note_missed = True
+
+    def score_sustains(self):
+        timing_engine: TimingEngine = self.chart.song.timing_engine
+        current_beat = timing_engine.beat_at(self.chart_time)
+        time_since_last_tick = self.chart_time - self.last_sustain_tick
+        beats_since_last_tick = time_since_last_tick * float(timing_engine.bpm_at(current_beat) / 60)
+
+        sixteenths = int(beats_since_last_tick * 16)
+        if sixteenths < 1:
+            return
+
+        for sustain in self.active_sustains:
+            if self.key_state[sustain.lane]:
+                self.hp += int(self.judgements[0].hp_change / 4) * sixteenths  # TODO: Does this feel right?
+                self.score += int(self.judgements[0].score / 4) * sixteenths
+            else:
+                self.hp -= int(self.judgements[0].hp_change / 4) * sixteenths
+
+        self.last_sustain_tick = self.chart_time
 
     def generate_results(self) -> Results:
         return Results(
