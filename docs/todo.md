@@ -1,5 +1,5 @@
 # TODO
-[X] Sustain scoring
+[X] Sustain scoring (sm)
 [ ] Port FNF to 4K engine
 [ ] Clone Hero input engine
 [ ] Keybinding GUI

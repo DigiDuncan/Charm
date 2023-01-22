@@ -637,7 +637,7 @@ class HeroHighway(Highway):
                 if note is None:
                     self.strikeline[n].alpha = 64
                 else:
-                    self.strikeline[n].alpha = ease_linear(255, 64, note.end, note.end + 0.5, self.song_time)
+                    self.strikeline[n].alpha = ease_linear(255, 64, note.end, note.end + 0.25, self.song_time)
 
     @property
     def pos(self) -> tuple[int, int]:
