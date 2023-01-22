@@ -2,6 +2,7 @@
 [X] Sustain scoring (sm)
 [ ] Port FNF to 4K engine
 [ ] Clone Hero input engine
+[X] Kebinding backend
 [ ] Keybinding GUI
 [ ] Song Menu revamp
 [ ] Song Menu for CH
