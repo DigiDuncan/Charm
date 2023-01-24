@@ -10,7 +10,7 @@ from charm.objects.debug_log import DebugLog
 
 logger = logging.getLogger("charm")
 
-rpc_client_id = "1056710104348639305"
+rpc_client_id = "1056710104348639305"  # Charm app on Discord.
 
 if typing.TYPE_CHECKING:
     from charm.lib.digiview import DigiView
@@ -100,7 +100,7 @@ class DigiWindow(arcade.Window):
         if new_state and self.current_rp_state != new_state:
             self.current_rp_state = new_state
             self._rp_stale = True
-        if self.last_rp_time + 1 > self.time and self._rp_stale:
+        if (self.last_rp_time + 1 < self.time) and self._rp_stale:
             self.rpc.update(state=self.current_rp_state,
             large_image="charm-icon-square", large_text="Charm Logo")
             self.last_rp_time = self.time
