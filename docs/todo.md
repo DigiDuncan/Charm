@@ -8,3 +8,4 @@
 [ ] Song Menu for CH
 [ ] Basic Options Menu
 [ ] Score saving v0
+[ ] Optimize audio loading

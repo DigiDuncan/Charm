@@ -10,6 +10,7 @@ from charm.lib.digiview import DigiView, shows_errors
 from charm.lib.gamemodes.four_key import FourKeySong, FourKeyHighway, FourKeyEngine
 from charm.lib.keymap import KeyMap
 from charm.lib.logsection import LogSection
+from charm.lib.oggsound import OGGSound
 from charm.lib.trackcollection import TrackCollection
 from charm.views.resultsview import ResultsView
 
@@ -32,6 +33,9 @@ class FourKeySongView(DigiView):
 
         with LogSection(logger, "loading audio"):
             audio_paths = [a for a in self.song_path.glob("*.mp3")] + [a for a in self.song_path.glob("*.wav")] + [a for a in self.song_path.glob("*.ogg")]
+            trackfiles = []
+            for s in audio_paths:
+                trackfiles.append(OGGSound(s) if s.suffix == ".ogg" else arcade.Sound(s))
             self.tracks = TrackCollection([arcade.load_sound(s) for s in audio_paths])
 
         with LogSection(logger, "loading song data"):

@@ -8,6 +8,7 @@ from charm.lib.digiview import DigiView, shows_errors
 from charm.lib.gamemodes.fnf import CameraFocusEvent, FNFEngine, FNFHighway, FNFSceneManager, FNFSong
 from charm.lib.keymap import KeyMap
 from charm.lib.logsection import LogSection
+from charm.lib.oggsound import OGGSound
 from charm.lib.paths import songspath
 from charm.lib.settings import Settings
 from charm.lib.trackcollection import TrackCollection
@@ -71,7 +72,9 @@ class FNFSongView(DigiView):
 
         with LogSection(logger, "loading sound"):
             soundfiles = [f for f in path.iterdir() if f.is_file() and f.suffix in [".ogg", ".mp3", ".wav"]]
-            trackfiles = [arcade.load_sound(f) for f in soundfiles]
+            trackfiles = []
+            for s in soundfiles:
+                trackfiles.append(OGGSound(s) if s.suffix == ".ogg" else arcade.Sound(s))
             self.tracks = TrackCollection(trackfiles)
 
             self.window.theme_song.volume = 0
@@ -193,7 +196,7 @@ class FNFSongView(DigiView):
         self.get_spotlight_position(self.tracks.time)
 
         self.judge_text.y = anim.ease_circout((self.size[1] // 2) + 20, self.size[1] // 2, self.engine.latest_judgement_time, self.engine.latest_judgement_time + 0.25, self.engine.chart_time)
-        self.judge_text.color = tuple(self.judge_text.color[0:2]) + (int(anim.ease_circout(255, 0, self.engine.latest_judgement_time - 0.25, self.engine.latest_judgement_time + 0.75, self.engine.chart_time)),)
+        self.judge_text.color = tuple(self.judge_text.color[0:3]) + (int(anim.ease_circout(255, 0, self.engine.latest_judgement_time + 0.25, self.engine.latest_judgement_time + 0.5, self.engine.chart_time)),)
         if self.engine.accuracy is not None:
             if self.grade_text._label.text != f"{self.engine.fc_type} | {round(self.engine.accuracy * 100, 2)}% ({self.engine.grade})":
                 self.grade_text._label.text = f"{self.engine.fc_type} | {round(self.engine.accuracy * 100, 2)}% ({self.engine.grade})"

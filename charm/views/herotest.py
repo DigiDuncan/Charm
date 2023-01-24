@@ -6,6 +6,7 @@ from charm.lib.charm import CharmColors, generate_gum_wrapper, move_gum_wrapper
 from charm.lib.digiview import DigiView
 from charm.lib.gamemodes.hero import HeroHighway, HeroSong, SectionEvent
 from charm.lib.keymap import KeyMap
+from charm.lib.oggsound import OGGSound
 from charm.lib.paths import songspath
 
 logger = logging.getLogger("charm")
@@ -21,7 +22,7 @@ class HeroTestView(DigiView):
     def setup(self):
         super().setup()
 
-        self._song = arcade.load_sound(songspath / "ch" / "soulless5" / "song.ogg")
+        self._song = OGGSound(songspath / "ch" / "soulless5" / "song.ogg")
         self.hero_song = HeroSong.parse(songspath / "ch" / "soulless5")
         self.chart = self.hero_song.get_chart("Expert", "Single")
         self.highway = HeroHighway(self.chart, (0, 0), auto = True)
