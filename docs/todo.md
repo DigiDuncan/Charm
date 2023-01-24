@@ -1,4 +1,5 @@
 # TODO
+
 [X] Sustain scoring (sm)
 [ ] Port FNF to 4K engine
 [ ] Clone Hero input engine
@@ -8,4 +9,4 @@
 [ ] Song Menu for CH
 [ ] Basic Options Menu
 [ ] Score saving v0
-[ ] Optimize audio loading
+[/] Optimize audio loading

@@ -24,7 +24,7 @@ class ResultsView(DigiView):
         super().setup()
 
         with pkg_resources.path(charm.data.audio, "music-results.mp3") as p:
-            self._song = arcade.load_sound(p)
+            self._song = arcade.Sound(p)
 
         with pkg_resources.path(charm.data.images.skins.base, f"grade-{self.results.grade}.png") as p:
             self.grade_sprite = arcade.Sprite(p)

@@ -59,7 +59,7 @@ class VisualizerView(DigiView):
         # Load song and get waveform
         with LogSection(logger, "loading song and waveform"):
             with pkg_resources.path(charm.data.audio, "fourth_wall.wav") as p:
-                self._song = arcade.load_sound(p)
+                self._song = arcade.Sound(p)
                 load = librosa.load(p, mono=True)
             self.waveform: ndarray[float] = load[0]
             logger.info(f"Samples loaded: {len(self.waveform)} ({(self.waveform.size * self.waveform.itemsize) / 1000000:.2f}MB)")

@@ -27,7 +27,7 @@ class TitleView(DigiView):
         self.main_menu_view = MainMenuView(back=self)
         # Play music
         with pkg_resources.path(charm.data.audio, "song.mp3") as p:
-            song = arcade.load_sound(p)
+            song = arcade.Sound(p)
             self.window.theme_song = arcade.play_sound(song, self.volume, looping=True)
         self.window.theme_song.seek(self.local_time + 3)
 

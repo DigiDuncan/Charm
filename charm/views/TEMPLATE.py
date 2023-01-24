@@ -22,7 +22,7 @@ class TemplateView(DigiView):
         super().setup()
 
         with pkg_resources.path(charm.data.audio, "REPLACE") as p:
-            self._song = arcade.load_sound(p)
+            self._song = arcade.Sound(p)
 
         # Generate "gum wrapper" background
         self.logo_width, self.small_logos_forward, self.small_logos_backward = generate_gum_wrapper(self.size)

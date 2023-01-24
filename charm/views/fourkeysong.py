@@ -36,7 +36,7 @@ class FourKeySongView(DigiView):
             trackfiles = []
             for s in audio_paths:
                 trackfiles.append(OGGSound(s) if s.suffix == ".ogg" else arcade.Sound(s))
-            self.tracks = TrackCollection([arcade.load_sound(s) for s in audio_paths])
+            self.tracks = TrackCollection([arcade.Sound(s) for s in audio_paths])
 
         with LogSection(logger, "loading song data"):
             self.sm_song = FourKeySong.parse(self.song_path)

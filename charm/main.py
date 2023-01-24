@@ -67,10 +67,10 @@ class CharmGame(DigiWindow):
         # Menu sounds
         for soundname in sfx:
             with pkg_resources.path(charm.data.audio, f"sfx-{soundname}.wav") as p:
-                self.sounds[soundname] = arcade.load_sound(p)
+                self.sounds[soundname] = arcade.Sound(p)
         for soundname in err:
             with pkg_resources.path(charm.data.audio, f"error-{soundname}.wav") as p:
-                self.sounds["error-" + soundname] = arcade.load_sound(p)
+                self.sounds["error-" + soundname] = arcade.Sound(p)
 
         self.initial_view = TitleView()
 

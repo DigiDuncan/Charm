@@ -21,7 +21,7 @@ class SubtitleView(DigiView):
         super().setup()
 
         with pkg_resources.path(charm.data.subtitle, "crossing_field_8bit.mp3") as p:
-            self._song = arcade.load_sound(p)
+            self._song = arcade.Sound(p)
 
         with pkg_resources.path(charm.data.subtitle, "crossing_field.ass") as p:
             self.lyric_animator = LyricAnimator(p)
