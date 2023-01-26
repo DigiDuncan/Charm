@@ -15,8 +15,9 @@ import arcade
 from charm.lib.anim import ease_linear
 from charm.lib.charm import load_missing_texture
 from charm.lib.errors import ChartParseError, ChartPostReadParseError, NoChartsError
-from charm.lib.generic.engine import Engine, Judgement
+from charm.lib.generic.engine import DigitalKeyEvent, Engine, Judgement, KeyStates
 from charm.lib.generic.highway import Highway
+from charm.lib.keymap import KeyMap
 from charm.lib.generic.song import Chart, Event, Metadata, Note, Seconds, Song
 from charm.lib.settings import Settings
 from charm.lib.spritebucket import SpriteBucketCollection
@@ -711,8 +712,30 @@ class HeroHighway(Highway):
 
 class HeroEngine(Engine):
     def __init__(self, chart: Chart, offset: Seconds = 0):
-        mapping = [arcade.key.KEY_1, arcade.key.KEY_2, arcade.key.KEY_3, arcade.key.KEY_4, arcade.key.KEY_5,
-            arcade.key.RIGHT, arcade.key.LEFT]
+        hero_keys = KeyMap().get_set("hero")
+        mapping = [hero_keys.green, hero_keys.red, hero_keys.yellow, hero_keys.blue, hero_keys.orange, hero_keys.strum_up, hero_keys.strum_down, hero_keys.power]
         hit_window = 0.050  # 50ms +/-
         judgements = [Judgement("pass", 50, 100, 1, 1), Judgement("miss", math.inf, 0, -1, -1)]
+
+        self.current_notes: list[HeroNote] = self.chart.notes.copy()
+        self.current_events: list[DigitalKeyEvent] = []
+
         super().__init__(chart, mapping, hit_window, judgements, offset)
+
+        # TODO: this is a stop-gap until I remove mapping entirely.
+        self.mapping = [hero_keys.green, hero_keys.red, hero_keys.yellow, hero_keys.blue, hero_keys.orange, hero_keys.strum_up, hero_keys.strum_down, hero_keys.power]
+
+    def process_keystate(self, key_states: KeyStates):
+        last_state = self.key_state
+        # ignore spam during front/back porch
+        if (self.chart_time < self.chart.notes[0].time - self.hit_window
+           or self.chart_time > self.chart.notes[-1].time + self.hit_window):
+            return
+        for n in range(len(key_states)):
+            if key_states[n] is True and last_state[n] is False:
+                e = DigitalKeyEvent(self.chart_time, self.mapping[n], "down")
+                self.current_events.append(e)
+            elif key_states[n] is False and last_state[n] is True:
+                e = DigitalKeyEvent(self.chart_time, self.mapping[n], "up")
+                self.current_events.append(e)
+        self.key_state = key_states.copy()
