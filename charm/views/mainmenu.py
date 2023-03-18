@@ -41,8 +41,7 @@ class MainMenuView(DigiView):
             ]
         )
 
-        self.window.current_rp_state = "In Menus"
-        self.window.update_rp("In Menus")
+        self.window.discord_status.set("In Menus")
 
         self.load_countdown = None
 

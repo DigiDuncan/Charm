@@ -129,7 +129,7 @@ class FNFSongView(DigiView):
             self.paused = False
             self.show_text = True
 
-            self.window.update_rp(f"Playing {self.songdata.metadata.title}")
+            self.window.discord_status.set(f"Playing {self.songdata.metadata.title}")
 
             self.success = True
 

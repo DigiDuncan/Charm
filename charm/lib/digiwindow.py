@@ -4,21 +4,22 @@ import typing
 
 import arcade
 import pyglet
-import pypresence
+from charm.lib.discordstatus import DiscordStatus
 
 from charm.objects.debug_log import DebugLog
 
 logger = logging.getLogger("charm")
 
-rpc_client_id = "1056710104348639305"  # Charm app on Discord.
-
 if typing.TYPE_CHECKING:
     from charm.lib.digiview import DigiView
+
 
 class DigiWindow(arcade.Window):
     def __init__(self, size: tuple[int, int], title: str, fps_cap: int, initial_view: DigiView):
         super().__init__(size[0], size[1], title, update_rate=1/fps_cap, enable_polling=True)
 
+        self.discord_status = DiscordStatus()
+        self.discord_status.connect()
         self.fps_cap = fps_cap
         self.initial_view = initial_view
 
@@ -34,22 +35,6 @@ class DigiWindow(arcade.Window):
         self.show_log = False
         self.sounds: dict[str, arcade.Sound] = {}
         self.theme_song: pyglet.media.Player = None
-
-        # Discord RP
-        try:
-            self.rpc = pypresence.Presence(rpc_client_id)
-        except pypresence.DiscordNotFound:
-            self.rpc = None
-        self.rpc_connected = False
-        self.last_rp_time = 0
-        self.current_rp_state = ":jiggycat:"
-        self._rp_stale = True
-        if self.rpc:
-            try:
-                self.rpc.connect()
-                self.rpc_connected = True
-            except pypresence.DiscordError:
-                logger.warn("Discord could not connect the rich presence.")
 
         self.fps_averages = []
 
@@ -87,24 +72,11 @@ class DigiWindow(arcade.Window):
     def setup(self):
         self.initial_view.setup()
         self.show_view(self.initial_view)
-        self.update_rp()
 
     def on_update(self, delta_time: float):
         self.delta_time = delta_time
         self.time += delta_time
-        self.update_rp()
-
-    def update_rp(self, new_state: str = None):
-        if not self.rpc_connected:
-            return
-        if new_state and self.current_rp_state != new_state:
-            self.current_rp_state = new_state
-            self._rp_stale = True
-        if (self.last_rp_time + 1 < self.time) and self._rp_stale:
-            self.rpc.update(state=self.current_rp_state,
-            large_image="charm-icon-square", large_text="Charm Logo")
-            self.last_rp_time = self.time
-            self._rp_stale = False
+        self.discord_status.update(self.time)
 
     def debug_draw(self):
         self.fps_checks += 1
