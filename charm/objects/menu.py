@@ -1,5 +1,5 @@
 import math
-from arcade import Color, Sprite
+from arcade import Sprite
 import arcade
 import PIL.Image, PIL.ImageOps  # noqa: E401
 
@@ -10,6 +10,7 @@ from charm.lib.digiview import DigiView
 from charm.lib.settings import Settings
 from charm.lib.utils import img_from_resource
 
+Color = tuple[int, int, int, int]
 
 class MainMenuItem(Sprite):
     def __init__(self, label: str, icon: str, goto: DigiView,

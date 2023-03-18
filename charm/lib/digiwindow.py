@@ -15,7 +15,7 @@ if typing.TYPE_CHECKING:
 
 
 class DigiWindow(arcade.Window):
-    def __init__(self, size: tuple[int, int], title: str, fps_cap: int, initial_view: DigiView):
+    def __init__(self, size: tuple[int, int], title: str, fps_cap: int, initial_view: "DigiView"):
         super().__init__(size[0], size[1], title, update_rate=1/fps_cap, enable_polling=True)
 
         self.discord_status = DiscordStatus()
