@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import dataclasses
 from functools import cache, total_ordering
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Protocol
 
 
 Seconds = float
@@ -13,20 +13,20 @@ Milliseconds = float
 @dataclass
 class Metadata:
     """For menu sorting/display."""
-    title: str
-    artist: str = None
-    album: str = None
-    length: Seconds = None
-    genre: str = None
-    year: int = None
-    difficulty: int = None
-    charter: str = None
-    preview_start: Seconds = None
-    preview_end: Seconds = None
-    mod: str = None
-    hash: str = None
-    path: Path = None
-    gamemode: str = None
+    title: Optional[str] = None
+    artist: Optional[str] = None
+    album: Optional[str] = None
+    length: Optional[Seconds] = None
+    genre: Optional[str] = None
+    year: Optional[int] = None
+    difficulty: Optional[int] = None
+    charter: Optional[str] = None
+    preview_start: Optional[Seconds] = None
+    preview_end: Optional[Seconds] = None
+    mod: Optional[str] = None
+    hash: Optional[str] = None
+    path: Optional[Path] = None
+    gamemode: Optional[str] = None
 
     def get(self, key, default = None):
         """Basically a duplicate of dict.get()"""
@@ -56,18 +56,17 @@ class Note:
     - `missed: bool`: has this note been missed?
     - `hit_time: float`: when was this note hit?
 
-    - `extra_data: tuple`: ¯\_(ツ)_/¯"""  # noqa
+    - `extra_data: tuple`: ¯\\_(ツ)_/¯"""  # noqa
     chart: Chart
     time: Seconds
     lane: int
     length: Seconds = 0
-    type: str = "normal"
 
     hit: bool = False
     missed: bool = False
     hit_time: Optional[Seconds] = None
 
-    extra_data: tuple = None
+    extra_data: Optional[tuple] = None
 
     @property
     def end(self) -> Seconds:
@@ -85,6 +84,28 @@ class Note:
     def is_sustain(self) -> bool:
         return self.length > 0
 
+    @property
+    def time_ms(self) -> int:
+        return round(self.time * 1000)
+
+    @property
+    def hit_time_ms(self) -> Optional[int]:
+        if self.hit_time is None:
+            return None
+        return round(self.hit_time * 1000)
+
+    @property
+    def hit_distance(self):
+        if self.hit_time is None:
+            return 0
+        return abs(self.time - self.hit_time)
+
+    @property
+    def hit_distance_ms(self) -> int:
+        if self.hit_time_ms is None:
+            return 0
+        return abs(self.time_ms - self.hit_time_ms)
+
     def __lt__(self, other) -> bool:
         if isinstance(other, Note):
             return (self.time, self.lane) < (other.time, other.lane)
@@ -92,6 +113,7 @@ class Note:
             if self.time == other.time:
                 return False
             return self.time < other.time
+        return NotImplemented
 
 
 @dataclass
@@ -125,7 +147,8 @@ class BPMChangeEvent(Event):
 
 class Chart:
     """A collection of notes and events, with helpful metadata."""
-    def __init__(self, song: 'Song', gamemode: str, difficulty: str, instrument: str, lanes: int, hash: str) -> None:
+
+    def __init__(self, song: Song, gamemode: str, difficulty: str, instrument: str, lanes: int, hash: str) -> None:
         self.song: Song = song
         self.gamemode = gamemode
         self.difficulty = difficulty
@@ -135,11 +158,32 @@ class Chart:
 
         self.notes: list[Note] = []
         self.events: list[Event] = []
-        self.bpm: float = None
+        self.bpm: Optional[float] = None
+
+
+class AbstractSong(Protocol):
+    path: Path
+    metadata: Metadata
+    charts: list[Chart]
+    events: list[Event]
+
+    def __init__(self, path: Path):
+        ...
+
+    def get_chart(self, difficulty = None, instrument = None) -> Chart:
+        ...
+
+    def events_by_type(self, t: type) -> list[Event]:
+        ...
+
+    @classmethod
+    def parse(cls, folder: Path) -> AbstractSong:
+        ...
 
 
 class Song:
     """A list of charts and global events, with some helpful metadata."""
+
     def __init__(self, path: Path):
         self.path: Path = path
         self.metadata = Metadata(path.stem, "Unknown Artist", "Unknown Album")

@@ -101,10 +101,10 @@ class OsuHitObject:
         lane_calc = math.floor(self.x * lanes / 512)
         return clamp(0, lane_calc, lanes - 1)
 
-    def __lt__(self, other: "OsuHitObject") -> bool:
+    def __lt__(self, other: OsuHitObject) -> bool:
         return (self.time, self.x, other.y) < (other.time, other.x, other.y)
 
-    def __eq__(self, other: "OsuHitObject") -> bool:
+    def __eq__(self, other: OsuHitObject) -> bool:
         return (self.time, self.x, other.y) == (other.time, other.x, other.y)
 
 @dataclass
@@ -128,7 +128,7 @@ class OsuSlider(OsuHitObject):
     edge_sets: list[str]
     hit_sample: OsuHitSample
 
-    end_time: Seconds = None
+    end_time: Optional[Seconds] = None
 
     @property
     def length(self) -> Seconds:
@@ -157,7 +157,7 @@ class OsuHold(OsuHitObject):
 @dataclass
 class OsuGeneralData:
     """General attributes on an osu! chart."""
-    audio_filename: str = None
+    audio_filename: Optional[str] = None
     audio_leadin: Seconds = 0
     preview_time: Seconds = -0.001
     countdown_type: int = 0
@@ -174,24 +174,24 @@ class OsuGeneralData:
 @dataclass
 class OsuMetadata:
     """Metadata that an osu! chart supports."""
-    title: str = None
+    title: Optional[str] = None
     title_unicode: Optional[str] = None
-    artist: str = None
+    artist: Optional[str] = None
     artist_unicode: Optional[str] = None
-    charter: str = None
-    difficulty: str = None
-    source: str = None
-    tags: list[str] = None
+    charter: Optional[str] = None
+    difficulty: Optional[str] = None
+    source: Optional[str] = None
+    tags: Optional[list[str]] = None
 
 @dataclass
 class OsuDifficulty:
     """Definitions relating to the osu! engine."""
-    hp_drain_rate: float = None
-    circle_size: float = None
-    overall_difficulty: float = None
-    approach_rate: float = None
-    slider_multiplier: float = None
-    slider_tick_rate: float = None
+    hp_drain_rate: Optional[float] = None
+    circle_size: Optional[float] = None
+    overall_difficulty: Optional[float] = None
+    approach_rate: Optional[float] = None
+    slider_multiplier: Optional[float] = None
+    slider_tick_rate: Optional[float] = None
 
     @property
     def hp(self) -> float:

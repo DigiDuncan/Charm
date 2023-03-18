@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Literal, TYPE_CHECKING
 from charm.lib.generic.song import Chart, Note, Seconds
@@ -11,25 +13,40 @@ Key = int
 class Judgement:
     name: str
     key: str
-    ms: int  # maximum
+    window_ms: int  # maximum
     score: int
     accuracy_weight: float
     hp_change: float = 0
 
-    @property
-    def seconds(self):
-        return self.ms / 1000
+    def __lt__(self, other: Judgement):
+        return self.window_ms < other.window_ms
 
-    def __lt__(self, other):
-        return self.ms < other.ms
+
+@dataclass
+class NoteJudgement:
+    note: Note
+    judgement: Judgement
+
+
+class Judge:
+    def __init__(self, judgements: list[Judgement], miss_judgement: Judgement):
+        self.judgements = sorted(judgements)
+        self.miss_judgement = miss_judgement
+        self.hit_window_ms = judgements[-1].window_ms
+
+    def get_judgement(self, note_distance_ms: int):
+        for j in self.judgements:
+            if note_distance_ms <= j.window_ms:
+                return j
+        return self.miss_judgement
 
 
 @dataclass
 class EngineEvent:
     time: float
 
-    def __lt__(self, other):
-        self.time < other.time
+    def __lt__(self, other: EngineEvent):
+        return self.time < other.time
 
 
 @dataclass
@@ -37,17 +54,18 @@ class DigitalKeyEvent(EngineEvent):
     key: int
     new_state: Literal["up", "down"]
 
-    def __lt__(self, other):
-        (self.time, self.key) < (other.time, other.key)
+    def __lt__(self, other: DigitalKeyEvent):
+        return (self.time, self.key) < (other.time, other.key)
 
 
 class Engine:
-    def __init__(self, chart: Chart, mapping: list[Key], hit_window: Seconds, judgements: list[Judgement] = [], offset: Seconds = 0):
+    def __init__(self, chart: Chart, mapping: list[Key], hit_window: Seconds, judge: Judge, offset: Seconds = 0):
         self.chart = chart
         self.mapping = mapping
         self.hit_window = hit_window
         self.offset = offset
-        self.judgements = judgements
+        self.judge = judge
+        self.note_judgements: list[NoteJudgement] = []
 
         self.chart_time: Seconds = 0
         self.active_notes = self.chart.notes.copy()
@@ -63,6 +81,12 @@ class Engine:
         # Accuracy
         self.max_notes = len(self.chart.notes)
         self.weighted_hit_notes: int = 0
+
+    @property
+    def latest_note_judgement(self):
+        if not self.note_judgements:
+            return None
+        return self.note_judgements[-1]
 
     @property
     def accuracy(self) -> float | None:
@@ -108,13 +132,5 @@ class Engine:
     def process_keystate(self, key_states: KeyStates):
         raise NotImplementedError
 
-    def get_note_judgement(self, note: Note) -> Judgement:
-        rt = abs(note.hit_time - note.time)
-        # FIXME: Lag?
-        for j in self.judgements:
-            if rt <= j.seconds:
-                return j
-        return self.judgements[-1]
-
-    def generate_results(self) -> "Results":
+    def generate_results(self) -> Results:
         raise NotImplementedError

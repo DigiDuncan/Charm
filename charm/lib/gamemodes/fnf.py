@@ -9,6 +9,7 @@ from functools import cache
 from hashlib import sha1
 from pathlib import Path
 from typing import Optional, TypedDict, cast
+from enum import Enum
 
 import arcade
 import PIL, PIL.ImageFilter
@@ -16,7 +17,7 @@ import PIL, PIL.ImageFilter
 from charm.lib.adobexml import AdobeSprite
 from charm.lib.charm import load_missing_texture
 from charm.lib.errors import AssetNotFoundError, NoChartsError, UnknownLanesError
-from charm.lib.generic.engine import DigitalKeyEvent, Engine, Judgement, KeyStates
+from charm.lib.generic.engine import DigitalKeyEvent, Engine, Judge, Judgement, KeyStates, NoteJudgement
 from charm.lib.generic.highway import Highway
 from charm.lib.generic.song import BPMChangeEvent, Chart, Event, Metadata, Milliseconds, Note, Seconds, Song
 from charm.lib.keymap import get_keymap
@@ -51,12 +52,13 @@ class NoteJson(TypedDict):
     lengthInSteps: int
 
 
-class NoteType:
+class NoteType(Enum):
     NORMAL = "normal"
     BOMB = "bomb"
     DEATH = "death"
     HEAL = "heal"
     CAUTION = "caution"
+
 
 class NoteColor:
     GREEN = arcade.color.LIME_GREEN
@@ -69,7 +71,7 @@ class NoteColor:
     CAUTION = arcade.color.YELLOW
 
     @classmethod
-    def from_note(cls, note: "FNFNote"):
+    def from_note(cls, note: FNFNote):
         match note.type:
             case NoteType.NORMAL:
                 if note.lane == 0:
@@ -98,8 +100,9 @@ class CameraFocusEvent(Event):
 
 @dataclass
 class FNFNote(Note):
-    parent: FNFNote = None
-    sprite: FNFNoteSprite | FNFLongNoteSprite = None
+    parent: Optional[FNFNote] = None
+    sprite: Optional[FNFNoteSprite | FNFLongNoteSprite] = None
+    type: NoteType = NoteType.NORMAL
 
     def __lt__(self, other):
         return (self.time, self.lane, self.type) < (other.time, other.lane, other.type)
@@ -123,6 +126,7 @@ class FNFChart(Chart):
         self.hash = hash
 
         self.notes: list[FNFNote] = []
+        self.name: Optional[str] = None
 
     def get_current_sustains(self, time: Seconds):
         return [note.lane for note in self.notes if note.is_sustain and note.time <= time and note.end >= time]
@@ -132,15 +136,16 @@ class FNFMod:
     def __init__(self, folder_name: str) -> None:
         self.folder_name = folder_name
         self.path = modsfolder / self.folder_name
-        self.name: str = None
+        self.name: Optional[str] = None
         self.songs = list[FNFSong]
 
 
 class FNFSong(Song):
-    def __init__(self, song_code: str, mod: FNFMod = None) -> None:
-        super().__init__(song_code)
-        self.mod: FNFMod = mod
+    def __init__(self, path: Path, mod: Optional[FNFMod] = None) -> None:
+        super().__init__(path)
+        self.mod: Optional[FNFMod] = mod
         self.charts: list[FNFChart] = []
+        self.bpm: Optional[float] = None
 
     @classmethod
     def get_metadata(cls, folder: Path) -> Metadata:
@@ -151,7 +156,7 @@ class FNFSong(Song):
         return Metadata(title, artist, album, hash = f"fnf-{title}", path = folder, gamemode = "fnf")
 
     @classmethod
-    def parse(cls, folder: Path, mod: FNFMod = None) -> FNFSong:
+    def parse(cls, folder: Path, mod: Optional[FNFMod] = None) -> FNFSong:
         folder_path = Path(folder)
         stem = folder_path.stem
         song = FNFSong(folder)
@@ -163,7 +168,7 @@ class FNFSong(Song):
                 song.charts.append(chart)
 
         if not song.charts:
-            raise NoChartsError(folder)
+            raise NoChartsError(str(folder))
 
         # Global attributes that are stored per-chart, for some reason.
         chart: FNFChart = song.charts[0]
@@ -249,11 +254,22 @@ class FNFSong(Song):
 
             # Lanemap: (player, lane, type)
             # TODO: overrides for this
+            lanemap: list[tuple[int, int, NoteType]]
             if fnf_overrides:
-                lanemap = [[l[0], l[1], getattr(NoteType, l[2])] for l in fnf_overrides["lanes"]]
+                lanemap = [
+                    (l[0], l[1], getattr(NoteType, l[2])) for l in fnf_overrides["lanes"]
+                ]
             else:
-                lanemap: list[tuple[int, int, NoteType]] = [(0, 0, NoteType.NORMAL), (0, 1, NoteType.NORMAL), (0, 2, NoteType.NORMAL), (0, 3, NoteType.NORMAL),
-                                                        (1, 0, NoteType.NORMAL), (1, 1, NoteType.NORMAL), (1, 2, NoteType.NORMAL), (1, 3, NoteType.NORMAL)]
+                lanemap = [
+                    (0, 0, NoteType.NORMAL),
+                    (0, 1, NoteType.NORMAL),
+                    (0, 2, NoteType.NORMAL),
+                    (0, 3, NoteType.NORMAL),
+                    (1, 0, NoteType.NORMAL),
+                    (1, 1, NoteType.NORMAL),
+                    (1, 2, NoteType.NORMAL),
+                    (1, 3, NoteType.NORMAL)
+                ]
             # Actually make two charts
             sectionNotes = section["sectionNotes"]
             for note in sectionNotes:
@@ -292,7 +308,6 @@ class FNFSong(Song):
                 if thisnote.length != 0:
                     sustainbeats = round(thisnote.length / seconds_per_sixteenth)
                     for i in range(sustainbeats):
-                        j = i + 1
                         thatnote = FNFNote(charts[note_player], pos + (seconds_per_sixteenth * (i + 1)), chart_lane, 0, "sustain")
                         thatnote.parent = thisnote
                         charts[note_player].notes.append(thatnote)
@@ -320,15 +335,16 @@ class FNFEngine(Engine):
         hit_window = 0.166
         fk = get_keymap().get_set("fourkey")
         mapping = [fk.key1, fk.key2, fk.key3, fk.key4]
-        judgements = [
-            #           ("name",  "key"    ms,       score, acc,   hp=0)
-            FNFJudgement("sick",  "sick",  45,       350,   1,     0.04),
-            FNFJudgement("good",  "good",  90,       200,   0.75),
-            FNFJudgement("bad",   "bad",   135,      100,   0.5,  -0.03),
-            FNFJudgement("awful", "awful", 166,      50,    -1,   -0.06),  # I'm not calling this "s***", it's not funny.
-            FNFJudgement("miss",  "miss",  math.inf, 0,     -1,   -0.1)
-        ]
-        super().__init__(chart, mapping, hit_window, judgements, offset)
+        # autopep8: off
+        judge = Judge([
+            #           ( name     key   window_ms  score    acc     hp  )
+            FNFJudgement("sick",  "sick",      45,    350,   1.00,   0.04),
+            FNFJudgement("good",  "good",      90,    200,   0.75,   0.00),
+            FNFJudgement("bad",   "bad",      135,    100,   0.50,  -0.03),
+            FNFJudgement("awful", "awful",    166,     50,  -1.00,  -0.06)   # I'm not calling this "s***", it's not funny.
+        ],  FNFJudgement("miss",  "miss",      -1,      0,  -1.00,  -0.10))
+        # autopep8: on
+        super().__init__(chart, mapping, hit_window, judge, offset)
 
         self.min_hp = 0
         self.hp = 1
@@ -338,9 +354,8 @@ class FNFEngine(Engine):
 
         self.has_died = False
 
-        self.latest_judgement = ""
+        self.latest_judgement = None
         self.latest_judgement_time = 0
-        self.all_judgements: list[tuple[Seconds, Seconds, Judgement]] = []
 
         self.current_notes: list[FNFNote] = self.chart.notes.copy()
         self.current_events: list[DigitalKeyEvent] = []
@@ -431,21 +446,18 @@ class FNFEngine(Engine):
             return
 
         # Score the note
-        j = self.get_note_judgement(note)
-        self.score += j.score
-        self.weighted_hit_notes += j.accuracy_weight
+        judgement = self.judge.get_judgement(int(note.hit_distance * 1000))
+        self.score += judgement.score
+        self.weighted_hit_notes += judgement.accuracy_weight
 
         # Give HP for hit note (heal notes give more)
         if note.type == "heal":
             self.hp += self.heal_hp
         else:
-            self.hp += j.hp_change
+            self.hp += judgement.hp_change
 
         # Judge the player
-        rt = abs(note.hit_time - note.time)
-        self.latest_judgement = j.name
-        self.latest_judgement_time = self.chart_time
-        self.all_judgements.append((self.latest_judgement_time, rt, self.latest_judgement))
+        self.note_judgements.append(NoteJudgement(note, judgement))
 
         # Animation and hit/miss tracking
         self.last_p1_note = note.lane
@@ -601,7 +613,7 @@ class FNFAssetManager:
     def __init__(self, song: FNFSong):
         self.song = song
 
-    def load_asset(self, asset_type: str, name: str, default: str = None, *, anchors: list[str] = ["bottom"]) -> AdobeSprite | arcade.Sprite:
+    def load_asset(self, asset_type: str, name: str, default: Optional[str] = None, *, anchors: list[str] = ["bottom"]) -> AdobeSprite | arcade.Sprite:
         sub_path = f"{asset_type}/{name}.png"
         possiblepaths: list[Path] = []
         # Path to asset if it's in the song folder
@@ -634,6 +646,7 @@ class FNFSceneManager:
        Handles sprite loading, most rendering, and inter-element interactions.
 
        `chart: FNFChart`: the chart the player is currenty playing."""
+
     def __init__(self, chart: FNFChart):
         self.chart = chart
         self.song: FNFSong = cast(FNFSong, chart.song)

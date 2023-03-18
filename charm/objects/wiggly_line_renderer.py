@@ -35,10 +35,10 @@ class TimePoint:
     def move(self, x: float, y: float):
         self.point = (self.point[0] + x, self.point[1] + y)
 
-    def __lt__(self, other: "TimePoint") -> bool:
+    def __lt__(self, other: TimePoint) -> bool:
         return self.time < other.time
 
-    def __eq__(self, other: "TimePoint") -> bool:
+    def __eq__(self, other: TimePoint) -> bool:
         return self.time == other.time and self.point == other.point
 
 class LineRenderer:

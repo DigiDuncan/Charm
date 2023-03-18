@@ -1,6 +1,6 @@
 from collections import defaultdict
 from functools import cache
-from typing import cast, TypedDict
+from typing import Optional, cast, TypedDict
 from dataclasses import dataclass
 from pathlib import Path
 import configparser
@@ -16,7 +16,7 @@ import arcade
 from charm.lib.anim import ease_linear
 from charm.lib.charm import load_missing_texture
 from charm.lib.errors import ChartParseError, ChartPostReadParseError, NoChartsError, NoMetadataError, MetadataParseError
-from charm.lib.generic.engine import DigitalKeyEvent, Engine, Judgement
+from charm.lib.generic.engine import DigitalKeyEvent, Engine, Judge, Judgement
 from charm.lib.generic.highway import Highway
 from charm.lib.generic.song import Chart, Event, Metadata, Note, Seconds, Song
 from charm.lib.keymap import get_keymap
@@ -66,7 +66,7 @@ class IndexDict(TypedDict):
 class TickEvent(Event):
     tick: int
 
-    def __lt__(self, other: "TickEvent") -> bool:
+    def __lt__(self, other: TickEvent) -> bool:
         return self.tick < other.tick
 
 @dataclass
@@ -139,7 +139,7 @@ class NoteColor:
     PURPLE = arcade.color.PURPLE
 
     @classmethod
-    def from_note(cls, note: "HeroNote"):
+    def from_note(cls, note: HeroNote):
         match note.lane:
             case 0:
                 return cls.GREEN
@@ -158,8 +158,9 @@ class NoteColor:
 
 @dataclass
 class HeroNote(Note):
-    tick: int = None
-    tick_length: Ticks = None
+    tick: Optional[int] = None
+    tick_length: Optional[Ticks] = None
+    type: NoteType = NoteType.NORMAL
 
     @property
     def icon(self) -> str:
@@ -173,7 +174,7 @@ class HeroNote(Note):
 
 class HeroChord:
     """A data object to hold notes and have useful functions for manipulating and reading them."""
-    def __init__(self, notes: list[HeroNote] = None) -> None:
+    def __init__(self, notes: Optional[list[HeroNote]] = None) -> None:
         self.notes = notes if notes else []
 
     @property
@@ -255,10 +256,10 @@ class HeroChord:
             return final_list
 
 class HeroChart(Chart):
-    def __init__(self, song: 'Song', difficulty: str, instrument: str, lanes: int, hash: str) -> None:
+    def __init__(self, song: Song, difficulty: str, instrument: str, lanes: int, hash: str) -> None:
         super().__init__(song, "hero", difficulty, instrument, lanes, hash)
         self.song: HeroSong = self.song
-        self.chords: list[HeroChord] = None
+        self.chords: Optional[list[HeroChord]] = None
 
         self.indexes_by_tick: IndexDict = {}
         self.indexes_by_time: IndexDict = {}
@@ -602,13 +603,13 @@ def load_note_texture(note_type, note_lane, height):
     return arcade.Texture(f"_heronote_{image_name}", image=image, hit_box_algorithm=None)
 
 class HeroNoteSprite(arcade.Sprite):
-    def __init__(self, note: HeroNote, highway: "HeroHighway", height = 128, *args, **kwargs):
+    def __init__(self, note: HeroNote, highway: HeroHighway, height = 128, *args, **kwargs):
         self.note: HeroNote = note
         self.highway: HeroHighway = highway
         tex = load_note_texture(note.type, note.lane, height)
         super().__init__(texture=tex, *args, **kwargs)
 
-    def __lt__(self, other: "HeroNoteSprite"):
+    def __lt__(self, other: HeroNoteSprite):
         return self.note.time < other.note.time
 
     def update_animation(self, delta_time: float):
@@ -619,7 +620,7 @@ class HeroNoteSprite(arcade.Sprite):
             self.alpha = 0
 
 class HeroLongNoteSprite(HeroNoteSprite):
-    def __init__(self, note: HeroNote, highway: "HeroHighway", height=128, *args, **kwargs):
+    def __init__(self, note: HeroNote, highway: HeroHighway, height=128, *args, **kwargs):
         super().__init__(note, highway, height, *args, **kwargs)
         global note_id  # TODO: globals suck, is there a way to store this on the class?
         note_id += 1
@@ -641,7 +642,7 @@ class HeroLongNoteSprite(HeroNoteSprite):
         self.dead_trail.draw() if self.note.missed else self.trail.draw()
 
 class HeroHighway(Highway):
-    def __init__(self, chart: HeroChart, pos: tuple[int, int], size: tuple[int, int] = None, gap: int = 5, auto = False, show_flags = False):
+    def __init__(self, chart: HeroChart, pos: tuple[int, int], size: Optional[tuple[int, int]] = None, gap: int = 5, auto = False, show_flags = False):
         if size is None:
             size = int(Settings.width / (1280 / 400)), Settings.height
 
@@ -804,9 +805,14 @@ class HeroEngine(Engine):
         hero_keys = get_keymap().get_set("hero")
         mapping = [hero_keys.green, hero_keys.red, hero_keys.yellow, hero_keys.blue, hero_keys.orange, hero_keys.strumup, hero_keys.strumdown]
         hit_window = 0.050  # 50ms +/-
-        judgements = [Judgement("pass", 50, 100, 1, 1), Judgement("miss", math.inf, 0, 0, -1)]
+        # autopep8: off
+        judge = Judge([
+            #        ( name    key   window_ms  score   acc    hp)
+            Judgement("pass", "pass",      50,    100,    1,    1)
+        ],  Judgement("miss", "miss",      -1,      0,    0,   -1))
+        # autopep8: on
 
-        super().__init__(chart, mapping, hit_window, judgements, offset)
+        super().__init__(chart, mapping, hit_window, judge, offset)
 
         self.current_chords: list[HeroChord] = self.chart.chords.copy()
         self.current_events: list[DigitalKeyEvent] = []

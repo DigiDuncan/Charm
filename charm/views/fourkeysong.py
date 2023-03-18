@@ -56,14 +56,15 @@ class FourKeySongView(DigiView):
         with LogSection(logger, "loading highway"):
             self.highway = FourKeyHighway(self.chart, self.engine, (0, 0))
             self.highway.x += self.window.width // 2 - self.highway.w // 2  # center the highway
-            self.highway.hit_window_top = self.highway.note_y(-self.engine.judgements[-2].seconds)
-            self.highway.hit_window_bottom = self.highway.note_y(self.engine.judgements[-2].seconds)
+            self.highway.hit_window_top = self.highway.note_y(-(self.engine.judge.hit_window_ms / 1000))
+            self.highway.hit_window_bottom = self.highway.note_y((self.engine.judge.hit_window_ms / 1000))
 
         self.text = arcade.Text("[LOADING]", -5, self.window.height - 5, color = arcade.color.BLACK, font_size = 24, align = "right", anchor_y="top", font_name = "bananaslip plus", width = self.window.width)
         self.countdown_text = arcade.Text("0", self.window.width / 2, self.window.height / 2, arcade.color.BLACK, 72, align="center", anchor_x="center", anchor_y="center", font_name = "bananaslip plus", width = 100)
 
         with LogSection(logger, "loading judgements"):
-            judgement_textures: list[arcade.Texture] = [j.get_texture() for j in self.engine.judgements]
+            self.judgement_texture_map = {j.key: i for i, j in enumerate(self.engine.judge.judgements)}
+            judgement_textures: list[arcade.Texture] = [j.get_texture() for j in self.engine.judge.judgements]
             self.judgement_sprite = arcade.Sprite(texture = judgement_textures[0])
             self.judgement_sprite.textures = judgement_textures
             self.judgement_sprite.scale = (self.highway.w * 0.8) / self.judgement_sprite.width
@@ -162,9 +163,9 @@ class FourKeySongView(DigiView):
         self.engine.calculate_score()
 
         # Judgement
-        judgement_index = self.engine.judgements.index(self.engine.latest_judgement) if self.engine.latest_judgement else 0
         judgement_time = self.engine.latest_judgement_time
         if judgement_time:
+            judgement_index = self.judgement_texture_map[self.engine.latest_judgement.key]
             self.judgement_sprite.center_y = ease_circout(self.judgement_jump_pos, self.judgement_land_pos, judgement_time, judgement_time + 0.25, self.tracks.time)
             self.judgement_sprite.alpha = ease_circout(255, 0, judgement_time + 0.5, judgement_time + 1, self.tracks.time)
             self.judgement_sprite.set_texture(judgement_index)

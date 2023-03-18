@@ -190,8 +190,8 @@ class FNFSongView(DigiView):
             self.song_time_text._label.text = time
         if self.score_text._label.text != str(self.engine.score):
             self.score_text._label.text = str(self.engine.score)
-        if self.judge_text._label.text != self.engine.latest_judgement:
-            self.judge_text._label.text = self.engine.latest_judgement
+        if self.judge_text._label.text != self.engine.latest_judgement.name:
+            self.judge_text._label.text = self.engine.latest_judgement.name
 
         self.get_spotlight_position(self.tracks.time)
 

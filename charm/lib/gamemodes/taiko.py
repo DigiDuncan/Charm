@@ -1,5 +1,7 @@
+from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 from charm.lib.gamemodes.osu import OsuHitCircle, OsuSlider, OsuSpinner, RawOsuChart
 from charm.lib.generic.engine import Engine
 from charm.lib.generic.highway import Highway
@@ -15,9 +17,10 @@ class NoteType:
 @dataclass
 class TaikoNote(Note):
     large: bool = False
+    type: NoteType = None
 
 class TaikoChart(Chart):
-    def __init__(self, song: 'Song', difficulty: str, hash: str) -> None:
+    def __init__(self, song: Song, difficulty: str, hash: Optional[str]) -> None:
         super().__init__(song, "taiko", difficulty, "taiko", 4, hash)
         self.song: TaikoSong = song
 
@@ -26,7 +29,7 @@ class TaikoSong(Song):
         super().__init__(path)
 
     @classmethod
-    def parse(self, folder: Path) -> "TaikoSong":
+    def parse(cls, folder: Path) -> TaikoSong:
         song = TaikoSong(folder)
 
         chart_files = folder.glob("*.osu")
@@ -51,8 +54,10 @@ class TaikoSong(Song):
                     chart.notes.append(TaikoNote(chart, hit_object.time, 0, hit_object.length, NoteType.DENDEN, large = hit_object.taiko_large))
             song.charts.append(chart)
 
+        return song
+
     @classmethod
-    def get_metadata(self, folder: Path) -> Metadata:
+    def get_metadata(cls, folder: Path) -> Metadata:
         chart_files = folder.glob("*.osu")
         raw_chart = RawOsuChart.parse(next(chart_files))
         m = raw_chart.metadata

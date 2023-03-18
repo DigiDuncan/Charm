@@ -1,5 +1,5 @@
 from functools import cache
-from typing import Any
+from typing import Any, Callable, Iterable, TypeVar
 import collections
 import importlib.resources as pkg_resources
 
@@ -65,3 +65,15 @@ def color_with_alpha(color: RGB | RGBA, alpha: int):
         return color + (alpha,)
     else:
         return color[:3] + (alpha,)
+
+
+T = TypeVar('T')
+K = TypeVar('K')
+def splitby(items: Iterable[T], key: Callable[[T], K]) -> dict[K, list[T]]:
+    splitted: dict[K, list[T]] = dict()
+    for item in items:
+        k = key(item)
+        if k not in splitted:
+            splitted[k] = []
+        splitted[k].append(item)
+    return splitted

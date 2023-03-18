@@ -1,5 +1,6 @@
 import itertools
 from pathlib import Path
+from typing import Optional
 
 import simfile
 from simfile.sm import SMChart
@@ -22,10 +23,10 @@ class SMSong(FourKeySong):
     def __init__(self, path: Path):
         super().__init__(path)
 
-        self.timing_engine: TimingEngine = None
+        self.timing_engine: Optional[TimingEngine] = None
 
     @classmethod
-    def parse(cls, folder: Path) -> "FourKeySong":
+    def parse(cls, folder: Path) -> FourKeySong:
         # OK, figure out what chart file to use.
         files = itertools.chain(folder.glob("*.ssc"), folder.glob("*.sm"))
         sm_file = next(files)
@@ -68,7 +69,7 @@ class SMSong(FourKeySong):
         return song
 
     @classmethod
-    def get_metadata(self, folder: Path) -> Metadata:
+    def get_metadata(cls, folder: Path) -> Metadata:
         # OK, figure out what chart file to use.
         files = itertools.chain(folder.glob("*.ssc"), folder.glob("*.sm"))
         sm_file = next(files)

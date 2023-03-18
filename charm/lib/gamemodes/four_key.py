@@ -1,4 +1,5 @@
 from __future__ import annotations
+from enum import Enum
 
 import importlib.resources as pkg_resources
 import logging
@@ -7,6 +8,7 @@ from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
 from statistics import mean
+from typing import Optional
 
 import arcade
 import PIL
@@ -15,7 +17,7 @@ import PIL.ImageFilter
 import charm.data.images.skins.fnf as fnfskin
 import charm.data.images.skins.base as baseskin
 from charm.lib.charm import load_missing_texture
-from charm.lib.generic.engine import DigitalKeyEvent, Engine, Judgement
+from charm.lib.generic.engine import DigitalKeyEvent, Engine, Judge, Judgement, NoteJudgement
 from charm.lib.generic.highway import Highway
 from charm.lib.generic.results import Results
 from charm.lib.generic.song import Note, Chart, Seconds, Song
@@ -27,7 +29,7 @@ from charm.objects.line_renderer import NoteTrail
 
 logger = logging.getLogger("charm")
 
-class NoteType:
+class NoteType(Enum):
     NORMAL = "normal"
     BOMB = "bomb"
     DEATH = "death"
@@ -45,7 +47,7 @@ class NoteColor:
     CAUTION = arcade.color.YELLOW
 
     @classmethod
-    def from_note(cls, note: "FourKeyNote"):
+    def from_note(cls, note: FourKeyNote):
         match note.type:
             case NoteType.NORMAL:
                 if note.lane == 0:
@@ -82,14 +84,15 @@ def load_note_texture(note_type, note_lane, height):
 
 @dataclass
 class FourKeyNote(Note):
-    parent: FourKeyNote = None
-    sprite: "FourKeyNoteSprite" | "FourKeyLongNoteSprite" = None
+    parent: Optional[FourKeyNote] = None
+    sprite: Optional[FourKeyNoteSprite | FourKeyLongNoteSprite] = None
+    type: NoteType = NoteType.NORMAL
 
     def __lt__(self, other):
         return (self.time, self.lane, self.type) < (other.time, other.lane, other.type)
 
 class FourKeyChart(Chart):
-    def __init__(self, song: 'Song', difficulty, hash: str):
+    def __init__(self, song: Song, difficulty, hash: Optional[str]):
         super().__init__(song, "4k", difficulty, "4k", 4, hash)
         self.song: FourKeySong = song
 
@@ -262,17 +265,18 @@ class FourKeyEngine(Engine):
         hit_window: Seconds = 0.075
         fk = get_keymap().get_set("fourkey")
         mapping = [fk.key1, fk.key2, fk.key3, fk.key4]
-        judgements = [
-            #               ("name",           "key"             ms, score,  acc, hp=0)
-            FourKeyJudgement("Super Charming", "supercharming",  10,  1000,    1, 0.04),
-            FourKeyJudgement("Charming",       "charming",       25,  1000,  0.9, 0.04),
-            FourKeyJudgement("Excellent",      "excellent",      35,   800,  0.8, 0.03),
-            FourKeyJudgement("Great",          "great",          45,   600,  0.7, 0.02),
-            FourKeyJudgement("Good",           "good",           60,   400,  0.6, 0.01),
-            FourKeyJudgement("OK",             "ok",             75,   200,  0.5,    0),
-            FourKeyJudgement("Miss",           "miss",     math.inf,     0,    0, -0.1)
-        ]
-        super().__init__(chart, mapping, hit_window, judgements, offset)
+        # autopep8: off
+        judge = Judge([
+            #               ( name              key         window_ms  score    acc    hp  )
+            FourKeyJudgement("Super Charming", "supercharming",   10,   1000,   1.0,   0.04),
+            FourKeyJudgement("Charming",       "charming",        25,   1000,   0.9,   0.04),
+            FourKeyJudgement("Excellent",      "excellent",       35,    800,   0.8,   0.03),
+            FourKeyJudgement("Great",          "great",           45,    600,   0.7,   0.02),
+            FourKeyJudgement("Good",           "good",            60,    400,   0.6,   0.01),
+            FourKeyJudgement("OK",             "ok",              75,    200,   0.5,   0.00)
+        ],  FourKeyJudgement("Miss",           "miss",            -1,      0,   0.0,  -0.10))
+        # autopep8: on
+        super().__init__(chart, mapping, hit_window, judge, offset)
 
         self.min_hp = 0
         self.hp = 1
@@ -283,7 +287,6 @@ class FourKeyEngine(Engine):
 
         self.latest_judgement = None
         self.latest_judgement_time = None
-        self.all_judgements: list[tuple[Seconds, Seconds, Judgement]] = []
 
         self.current_notes: list[FourKeyNote] = self.chart.notes.copy()
         self.current_events: list[DigitalKeyEvent] = []
@@ -316,8 +319,10 @@ class FourKeyEngine(Engine):
 
     @property
     def average_acc(self) -> float:
-        j = [j[1] for j in self.all_judgements if j[1] is not math.inf]
-        return mean(j) if j else 0
+        hd = [nj.note.hit_distance for nj in self.note_judgements if nj.judgement.key != "miss"]
+        if not hd:
+            return 0
+        return mean(hd)
 
     def calculate_score(self):
         # Get all non-scored notes within the current window
@@ -372,15 +377,12 @@ class FourKeyEngine(Engine):
             return
 
         # Score the note
-        j = self.get_note_judgement(note)
-        self.score += j.score
-        self.weighted_hit_notes += j.accuracy_weight
+        judgement = self.judge.get_judgement(int(note.hit_distance * 1000))
+        self.score += judgement.score
+        self.weighted_hit_notes += judgement.accuracy_weight
 
         # Judge the player
-        rt = note.hit_time - note.time if note.hit_time is not math.inf else math.inf
-        self.latest_judgement = j
-        self.latest_judgement_time = self.chart_time
-        self.all_judgements.append((self.latest_judgement_time, rt, self.latest_judgement))
+        self.note_judgements.append(NoteJudgement(note, judgement))
 
         # Animation and hit/miss tracking
         self.last_p1_note = note.lane
@@ -399,16 +401,11 @@ class FourKeyEngine(Engine):
 
     def generate_results(self) -> Results:
         return Results(
-            self.chart,
-            self.hit_window,
-            self.judgements,
-            self.all_judgements,
+            self.judge,
+            self.note_judgements,
             self.score,
-            self.hits,
-            self.misses,
             self.accuracy,
             self.grade,
             self.fc_type,
-            self.streak,
-            self.max_streak
+            self.streak
         )
