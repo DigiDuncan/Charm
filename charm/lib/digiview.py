@@ -1,6 +1,7 @@
 import functools
 import logging
 import traceback
+from typing import Optional, cast
 
 import arcade
 from arcade import View
@@ -38,10 +39,9 @@ def shows_errors(fn):
 
 
 class DigiView(View):
-    def __init__(self, window: DigiWindow = None, *, back: View = None,
-                 fade_in: float = 0, bg_color = (0, 0, 0)):
-        super().__init__(window)
-        self.window: DigiWindow = self.window  # This is stupid.
+    def __init__(self, *, back: Optional[View] = None, fade_in: float = 0, bg_color = (0, 0, 0)):
+        super().__init__()
+        self.window = cast(DigiWindow, arcade.get_window())
         self.back = back
         self.shown = False
         self.size = self.window.get_size()
@@ -52,13 +52,13 @@ class DigiView(View):
         self.debug_options = {
             "camera_scale": 1,
             "box": False}
-        self._errors: list[list[CharmException, float]] = []  # [error, seconds to show]
+        self._errors: list[tuple[CharmException, float]] = []  # [error, seconds to show]
 
     def on_error(self, error: CharmException):
         offset = len(self._errors) * 4
         error.sprite.center_x += offset
         error.sprite.center_y += offset
-        self._errors.append([error, 3])
+        self._errors.append((error, self.window.time+3))
         arcade.play_sound(self.window.sounds[f"error-{error._icon}"])
 
     def setup(self):
@@ -96,10 +96,8 @@ class DigiView(View):
 
     def on_update(self, delta_time: float):
         self.local_time += delta_time
-        for li in self._errors:
-            li[1] -= delta_time
-            if li[1] <= 0:
-                self._errors.remove(li)
+        now = self.window.time
+        self._errors[:] = [(err, expiry) for err, expiry in self._errors if now < expiry]
 
     def on_draw(self):
         if self.local_time <= self.fade_in:

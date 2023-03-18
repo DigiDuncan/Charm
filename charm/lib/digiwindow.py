@@ -1,21 +1,18 @@
 import logging
 import statistics
-import typing
 
 import arcade
 import pyglet
 from charm.lib.discordstatus import DiscordStatus
+from charm.lib.digiview import DigiView
 
 from charm.objects.debug_log import DebugLog
 
 logger = logging.getLogger("charm")
 
-if typing.TYPE_CHECKING:
-    from charm.lib.digiview import DigiView
-
 
 class DigiWindow(arcade.Window):
-    def __init__(self, size: tuple[int, int], title: str, fps_cap: int, initial_view: "DigiView"):
+    def __init__(self, size: tuple[int, int], title: str, fps_cap: int, initial_view: DigiView):
         super().__init__(size[0], size[1], title, update_rate=1/fps_cap, enable_polling=True)
 
         self.discord_status = DiscordStatus()
