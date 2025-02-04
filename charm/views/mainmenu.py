@@ -19,11 +19,13 @@ from charm.views.visualizertest import VisualizerView
 from charm.views.options import OptionsView
 from charm.views.unifiedmenu import UnifiedSongMenuView
 from charm.views.settings import SettingsView
+from charm.views.mint_debug import MintView
 
 class MainMenuView(DigiView):
     def __init__(self, back: DigiView):
         super().__init__(fade_in=1, back=back)
         self.menu = MainMenu([
+            MainMenuItem("Mint", "test", MintView(back=self)),
             MainMenuItem("Play", "songs", UnifiedSongMenuView(back=self)),
             # MainMenuItem("Playlists", "playlists", None),
             MainMenuItem("Options", "options", OptionsView(back=self)),
