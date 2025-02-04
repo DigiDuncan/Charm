@@ -1,8 +1,7 @@
 import logging
 
-from charm.core.charm import GumWrapper
-from charm.core.digiview import DigiView, shows_errors, disable_when_focus_lost
-from charm.core.keymap import keymap
+from charm.core.digiview import DigiView, shows_errors
+from charm.core.keymap import KeyMap
 
 logger = logging.getLogger("charm")
 
