@@ -23,6 +23,9 @@ from enum import Enum
 from typing import NamedTuple
 from arcade import Rect, LRBT, XYWH, Vec2
 
+# -- DEBUG --
+from arcade import draw_rect_outline, draw_point
+
 # Rects generally with UV values (0.0 - 1.0)
 type Anchors = Rect
 
@@ -104,6 +107,8 @@ class Element:
         # This elements children:
         self._children: list[Element] = []
 
+    # |-- UTIL METHODS --|
+
     # -- LAYOUT PROPERTIES --
 
     @property
@@ -112,6 +117,9 @@ class Element:
     
     @anchors.setter
     def anchors(self, anchors: Anchors) -> None:
+        if anchors == self._anchors:
+            return
+
         self._anchors = anchors
         self._recompute_rect()
 
@@ -123,6 +131,9 @@ class Element:
     
     @offsets.setter
     def offsets(self, offsets: Offsets) -> None:
+        if offsets == self._offsets:
+            return
+
         self._offsets = offsets
         self._recompute_rect()
 
@@ -134,6 +145,9 @@ class Element:
     
     @size.setter
     def size(self, size: Vec2) -> None:
+        if size == self._size:
+            return
+
         self._size = size
         self._rect = XYWH(self._position.x, self._position.y, size.x, size.y)
         self._recompute_offsets()
@@ -146,6 +160,9 @@ class Element:
     
     @position.setter
     def position(self, position: Vec2) -> None:
+        if position == self._position:
+            return
+
         self._position = position
         self._rect = XYWH(position.x, position.y, self._size.x, self._size.y)
         self._recompute_offsets()
@@ -158,6 +175,9 @@ class Element:
     
     @rect.setter
     def rect(self, rect: Rect) -> None:
+        if rect == self._rect:
+            return
+
         self._rect = rect
         
         self._position = rect.center
@@ -172,19 +192,38 @@ class Element:
     
     @bounds.setter
     def bounds(self, bounds: Rect) -> None:
+        if bounds == self._bounds:
+            return
+
         self._bounds = bounds
         self._recompute_rect()
 
         self._has_changed_layout = True
 
-    # -- UTIL LAYOUT METHODS --
+    @property
+    def min_size(self) -> Vec2:
+        return self._min_size
+    
+    @min_size.setter
+    def min_size(self, min_size: Vec2) -> None:
+        if min_size == self._min_size:
+            return
+        
+        if self._bounds is not None and (self._min_size.x < min_size.x or self._min_size.y < min_size.y):
+            self._min_size = min_size
+            self.set_bounds(self._bounds)
+            return
+
+        self._min_size = min_size
+
+    # -- LAYOUT METHODS --
 
     def _recompute_rect(self):
         if self._bounds is None:
             left = right = bottom = top = 0.0
         else:
-            left, bottom = self._bounds.uv_to_position(self.anchors.bottom_left)
-            right, top = self._bounds.uv_to_position(self.anchors.top_right)
+            left, bottom = self._bounds.uv_to_position(self._anchors.bottom_left)
+            right, top = self._bounds.uv_to_position(self._anchors.top_right)
         
         offsets = self._offsets
 
@@ -196,8 +235,8 @@ class Element:
         if self._bounds is None:
             left = right = bottom = top = 0.0
         else:
-            left, bottom = self._bounds.uv_to_position(self.anchors.bottom_left)
-            right, top = self._bounds.uv_to_position(self.anchors.top_right)
+            left, bottom = self._bounds.uv_to_position(self._anchors.bottom_left)
+            right, top = self._bounds.uv_to_position(self._anchors.top_right)
 
         rect = self.rect
 
@@ -213,7 +252,6 @@ class Element:
         Args:
             raw_bounds: The bounds rect that might be large enough for the rect.
         """
-
         l, r, b, t = raw_bounds.lrbt
 
         if raw_bounds.width < self._min_size.x:
@@ -238,7 +276,9 @@ class Element:
 
         self.bounds = LRBT(l, r, b, t)
 
-    # -- ELEMENT FUNCTIONALITY --
+    # |-- ELEMENT FUNCTIONALITY --|
+
+    # -- TREE METHODS --
 
     # Most of the element methods have a public private pair. This saves on boilerplate.
     def recompute_layout(self, force: bool = False, waterfall: bool = False):
@@ -253,4 +293,69 @@ class Element:
 
     def __recompute_layout__(self):
         # The overridable function that defines how children recieve their bounds from their parent.
-        pass
+        rect = self._rect
+        for child in self._children:
+            child.set_bounds(rect)
+
+    # -- CHILD METHODS --
+
+    def add_child(self, child: Element) -> bool:
+        if child in self._children:
+            return False
+        self._children.append(child)
+        self._has_changed_layout = True
+        return True
+
+    def remove_child(self, child: Element) -> bool:
+        if child not in self._children:
+            return False
+        self._children.remove(child)
+        self._has_changed_layout = True
+        return True
+
+    def move_child(self, child: Element, idx: int) -> bool:
+        if child not in self._children:
+            return False
+        if -len(self._children) <= idx < len(self._children):
+            old = self._children.index(child)
+            self._children[idx], self._children[old] = self._children[old], self._children[idx]
+            self._has_changed_layout = True
+            return True
+        return False
+
+    def insert_child(self, child: Element, idx: int) -> bool:
+        if child in self._children:
+            return False
+        self._children.insert(idx, child)
+        self._has_changed_layout = True
+        return True
+
+    def get_child_idx(self, child: Element) -> int:
+        return self._children.index(child)
+
+    def has_child(self, child: Element) -> bool:
+        return child in self._children
+    
+
+def debug_draw_element(element: Element, *, waterfall: bool = True, bounds: bool = False, rect: bool = True, anchors: bool = True):
+    if bounds and element.bounds is not None:
+        draw_rect_outline(element.bounds, (255, 0, 0), 2)
+
+    if rect:
+        draw_rect_outline(element.rect, (0, 255, 0), 2)
+
+    if anchors:
+        if element._bounds is None:
+            left = right = bottom = top = 0.0
+        else:
+            left, bottom = element._bounds.uv_to_position(element._anchors.bottom_left)
+            right, top = element._bounds.uv_to_position(element._anchors.top_right)
+
+        draw_point(left, bottom, (0, 0, 255), 4)
+        draw_point(left, top, (0, 0, 255), 4)
+        draw_point(right, bottom, (0, 0, 255), 4)
+        draw_point(right, top, (0, 0, 255), 4)
+
+    if waterfall:
+        for child in element._children:
+            debug_draw_element(child, waterfall=waterfall, bounds=bounds, rect=rect, anchors=anchors)
