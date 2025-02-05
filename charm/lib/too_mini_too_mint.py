@@ -18,6 +18,8 @@ non built-in class methods with doublescores are 'abstract' and can be overridde
 subclasses. Such as `__recompute_layout__`.
 """
 
+# TODO: Aspect ratio minimum / scaling (yoink from OSU!)
+
 from __future__ import annotations
 from enum import Enum
 from typing import NamedTuple
@@ -39,6 +41,7 @@ class Offsets(NamedTuple):
 # Useful anchor presets.
 class AnchorPresets:
     FULL = LRBT(0.0, 1.0, 0.0, 1.0)
+    CENTER = LRBT(0.5, 0.5, 0.5, 0.5)
 
     LEFT = LRBT(0.0, 0.0, 0.0, 1.0)
     RIGHT = LRBT(1.0, 1.0, 0.0, 1.0)
