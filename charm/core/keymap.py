@@ -452,7 +452,10 @@ class KeyMap:
                 del self.keys[ctx][key]
 
     def set_controller(self, idx: int = -1) -> None:
-        controllers = get_controllers()
+        try:
+            controllers = get_controllers()
+        except AttributeError:
+            return
         try:
             self.bind_controller(controllers[idx])
         except IndexError:

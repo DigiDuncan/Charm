@@ -1,7 +1,6 @@
 from importlib.resources import files, as_file
 
 import pyglet
-import arcade_accelerate
 import arcade
 
 import charm.data.fonts
@@ -13,7 +12,6 @@ from charm.core.digiwindow import DigiWindow
 
 # Fix font
 pyglet.options["win32_disable_shaping"] = True
-arcade_accelerate.bootstrap()
 
 
 with as_file(files(charm.data.fonts) / "bananaslipplus.otf") as p:
