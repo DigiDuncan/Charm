@@ -15,7 +15,7 @@ import logging
 
 import arcade
 from imgui_bundle import imgui
-from arcade import LBWH, LRBT, View, SpriteList
+from arcade import LBWH, XYWH, View, SpriteList
 
 from charm.core.charm import CharmColors
 from charm.lib.anim import ease_linear, perc
@@ -129,7 +129,7 @@ class DigiView(View):
 
     def on_resize(self, width: int, height: int) -> None:
         self.window.camera.position = self.window.center
-        self.window.camera.projection = LRBT(-width/2, width/2, -height/2, height/2)
+        self.window.camera.projection = XYWH(0.0, 0.0, width, height)
         self.window.camera.viewport = LBWH(0, 0, width, height)
         self.fader.on_resize(width, height)
 
