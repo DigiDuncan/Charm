@@ -75,6 +75,7 @@ class DebugMenu:
 
     def on_resize(self, width: int, height: int) -> None:
         self.fps_counter.on_resize(width, height)
+        self.camera.on_resize(width, height)
         self.debug_label.position = (0, height - self.fps_counter.fps_label.content_height - 5, 0)
         self.alpha_label.position = (width - 5, 5, 0)
 
