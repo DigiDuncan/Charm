@@ -17,16 +17,27 @@ class MintView(DigiView):
         super().__init__(fade_in=1, back=back)
         self.deboobop = Sprite(files(imgs) / "menu_layout_test_blur.png", 1.0, self.center_x, self.center_y)
 
-        self.root = Element()
-        self.root.set_bounds(self.window.rect)
+        self.root = Element(bounds=self.window.rect)
 
-        self.list = Element()
-        self.list.anchors = LRBT(0.0, 2.0/3.0, 0.0, 1.0)
+        self.list = Element(anchors=LRBT(0.0, 2.0/3.0, 0.0, 1.0))
         self.root.add_child(self.list)
 
-        self.panel = Element()
-        self.panel.anchors = LRBT(2.0/3.0, 1.0, 0.0, 1.0)
+        self.panel = Element(anchors=LRBT(2.0/3.0, 1.0, 0.0, 1.0))
         self.root.add_child(self.panel)
+
+        self.search = Element(anchors=LRBT(0.0, 1.0, 1.0, 1.0), offsets=Offsets(13.0, -13.0, -51.0, -10.0))
+        self.topic = Element(anchors=LRBT(0.0, 1.0, 1.0, 1.0), offsets=Offsets(25.0, -25.0, -81.0, -56.0))
+        self.album_art = Element(anchors=LRBT(0.0, 1.0, 0.5, 1.0), offsets=Offsets(0.0, 0.0, 45.0, -93.0))
+        self.title = Element(anchors=LRBT(0.0, 1.0, 0.5, 0.5), offsets=Offsets(0.0, 0.0, 0.0, 30.0))
+        self.artists = Element(anchors=LRBT(0.0, 1.0, 0.5, 0.5), offsets=Offsets(0.0, 0.0, -26.0, -6.0))
+        self.album = Element(anchors=LRBT(0.0, 1.0, 0.5, 0.5), offsets=Offsets(0.0, 0.0, -52.0, -32.0))
+        self.charter = Element(anchors=LRBT(0.0, 1.0, 0.5, 0.5), offsets=Offsets(0.0, 0.0, -74.0, -58.0))
+        self.metadata = Element(anchors=LRBT(0.0, 1.0, 0.0, 0.5), offsets=Offsets(31.0, -31.0, 100.0, -100.0))
+        self.best = Element(anchors=LRBT(0.0, 1.0, 0.0, 0.0), offsets=Offsets(0.0, 0.0, 15.0, 75.0))
+
+        self.panel.add_children(
+            (self.search, self.topic, self.album_art, self.title, self.artists, self.album, self.charter, self.metadata, self.best)
+        )
 
     @shows_errors
     def setup(self) -> None:
