@@ -158,6 +158,10 @@ class ChartLoader:
             self._grown = True
 
     def _load_path_chartsets(self, parsers: Sequence[type[Parser]], chartset_path: Path, metadata: ChartSetMetadata, directory_metadata: ChartSetMetadata | None = None):
+        if not [item for item in chartset_path.iterdir() if item.is_file()]:
+            # If there are no files in the dir then we just skip it.
+            return
+
         chartset_metadata = ChartSetMetadata(chartset_path)
         charts = []
 
